@@ -1,6 +1,8 @@
 declare class Chart {
     constructor(ctx: CanvasRenderingContext2D, config: any);
 }
+declare function initializeTheme(): void;
+declare function initializeKeyboardShortcuts(): void;
 interface ChartDataset {
     label: string;
     data: (number | null)[];
@@ -69,8 +71,19 @@ interface ChartOptions {
         mode: string;
     };
 }
+declare let symptomChart: any;
 declare const symptomCtx: CanvasRenderingContext2D | null;
 declare const fallCtx: CanvasRenderingContext2D | null;
+interface DoseTime {
+    time: string;
+    label: string;
+    chartIndex: number;
+}
+declare const doseTimes: DoseTime[];
+declare function getCurrentDose(): DoseTime | null;
+declare function markDoseAsTaken(doseTime: string): void;
+declare function addMedicationMarker(chartIndex: number): void;
 declare const logDoseButton: HTMLButtonElement;
 declare const logSymptomButton: HTMLButtonElement;
+declare const notesTextarea: HTMLTextAreaElement;
 //# sourceMappingURL=script.d.ts.map

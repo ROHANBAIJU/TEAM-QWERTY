@@ -3,11 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Parkinson's Disease Monitor</title>
+    <title>Parkinson's Disease Monitor - StanceSense</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
+    <!-- Theme Toggle Button -->
+    <button class="theme-toggle" id="themeToggle" aria-label="Toggle light/dark mode" title="Switch to light mode (Alt+T)">
+        🌙
+    </button>
     <!-- Left Sidebar Navigation -->
     <aside class="sidebar-nav">
         <div class="sidebar-header">
@@ -20,8 +27,8 @@
                 <span class="menu-text">Dashboard</span>
             </a>
             <a href="#" class="menu-item">
-                <span class="menu-icon">🕐</span>
-                <span class="menu-text">Patient History</span>
+                <span class="menu-icon">�</span>
+                <span class="menu-text">Patient Profile</span>
             </a>
             <a href="#" class="menu-item">
                 <span class="menu-icon">⚙️</span>
@@ -33,8 +40,8 @@
     <div class="container">
         <!-- Header Buttons -->
         <div class="header-buttons">
-            <button class="btn-log-dose">⚡ LOG DOSE</button>
-            <button class="btn-log-symptom">💊 LOG SYMPTOM</button>
+            <button class="btn-log-dose" aria-label="Log medication dose" title="Log when you take your medication">LOG DOSE</button>
+            <button class="btn-log-symptom" aria-label="Log symptoms" title="Record your current symptoms">LOG SYMPTOM</button>
         </div>
 
         <!-- Main Grid Layout -->
@@ -120,6 +127,9 @@
                     <div class="chart-legend">
                         <span class="legend-item"><span class="dot blue"></span> Your Symptoms</span>
                         <span class="legend-item"><span class="dot yellow"></span> Medication Taken</span>
+                    </div>
+                    <div class="chart-summary">
+                        <strong>📋 Summary:</strong> Your symptoms were <strong>stable today</strong>. Peak levels occurred at <strong>6AM</strong> and <strong>4PM</strong>. You're doing well compared to yesterday.
                     </div>
                 </div>
                 
@@ -218,7 +228,7 @@
                     <div class="doses-header">Today's Doses</div>
                     <div class="dose-item taken">
                         <div class="dose-time">8:00 AM</div>
-                        <div class="dose-name">Levodopa Dose</div>
+                        <div class="dose-name">Morning Dose</div>
                         <span class="dose-status">Taken</span>
                     </div>
                     <div class="dose-item">
