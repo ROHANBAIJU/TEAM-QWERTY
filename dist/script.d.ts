@@ -86,4 +86,5 @@ declare function addMedicationMarker(chartIndex: number): void;
 declare const logDoseButton: HTMLButtonElement;
 declare const logSymptomButton: HTMLButtonElement;
 declare const notesTextarea: HTMLTextAreaElement;
+declare function initializeSaveNote(): void;
 //# sourceMappingURL=script.d.ts.map

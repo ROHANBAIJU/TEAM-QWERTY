@@ -373,6 +373,74 @@ if (notesTextarea) {
         console.log('Speech recognition not supported in this browser');
     }
 }
+// Save Note Functionality
+function initializeSaveNote() {
+    const saveNoteBtn = document.getElementById('saveNoteBtn');
+    const noteTextarea = document.getElementById('noteTextarea');
+    const notesList = document.querySelector('.notes-list');
+    if (saveNoteBtn && noteTextarea && notesList) {
+        // Enable/disable button based on textarea content
+        noteTextarea.addEventListener('input', () => {
+            saveNoteBtn.disabled = noteTextarea.value.trim().length === 0;
+        });
+        // Initially disable if empty
+        saveNoteBtn.disabled = noteTextarea.value.trim().length === 0;
+        saveNoteBtn.addEventListener('click', () => {
+            const noteContent = noteTextarea.value.trim();
+            if (noteContent) {
+                // Create new note entry
+                const noteEntry = document.createElement('div');
+                noteEntry.className = 'note-entry';
+                // Get current timestamp
+                const now = new Date();
+                const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                const minutes = now.getMinutes() < 10 ? '0' + now.getMinutes() : now.getMinutes();
+                const hours = now.getHours() > 12 ? now.getHours() - 12 : (now.getHours() === 0 ? 12 : now.getHours());
+                const ampm = now.getHours() >= 12 ? 'PM' : 'AM';
+                const timestamp = `${months[now.getMonth()]} ${now.getDate()}, ${hours}:${minutes} ${ampm}`;
+                noteEntry.innerHTML = `
+                    <div class="note-content">${noteContent}</div>
+                    <div class="note-timestamp">⏰ ${timestamp}</div>
+                `;
+                // Add to top of notes list with animation
+                noteEntry.style.opacity = '0';
+                noteEntry.style.transform = 'translateY(-10px)';
+                notesList.insertBefore(noteEntry, notesList.firstChild);
+                // Animate in
+                setTimeout(() => {
+                    noteEntry.style.transition = 'all 0.3s ease';
+                    noteEntry.style.opacity = '1';
+                    noteEntry.style.transform = 'translateY(0)';
+                }, 10);
+                // Clear textarea
+                noteTextarea.value = '';
+                saveNoteBtn.disabled = true;
+                // Show success feedback
+                const originalText = saveNoteBtn.innerHTML;
+                saveNoteBtn.innerHTML = '✓ SAVED!';
+                saveNoteBtn.style.background = 'var(--accent-success)';
+                setTimeout(() => {
+                    saveNoteBtn.innerHTML = originalText;
+                }, 2000);
+            }
+        });
+        // Also allow Enter key to save (Ctrl+Enter or Cmd+Enter)
+        noteTextarea.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                e.preventDefault();
+                if (!saveNoteBtn.disabled) {
+                    saveNoteBtn.click();
+                }
+            }
+        });
+    }
+}
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', () => {
+    initializeTheme();
+    initializeKeyboardShortcuts();
+    initializeSaveNote();
+});
 // Animation on load
 window.addEventListener('load', () => {
     const cards = document.querySelectorAll('.card');

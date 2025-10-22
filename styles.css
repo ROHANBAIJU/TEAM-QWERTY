@@ -17,10 +17,10 @@
     --shadow-color: rgba(0, 0, 0, 0.5);
     
     /* Base font size for accessibility */
-    --font-size-base: 18px;
-    --font-size-large: 22px;
-    --font-size-xlarge: 28px;
-    --font-size-small: 16px;
+    --font-size-base: 14px;
+    --font-size-large: 18px;
+    --font-size-xlarge: 22px;
+    --font-size-small: 12px;
 }
 
 /* Light Mode Theme */
@@ -176,11 +176,12 @@ body {
 }
 
 .container {
-    max-width: 1600px;
+    max-width: 2400px;
     margin: 0 auto;
-    padding: 20px;
+    padding: 15px;
     margin-left: 240px;
     flex: 1;
+    zoom: 0.85;
 }
 
 /* Header Buttons - Enhanced for Motor Accessibility */
@@ -193,19 +194,19 @@ body {
 .btn-log-dose,
 .btn-log-symptom {
     flex: 1;
-    min-height: 80px;
-    padding: 24px 32px;
-    font-size: 24px;
+    min-height: 60px;
+    padding: 18px 24px;
+    font-size: 18px;
     font-weight: 700;
-    border: 4px solid var(--accent-primary);
-    border-radius: 16px;
+    border: 3px solid var(--accent-primary);
+    border-radius: 12px;
     cursor: pointer;
     transition: all 0.2s ease;
     position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 12px;
+    gap: 10px;
 }
 
 .btn-log-dose {
@@ -240,12 +241,12 @@ body {
 /* Button Icons */
 .btn-log-dose::before {
     content: "💊";
-    font-size: 32px;
+    font-size: 24px;
 }
 
 .btn-log-symptom::before {
     content: "📝";
-    font-size: 32px;
+    font-size: 24px;
 }
 
 /* Keyboard Shortcut Hints */
@@ -287,11 +288,11 @@ body {
 /* Card Base Styles - Enhanced Contrast */
 .card {
     background: var(--bg-card);
-    border: 3px solid var(--border-color);
-    border-radius: 20px;
-    padding: 28px;
+    border: 2px solid var(--border-color);
+    border-radius: 16px;
+    padding: 20px;
     backdrop-filter: blur(10px);
-    box-shadow: 0 6px 20px var(--shadow-color);
+    box-shadow: 0 4px 16px var(--shadow-color);
     transition: all 0.3s ease;
 }
 
@@ -420,15 +421,15 @@ body {
 }
 
 #symptomChart {
-    max-height: 400px;
-    height: 400px;
+    max-height: 350px;
+    height: 350px;
 }
 
 .chart-legend {
     display: flex;
-    gap: 28px;
-    margin-top: 16px;
-    font-size: 18px;
+    gap: 20px;
+    margin-top: 12px;
+    font-size: 14px;
     flex-shrink: 0;
     flex-wrap: wrap;
 }
@@ -866,9 +867,9 @@ body {
 }
 
 .circular-progress {
-    width: 120px;
-    height: 120px;
-    margin: 20px auto;
+    width: 100px;
+    height: 100px;
+    margin: 15px auto;
     position: relative;
 }
 
@@ -971,15 +972,15 @@ body {
 
 /* Severity Card - Enhanced for Readability */
 .severity-value {
-    font-size: 64px;
+    font-size: 48px;
     font-weight: 900;
-    margin-bottom: 16px;
+    margin-bottom: 12px;
     line-height: 1.1;
     color: var(--text-primary);
 }
 
 .severity-label {
-    font-size: 24px;
+    font-size: 18px;
     color: var(--text-muted);
     font-weight: 600;
 }
@@ -987,9 +988,9 @@ body {
 .severity-metrics {
     display: flex;
     justify-content: space-between;
-    gap: 20px;
-    margin-top: 35px;
-    padding-top: 20px;
+    gap: 15px;
+    margin-top: 25px;
+    padding-top: 15px;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
@@ -999,20 +1000,20 @@ body {
 }
 
 .metric-label {
-    font-size: 18px;
+    font-size: 14px;
     color: var(--text-muted);
-    margin-bottom: 12px;
+    margin-bottom: 8px;
     font-weight: 600;
 }
 
 .metric-value {
-    font-size: 36px;
+    font-size: 28px;
     font-weight: 900;
     color: var(--text-primary);
 }
 
 .unit {
-    font-size: 22px;
+    font-size: 16px;
     color: var(--text-muted);
     font-weight: 600;
 }
@@ -1101,59 +1102,114 @@ body {
 .note-input {
     margin-top: auto;
     position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
 }
 
 .note-input textarea {
     width: 100%;
-    min-height: 60px;
-    background: rgba(0, 0, 0, 0.3);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 8px;
-    padding: 12px;
-    padding-right: 50px;
-    color: white;
+    min-height: 80px;
+    background: var(--bg-secondary);
+    border: 3px solid var(--border-color);
+    border-radius: 12px;
+    padding: 16px;
+    padding-right: 60px;
+    color: var(--text-primary);
     font-family: inherit;
-    font-size: 14px;
+    font-size: 18px;
     resize: vertical;
     transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .note-input textarea::placeholder {
-    color: rgba(255, 255, 255, 0.5);
+    color: var(--text-muted);
+    opacity: 0.7;
 }
 
 .note-input textarea:focus {
     outline: none;
-    border-color: #3b82f6;
+    border-color: var(--accent-info);
+    box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2);
+}
+
+/* Save Note Button */
+.btn-save-note {
+    width: 100%;
+    min-height: 60px;
+    padding: 16px 24px;
+    font-size: 20px;
+    font-weight: 700;
+    border: 3px solid var(--accent-success);
+    border-radius: 12px;
+    background: var(--accent-success);
+    color: #ffffff;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    box-shadow: 0 4px 12px var(--shadow-color);
+}
+
+.btn-save-note:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px var(--shadow-color);
+}
+
+.btn-save-note:active {
+    transform: translateY(0) scale(0.98);
+}
+
+.btn-save-note:focus {
+    outline: 4px solid var(--accent-primary);
+    outline-offset: 2px;
+}
+
+.btn-save-note:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
 }
 
 /* Voice Button */
 .voice-button {
     position: absolute;
-    right: 8px;
-    bottom: 8px;
-    width: 40px;
-    height: 40px;
-    border: none;
+    right: 12px;
+    top: 12px;
+    width: 48px;
+    height: 48px;
+    border: 3px solid var(--accent-info);
     border-radius: 50%;
-    background: rgba(59, 130, 246, 0.2);
-    color: white;
-    font-size: 20px;
+    background: var(--bg-card);
+    color: var(--accent-info);
+    font-size: 24px;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     transition: all 0.3s ease;
     z-index: 10;
+    box-shadow: 0 2px 8px var(--shadow-color);
 }
 
 .voice-button:hover {
-    background: rgba(59, 130, 246, 0.3);
+    background: var(--accent-info);
+    color: #ffffff;
     transform: scale(1.1);
+    box-shadow: 0 4px 12px var(--shadow-color);
+}
+
+.voice-button:focus {
+    outline: 3px solid var(--accent-primary);
+    outline-offset: 2px;
 }
 
 .voice-button.recording {
-    background: rgba(239, 68, 68, 0.3);
+    background: var(--accent-danger);
+    border-color: var(--accent-danger);
+    color: #ffffff;
     animation: pulse 1.5s infinite;
 }
 
@@ -1564,9 +1620,24 @@ body {
     }
     
     .note-input textarea {
+        min-height: 60px;
+        font-size: 16px;
+        padding: 12px;
+        padding-right: 60px;
+    }
+    
+    .btn-save-note {
         min-height: 50px;
-        font-size: 13px;
-        padding: 10px;
+        font-size: 18px;
+        padding: 12px 20px;
+    }
+    
+    .voice-button {
+        width: 44px;
+        height: 44px;
+        font-size: 20px;
+        right: 10px;
+        top: 10px;
     }
 }
 
