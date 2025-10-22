@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parkinson's Disease Monitor</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Header Buttons -->
+        <div class="header-buttons">
+            <button class="btn-log-dose">⚡ LOG DOSE</button>
+            <button class="btn-log-symptom">💊 LOG SYMPTOM</button>
+        </div>
+
+        <!-- Main Grid Layout -->
+        <div class="dashboard-grid">
+            <!-- Left Sidebar -->
+            <div class="sidebar">
+                <!-- Medication Status -->
+                <div class="card status-card">
+                    <div class="status-icon success">✓</div>
+                    <div class="status-info">
+                        <div class="status-label">Medication Status</div>
+                        <div class="status-value">Feeling Good</div>
+                    </div>
+                </div>
+
+                <!-- Next Medication -->
+                <div class="card next-med-card">
+                    <div class="status-icon clock">⏰</div>
+                    <div class="status-info">
+                        <div class="status-label">Next Medication</div>
+                        <div class="status-value time">Due at 2:00 PM</div>
+                    </div>
+                </div>
+
+                <!-- Safety Check -->
+                <div class="card safety-card">
+                    <div class="status-icon check">✓</div>
+                    <div class="status-info">
+                        <div class="status-label">Safety Check</div>
+                        <div class="status-value">No Recent Falls</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Center Chart -->
+            <div class="main-chart">
+                <div class="card chart-card">
+                    <div class="chart-header">
+                        <h3>📊 Your Symptom Trends (Last 24 Hours)</h3>
+                    </div>
+                    <canvas id="symptomChart"></canvas>
+                    <div class="chart-legend">
+                        <span class="legend-item"><span class="dot blue"></span> Your Symptoms</span>
+                        <span class="legend-item"><span class="dot yellow"></span> Medication Taken</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Sidebar -->
+            <div class="right-sidebar">
+                <!-- Streak -->
+                <div class="card streak-card">
+                    <div class="streak-icon">🔥</div>
+                    <div class="streak-info">
+                        <div class="streak-label">Your Progress This Week</div>
+                        <div class="streak-value">85%</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 85%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Current Streak -->
+                <div class="card current-streak">
+                    <div class="streak-small">
+                        <div class="label">🎯 Current Streak</div>
+                        <div class="value">7 Days</div>
+                    </div>
+                </div>
+
+                <!-- Last Check -->
+                <div class="card last-check">
+                    <div class="label">🕐 Last Safety Check</div>
+                    <div class="value">Last fall: 30 days Ago</div>
+                </div>
+
+                <!-- Today's Doses -->
+                <div class="card doses-card">
+                    <div class="doses-header">Today's Doses</div>
+                    <div class="dose-item taken">
+                        <div class="dose-time">8:00 AM</div>
+                        <div class="dose-name">Levodopa Dose</div>
+                        <span class="dose-status">Taken</span>
+                    </div>
+                    <div class="dose-item">
+                        <div class="dose-time">2:00 PM</div>
+                        <div class="dose-name">Afternoon Dose</div>
+                    </div>
+                    <div class="dose-item">
+                        <div class="dose-time">8:00 PM</div>
+                        <div class="dose-name">Evening Dose</div>
+                    </div>
+                </div>
+
+                <!-- Headspace Status -->
+                <div class="card headspace-card">
+                    <div class="headspace-header">Headspace Status</div>
+                    <div class="headspace-item good">
+                        <div class="headspace-name">Mood check</div>
+                        <div class="headspace-status">Feeling positive</div>
+                        <span class="headspace-percent">85%</span>
+                    </div>
+                    <div class="headspace-item warning">
+                        <div class="headspace-name">Brain Health</div>
+                        <div class="headspace-status">Needs monitoring</div>
+                        <span class="headspace-percent">62%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Row Cards -->
+            <div class="bottom-card progression-card">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Parkinson's Progression</h3>
+                        <span class="badge">STABLE</span>
+                    </div>
+                    <div class="progression-value">42% <span class="trend">↓ 2% vs yesterday</span></div>
+                    <div class="progression-label">Tremor: <span class="risk">Balanced</span></div>
+                    <div class="circular-progress">
+                        <svg viewBox="0 0 100 100">
+                            <circle cx="50" cy="50" r="45" class="progress-bg"></circle>
+                            <circle cx="50" cy="50" r="45" class="progress-circle" style="stroke-dashoffset: 70"></circle>
+                        </svg>
+                        <div class="progress-icon">⚡</div>
+                    </div>
+                    <div class="symptom-breakdown">
+                        <div class="breakdown-header">Symptom Breakdown</div>
+                        <div class="symptom-bar">
+                            <div class="symptom-name">Tremor</div>
+                            <div class="bar"><div class="bar-fill orange" style="width: 48%"></div></div>
+                            <div class="symptom-percent">48%</div>
+                        </div>
+                        <div class="symptom-bar">
+                            <div class="symptom-name">Rigidity</div>
+                            <div class="bar"><div class="bar-fill yellow" style="width: 38%"></div></div>
+                            <div class="symptom-percent">38%</div>
+                        </div>
+                        <div class="symptom-bar">
+                            <div class="symptom-name">Slowness</div>
+                            <div class="bar"><div class="bar-fill blue" style="width: 46%"></div></div>
+                            <div class="symptom-percent">46%</div>
+                        </div>
+                        <div class="symptom-bar">
+                            <div class="symptom-name">Gait</div>
+                            <div class="bar"><div class="bar-fill purple" style="width: 40%"></div></div>
+                            <div class="symptom-percent">40%</div>
+                        </div>
+                    </div>
+                    <div class="last-assessment">Last assessment: 2 days ago<br>Next assessment: In 3 days</div>
+                </div>
+            </div>
+
+            <div class="bottom-card severity-card">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Muscle Rigidity Score</h3>
+                        <span class="badge secondary">Primary</span>
+                    </div>
+                    <div class="severity-value">54% <span class="severity-label">Severity</span></div>
+                    <div class="severity-metrics">
+                        <div class="metric">
+                            <div class="metric-label">Morning</div>
+                            <div class="metric-value">3.2 <span class="unit">/ 5</span></div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Afternoon</div>
+                            <div class="metric-value">2.1 <span class="unit">/ 5</span></div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Evening</div>
+                            <div class="metric-value">2.8 <span class="unit">/ 5</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bottom-card events-card">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Daily Fall Events</h3>
+                        <span class="badge warning">⚠️ 3 this week</span>
+                    </div>
+                    <canvas id="fallChart"></canvas>
+                    <div class="alert-box">
+                        <span class="alert-icon">⚠️</span>
+                        <span class="alert-text">Moderate Risk: Consider post-dosing supervision</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Notes Section -->
+        <div class="notes-section">
+            <div class="card notes-card">
+                <h3>📋 My Notes & Symptoms</h3>
+                <p class="note-text">Took fatigue conditions and observations</p>
+                <div class="note-input">
+                    <textarea placeholder="Add new entry, getting tired of food this morning"></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="dist/script.js"></script>
+</body>
+</html>
