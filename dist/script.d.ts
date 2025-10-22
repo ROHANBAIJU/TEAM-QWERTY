@@ -87,4 +87,5 @@ declare const logDoseButton: HTMLButtonElement;
 declare const logSymptomButton: HTMLButtonElement;
 declare const notesTextarea: HTMLTextAreaElement;
 declare function initializeSaveNote(): void;
+declare function initializeLogout(): void;
 //# sourceMappingURL=script.d.ts.map

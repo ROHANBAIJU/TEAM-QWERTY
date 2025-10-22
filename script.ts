@@ -569,11 +569,31 @@ function initializeSaveNote(): void {
     }
 }
 
+// Logout functionality
+function initializeLogout(): void {
+    const logoutBtn = document.querySelector('.menu-item-logout') as HTMLAnchorElement;
+    
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', (e: Event) => {
+            e.preventDefault();
+            
+            // Clear authentication
+            localStorage.removeItem('isLoggedIn');
+            localStorage.removeItem('userName');
+            localStorage.removeItem('userEmail');
+            
+            // Redirect to login page
+            window.location.href = 'login.html';
+        });
+    }
+}
+
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
     initializeTheme();
     initializeKeyboardShortcuts();
     initializeSaveNote();
+    initializeLogout();
 });
 
 // Animation on load

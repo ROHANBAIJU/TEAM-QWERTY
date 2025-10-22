@@ -326,17 +326,22 @@
                     return;
                 }
                 
-                // Demo registration - redirect to index.html
+                // Demo registration - store session and redirect to index.html
+                localStorage.setItem('isLoggedIn', 'true');
+                localStorage.setItem('userName', name);
+                localStorage.setItem('userEmail', email);
                 alert('Account created successfully!\n\nName: ' + name + '\nEmail: ' + email + '\n\nRedirecting to dashboard...');
                 
                 // Redirect to index.html
                 window.location.href = 'index.html';
             } else {
-                // Demo authentication - redirect to index.html
+                // Demo authentication - store session and redirect to index.html
+                localStorage.setItem('isLoggedIn', 'true');
+                localStorage.setItem('userEmail', email);
                 alert('Login successful!\n\nEmail: ' + email + '\n\nRedirecting to dashboard...');
                 
                 // Redirect to index.html
-                window.location.href = '/index.html';
+                window.location.href = 'index.html';
             }
         });
     </script>
