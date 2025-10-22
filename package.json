@@ -6,7 +6,7 @@
   "scripts": {
     "build": "tsc",
     "watch": "tsc --watch",
-    "dev": "tsc --watch"
+    "dev": "tsc && start index.html"
   },
   "keywords": ["parkinson", "health", "dashboard", "monitoring"],
   "author": "",

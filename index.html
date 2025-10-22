@@ -17,8 +17,8 @@
 
         <!-- Main Grid Layout -->
         <div class="dashboard-grid">
-            <!-- Left Sidebar -->
-            <div class="sidebar">
+            <!-- Left Column - Status Cards -->
+            <div class="center-column">
                 <!-- Medication Status -->
                 <div class="card status-card">
                     <div class="status-icon success">✓</div>
@@ -45,9 +45,50 @@
                         <div class="status-value">No Recent Falls</div>
                     </div>
                 </div>
+                
+                <!-- Parkinson's Progression Card moved here -->
+                <div class="card bottom-card-integrated">
+                    <div class="card-header">
+                        <h3>Parkinson's Progression</h3>
+                        <span class="badge">STABLE</span>
+                    </div>
+                    <div class="progression-value">42% <span class="trend">↓ 2% vs yesterday</span></div>
+                    <div class="progression-label">Tremor: <span class="risk">Balanced</span></div>
+                    <div class="circular-progress">
+                        <svg viewBox="0 0 100 100">
+                            <circle cx="50" cy="50" r="45" class="progress-bg"></circle>
+                            <circle cx="50" cy="50" r="45" class="progress-circle" style="stroke-dashoffset: 70"></circle>
+                        </svg>
+                        <div class="progress-icon">⚡</div>
+                    </div>
+                    <div class="symptom-breakdown">
+                        <div class="breakdown-header">Symptom Breakdown</div>
+                        <div class="symptom-bar">
+                            <div class="symptom-name">Tremor</div>
+                            <div class="bar"><div class="bar-fill orange" style="width: 48%"></div></div>
+                            <div class="symptom-percent">48%</div>
+                        </div>
+                        <div class="symptom-bar">
+                            <div class="symptom-name">Rigidity</div>
+                            <div class="bar"><div class="bar-fill yellow" style="width: 38%"></div></div>
+                            <div class="symptom-percent">38%</div>
+                        </div>
+                        <div class="symptom-bar">
+                            <div class="symptom-name">Slowness</div>
+                            <div class="bar"><div class="bar-fill blue" style="width: 46%"></div></div>
+                            <div class="symptom-percent">46%</div>
+                        </div>
+                        <div class="symptom-bar">
+                            <div class="symptom-name">Gait</div>
+                            <div class="bar"><div class="bar-fill purple" style="width: 40%"></div></div>
+                            <div class="symptom-percent">40%</div>
+                        </div>
+                    </div>
+                    <div class="last-assessment">Last assessment: 2 days ago<br>Next assessment: In 3 days</div>
+                </div>
             </div>
 
-            <!-- Center Chart -->
+            <!-- Center - Chart -->
             <div class="main-chart">
                 <div class="card chart-card">
                     <div class="chart-header">
@@ -57,6 +98,55 @@
                     <div class="chart-legend">
                         <span class="legend-item"><span class="dot blue"></span> Your Symptoms</span>
                         <span class="legend-item"><span class="dot yellow"></span> Medication Taken</span>
+                    </div>
+                </div>
+                
+                <!-- Muscle Rigidity Score moved here -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Muscle Rigidity Score</h3>
+                        <span class="badge secondary">Primary</span>
+                    </div>
+                    <div class="severity-value">54% <span class="severity-label">Severity</span></div>
+                    <div class="severity-metrics">
+                        <div class="metric">
+                            <div class="metric-label">Morning</div>
+                            <div class="metric-value">3.2 <span class="unit">/ 5</span></div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Afternoon</div>
+                            <div class="metric-value">2.1 <span class="unit">/ 5</span></div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Evening</div>
+                            <div class="metric-value">2.8 <span class="unit">/ 5</span></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- My Notes & Symptoms moved here -->
+                <div class="card notes-card">
+                    <h3>📋 My Notes & Symptoms</h3>
+                    <p class="note-text">Your logged symptoms and observations</p>
+                    
+                    <!-- Example Notes List -->
+                    <div class="notes-list">
+                        <div class="note-entry">
+                            <div class="note-content">Felt very stiff getting out of bed this morning</div>
+                            <div class="note-timestamp">⏰ Oct 21, 9:00 AM</div>
+                        </div>
+                        <div class="note-entry">
+                            <div class="note-content">Had a good afternoon walk, felt steady</div>
+                            <div class="note-timestamp">⏰ Oct 20, 3:15 PM</div>
+                        </div>
+                        <div class="note-entry">
+                            <div class="note-content">Tremors more noticeable before dinner</div>
+                            <div class="note-timestamp">⏰ Oct 20, 5:45 PM</div>
+                        </div>
+                    </div>
+                    
+                    <div class="note-input">
+                        <textarea placeholder="Add new entry, getting tired of food this morning"></textarea>
                     </div>
                 </div>
             </div>
@@ -121,76 +211,8 @@
                         <span class="headspace-percent">62%</span>
                     </div>
                 </div>
-            </div>
-
-            <!-- Bottom Row Cards -->
-            <div class="bottom-card progression-card">
-                <div class="card">
-                    <div class="card-header">
-                        <h3>Parkinson's Progression</h3>
-                        <span class="badge">STABLE</span>
-                    </div>
-                    <div class="progression-value">42% <span class="trend">↓ 2% vs yesterday</span></div>
-                    <div class="progression-label">Tremor: <span class="risk">Balanced</span></div>
-                    <div class="circular-progress">
-                        <svg viewBox="0 0 100 100">
-                            <circle cx="50" cy="50" r="45" class="progress-bg"></circle>
-                            <circle cx="50" cy="50" r="45" class="progress-circle" style="stroke-dashoffset: 70"></circle>
-                        </svg>
-                        <div class="progress-icon">⚡</div>
-                    </div>
-                    <div class="symptom-breakdown">
-                        <div class="breakdown-header">Symptom Breakdown</div>
-                        <div class="symptom-bar">
-                            <div class="symptom-name">Tremor</div>
-                            <div class="bar"><div class="bar-fill orange" style="width: 48%"></div></div>
-                            <div class="symptom-percent">48%</div>
-                        </div>
-                        <div class="symptom-bar">
-                            <div class="symptom-name">Rigidity</div>
-                            <div class="bar"><div class="bar-fill yellow" style="width: 38%"></div></div>
-                            <div class="symptom-percent">38%</div>
-                        </div>
-                        <div class="symptom-bar">
-                            <div class="symptom-name">Slowness</div>
-                            <div class="bar"><div class="bar-fill blue" style="width: 46%"></div></div>
-                            <div class="symptom-percent">46%</div>
-                        </div>
-                        <div class="symptom-bar">
-                            <div class="symptom-name">Gait</div>
-                            <div class="bar"><div class="bar-fill purple" style="width: 40%"></div></div>
-                            <div class="symptom-percent">40%</div>
-                        </div>
-                    </div>
-                    <div class="last-assessment">Last assessment: 2 days ago<br>Next assessment: In 3 days</div>
-                </div>
-            </div>
-
-            <div class="bottom-card severity-card">
-                <div class="card">
-                    <div class="card-header">
-                        <h3>Muscle Rigidity Score</h3>
-                        <span class="badge secondary">Primary</span>
-                    </div>
-                    <div class="severity-value">54% <span class="severity-label">Severity</span></div>
-                    <div class="severity-metrics">
-                        <div class="metric">
-                            <div class="metric-label">Morning</div>
-                            <div class="metric-value">3.2 <span class="unit">/ 5</span></div>
-                        </div>
-                        <div class="metric">
-                            <div class="metric-label">Afternoon</div>
-                            <div class="metric-value">2.1 <span class="unit">/ 5</span></div>
-                        </div>
-                        <div class="metric">
-                            <div class="metric-label">Evening</div>
-                            <div class="metric-value">2.8 <span class="unit">/ 5</span></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="bottom-card events-card">
+                
+                <!-- Daily Fall Events moved here -->
                 <div class="card">
                     <div class="card-header">
                         <h3>Daily Fall Events</h3>
@@ -205,16 +227,7 @@
             </div>
         </div>
 
-        <!-- Bottom Notes Section -->
-        <div class="notes-section">
-            <div class="card notes-card">
-                <h3>📋 My Notes & Symptoms</h3>
-                <p class="note-text">Took fatigue conditions and observations</p>
-                <div class="note-input">
-                    <textarea placeholder="Add new entry, getting tired of food this morning"></textarea>
-                </div>
-            </div>
-        </div>
+        <!-- Bottom Notes Section removed from here -->
     </div>
 
     <script src="dist/script.js"></script>
