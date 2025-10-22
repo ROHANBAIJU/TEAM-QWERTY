@@ -8,6 +8,28 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
+    <!-- Left Sidebar Navigation -->
+    <aside class="sidebar-nav">
+        <div class="sidebar-header">
+            <div class="logo-icon">📊</div>
+            <span class="logo-text">StanceSense</span>
+        </div>
+        <nav class="sidebar-menu">
+            <a href="#" class="menu-item active">
+                <span class="menu-icon">📈</span>
+                <span class="menu-text">Dashboard</span>
+            </a>
+            <a href="#" class="menu-item">
+                <span class="menu-icon">🕐</span>
+                <span class="menu-text">Patient History</span>
+            </a>
+            <a href="#" class="menu-item">
+                <span class="menu-icon">⚙️</span>
+                <span class="menu-text">Settings</span>
+            </a>
+        </nav>
+    </aside>
+
     <div class="container">
         <!-- Header Buttons -->
         <div class="header-buttons">
@@ -153,30 +175,42 @@
 
             <!-- Right Sidebar -->
             <div class="right-sidebar">
-                <!-- Streak -->
-                <div class="card streak-card">
-                    <div class="streak-icon">🔥</div>
-                    <div class="streak-info">
-                        <div class="streak-label">Your Progress This Week</div>
-                        <div class="streak-value">85%</div>
-                        <div class="progress-bar">
-                            <div class="progress-fill" style="width: 85%"></div>
+                <!-- Progress This Week -->
+                <div class="card progress-week-card">
+                    <div class="progress-week-header">
+                        <div class="progress-icon-large">🏆</div>
+                        <h3>Your Progress This Week</h3>
+                    </div>
+                    
+                    <div class="medication-ontime">
+                        <div class="ontime-header">
+                            <span class="ontime-icon">📈</span>
+                            <span class="ontime-label">Medication On Time</span>
+                        </div>
+                        <div class="ontime-percentage">85%</div>
+                    </div>
+                    
+                    <div class="progress-bar-large">
+                        <div class="progress-fill-large" style="width: 85%"></div>
+                    </div>
+                    
+                    <div class="progress-message">Great job staying on schedule!</div>
+                    
+                    <div class="activity-goal-card">
+                        <div class="activity-icon">📅</div>
+                        <div class="activity-content">
+                            <div class="activity-label">Activity Goal Met</div>
+                            <div class="activity-days">5 / 7 Days</div>
                         </div>
                     </div>
-                </div>
-
-                <!-- Current Streak -->
-                <div class="card current-streak">
-                    <div class="streak-small">
-                        <div class="label">🎯 Current Streak</div>
-                        <div class="value">7 Days</div>
+                    
+                    <div class="safety-record-card">
+                        <div class="safety-icon">🛡️</div>
+                        <div class="safety-content">
+                            <div class="safety-label">Safety Record</div>
+                            <div class="safety-status">Last Fall: <span class="safety-highlight">30 Days Ago</span></div>
+                        </div>
                     </div>
-                </div>
-
-                <!-- Last Check -->
-                <div class="card last-check">
-                    <div class="label">🕐 Last Safety Check</div>
-                    <div class="value">Last fall: 30 days Ago</div>
                 </div>
 
                 <!-- Today's Doses -->
@@ -197,18 +231,30 @@
                     </div>
                 </div>
 
-                <!-- Headspace Status -->
-                <div class="card headspace-card">
-                    <div class="headspace-header">Headspace Status</div>
-                    <div class="headspace-item good">
-                        <div class="headspace-name">Mood check</div>
-                        <div class="headspace-status">Feeling positive</div>
-                        <span class="headspace-percent">85%</span>
+                <!-- Hardware Status -->
+                <div class="card hardware-card">
+                    <div class="hardware-header">Hardware Status</div>
+                    <div class="hardware-item online">
+                        <div class="hardware-icon">📱</div>
+                        <div class="hardware-info">
+                            <div class="hardware-name">Wrist Unit</div>
+                            <div class="hardware-status">Tremor/Fall Detection</div>
+                        </div>
+                        <div class="hardware-details">
+                            <span class="hardware-badge online">Online</span>
+                            <span class="hardware-percent">87%</span>
+                        </div>
                     </div>
-                    <div class="headspace-item warning">
-                        <div class="headspace-name">Brain Health</div>
-                        <div class="headspace-status">Needs monitoring</div>
-                        <span class="headspace-percent">62%</span>
+                    <div class="hardware-item online">
+                        <div class="hardware-icon">📍</div>
+                        <div class="hardware-info">
+                            <div class="hardware-name">Arm Patch</div>
+                            <div class="hardware-status">Rigidity Monitoring</div>
+                        </div>
+                        <div class="hardware-details">
+                            <span class="hardware-badge online">Online</span>
+                            <span class="hardware-percent">92%</span>
+                        </div>
                     </div>
                 </div>
                 
