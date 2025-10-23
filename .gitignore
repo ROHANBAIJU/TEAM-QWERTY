@@ -1,0 +1,71 @@
+### Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+
+### TypeScript
+dist/
+build/
+lib/
+*.tsbuildinfo
+
+### Environment
+.env
+.env.*
+
+### Logs
+logs/
+*.log
+debug.log*
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+### OS generated
+.DS_Store
+Thumbs.db
+desktop.ini
+ehthumbs.db
+
+### IDEs and editors
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+### Frontend specific
+coverage/
+.parcel-cache/
+/.next/
+/.nuxt/
+/.cache/
+/.vite/
+dist/
+public/build/
+
+### Embedded systems / build artefacts
+*.hex
+*.elf
+*.bin
+build/
+
+### Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+### Misc
+*.swp
+*.tmp
+*.temp
+.cache/
+
+# Allowlist common files (if any)
+!README.md
+!LICENSE
