@@ -16,11 +16,13 @@ class Settings(BaseSettings):
     APP_ID: str = os.getenv("__app_id", "default-app-id")
     FIREBASE_CONFIG: str = os.getenv("__firebase_config", "{}")
     GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "") # Get your API key from Google AI Studio
+    GOOGLE_APPLICATION_CREDENTIALS: str = os.getenv("GOOGLE_APPLICATION_CREDENTIALS", "")
 
     class Config:
         # This allows loading from a .env file (if you use one)
         env_file = ".env"
         case_sensitive = True
+        extra = "allow"
 
 # Create a single settings instance to be imported by other modules
 settings = Settings()

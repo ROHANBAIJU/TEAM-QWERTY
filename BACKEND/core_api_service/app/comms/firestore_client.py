@@ -9,6 +9,7 @@ from ..config import settings
 import google.cloud.firestore
 import json
 import os
+import asyncio
 
 # --- Firebase Config ---
 if "GOOGLE_APPLICATION_CREDENTIALS" not in os.environ:
@@ -45,11 +46,9 @@ async def save_sensor_data(db: firestore.Client, app_id: str, user_id: str, data
         doc_ref = db.collection(
             "artifacts", app_id, "users", user_id, "sensor_data"
         ).document(data.timestamp)
-        
-        # --- FIX ---
-        # Removed 'await' from the line below.
-        doc_ref.set(data.model_dump()) 
-        
+
+        # Run the blocking Firestore set in a thread to avoid blocking the event loop
+        await asyncio.to_thread(doc_ref.set, data.model_dump())
         logger.info(f"Saved sensor data for {data.timestamp}")
     except Exception as e:
         logger.error(f"Error saving sensor data: {e}")
@@ -67,11 +66,9 @@ async def save_alert(db: firestore.Client, app_id: str, user_id: str, alert: Ale
         doc_ref = db.collection(
             "artifacts", app_id, "users", user_id, "alerts"
         ).document(alert.timestamp)
-        
-        # --- FIX ---
-        # Removed 'await' from the line below.
-        doc_ref.set(alert.model_dump())
-        
+
+        # Run the blocking Firestore set in a thread
+        await asyncio.to_thread(doc_ref.set, alert.model_dump())
         logger.info(f"Saved CRITICAL ALERT: {alert.event_type}")
     except Exception as e:
         logger.error(f"Error saving alert: {e}")

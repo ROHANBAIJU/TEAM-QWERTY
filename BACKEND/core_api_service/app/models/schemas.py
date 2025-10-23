@@ -1,7 +1,7 @@
 # File: BACKEND/core_api_service/app/models/schemas.py
 
 from pydantic import BaseModel
-from typing import Optional, Any
+from typing import Optional, Any, Dict
 
 # --- Input Schemas (from Arduino) ---
 # Note: Your example JSON had a syntax error. I've corrected it
@@ -48,6 +48,10 @@ class ProcessedData(DeviceData):
     It includes the original data + AI analysis.
     """
     analysis: AIAnalysis
+    # Optional runtime fields populated by the AI processor
+    scores: Optional[Dict[str, float]] = None
+    critical_event: Optional[str] = None
+    rehab_suggestion: Optional[str] = None
 
 class Alert(BaseModel):
     """

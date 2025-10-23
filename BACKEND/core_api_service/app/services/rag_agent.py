@@ -2,10 +2,33 @@
 
 import httpx
 import logging
+import time
 from ..models.schemas import ProcessedData
 from ..config import settings
 
 logger = logging.getLogger(__name__)
+
+# Simple token-bucket rate limiter per process
+_RAG_RATE_LIMIT = getattr(settings, "RAG_RATE_LIMIT_PER_MIN", 30)
+_RAG_TOKENS = _RAG_RATE_LIMIT
+_RAG_LAST_REFILL = time.time()
+
+def _allow_rag_call() -> bool:
+    global _RAG_TOKENS, _RAG_LAST_REFILL
+    now = time.time()
+    # refill tokens based on elapsed minutes
+    elapsed = now - _RAG_LAST_REFILL
+    if elapsed > 0:
+        # refill rate per second
+        refill_per_sec = _RAG_RATE_LIMIT / 60.0
+        add = elapsed * refill_per_sec
+        if add >= 1.0:
+            _RAG_TOKENS = min(_RAG_RATE_LIMIT, _RAG_TOKENS + int(add))
+            _RAG_LAST_REFILL = now
+    if _RAG_TOKENS > 0:
+        _RAG_TOKENS -= 1
+        return True
+    return False
 
 # --- Mock Knowledge Base ---
 # This is the "Retrieval" part of RAG.
@@ -15,7 +38,7 @@ KNOWLEDGE_BASE = {
     "rigidity_spike": "A sudden spike in rigidity can be a sign of medication 'wearing-off' or significant muscle distress. This can be painful. The patient may need to rest or perform light stretches. This event should be logged for their doctor's review."
 }
 
-async def generate_contextual_alert(data: ProcessedData, event_type: str) -> str:
+async def generate_contextual_alert(data: ProcessedData, event_type: str, consent: bool | None = None) -> str:
     """
     Uses RAG (Retrieval-Augmented Generation) to create a
     rich, human-readable alert.
@@ -27,6 +50,16 @@ async def generate_contextual_alert(data: ProcessedData, event_type: str) -> str
     
     # 1. Retrieval
     retrieved_knowledge = KNOWLEDGE_BASE.get(event_type, "A notable health event was detected.")
+
+    # If consent is explicitly False, do not call external LLMs; return KB fallback
+    if consent is False:
+        logger.info("User withheld consent for external AI. Returning KB fallback.")
+        return f"**EVENT: {event_type.upper()}**\n{retrieved_knowledge}"
+
+    # Rate limit checks: if rate-limited, return KB fallback
+    if not _allow_rag_call():
+        logger.warning("RAG rate limit exceeded. Returning KB fallback.")
+        return f"**EVENT: {event_type.upper()}**\n{retrieved_knowledge}"
     
     # 2. Augmentation
     system_prompt = f"""

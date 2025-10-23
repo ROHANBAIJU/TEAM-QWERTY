@@ -1,0 +1,15 @@
+Acoustic model evaluation
+
+Classification report:
+              precision    recall  f1-score   support
+
+           0       0.89      0.80      0.84        10
+           1       0.93      0.97      0.95        29
+
+    accuracy                           0.92        39
+   macro avg       0.91      0.88      0.90        39
+weighted avg       0.92      0.92      0.92        39
+
+Confusion matrix:
+[[ 8  2]
+ [ 1 28]]

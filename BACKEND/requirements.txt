@@ -16,3 +16,7 @@ google-cloud-firestore
 # Optional: add typing extensions if needed for older Python versions
 typing-extensions
 websocket-client
+firebase-admin
+email-validator
+scikit-learn
+joblib
