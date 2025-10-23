@@ -27,7 +27,8 @@
     "noFallthroughCasesInSwitch": true
   },
   "include": [
-    "FRONTEND/script.ts"
+    "./script.ts",
+    "./**/*.ts"
   ],
   "exclude": [
     "node_modules",
