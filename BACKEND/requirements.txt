@@ -1,0 +1,18 @@
+# Web framework and ASGI server
+fastapi
+uvicorn
+
+# Data validation / settings
+pydantic
+pydantic-settings
+python-dotenv
+
+# HTTP client for async calls
+httpx
+
+# Google Cloud Firestore
+google-cloud-firestore
+
+# Optional: add typing extensions if needed for older Python versions
+typing-extensions
+websocket-client

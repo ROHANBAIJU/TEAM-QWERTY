@@ -69,3 +69,17 @@ __pycache__/
 # Allowlist common files (if any)
 !README.md
 !LICENSE
+
+
+# Python
+__pycache__/
+.venv/
+env/
+*.pyc
+
+# IDEs
+.vscode/
+.idea/
+
+
+stancesense_qwerty_serviceAccountKey.json
