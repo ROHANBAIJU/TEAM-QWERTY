@@ -5,6 +5,9 @@ import os
 import datetime
 
 from ..comms.firestore_client import get_firestore_db
+import logging
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -21,22 +24,11 @@ class LoginRequest(BaseModel):
 
 @router.post("/signup")
 def signup(body: SignupRequest):
-    print(f"ENTER POST /auth/signup called for {body.email}")
+    logger.info("ENTER POST /auth/signup called for %s", body.email)
 
     try:
-        # Lazy import to avoid hard dependency at import-time
-        import firebase_admin
-        from firebase_admin import auth as fb_auth, credentials
-
-        # Initialize firebase admin if not already
-        if not firebase_admin._apps:
-            cred_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
-            if cred_path and os.path.exists(cred_path):
-                cred = credentials.Certificate(cred_path)
-                firebase_admin.initialize_app(cred)
-            else:
-                # Try default app (will fail if not configured)
-                firebase_admin.initialize_app()
+        # Assume firebase_admin was initialized at application startup
+        from firebase_admin import auth as fb_auth
 
         user = fb_auth.create_user(email=body.email, password=body.password, display_name=body.display_name)
         uid = user.uid
@@ -59,20 +51,10 @@ def signup(body: SignupRequest):
 
 @router.post("/login")
 def login(body: LoginRequest):
-    print("ENTER POST /auth/login called")
+    logger.info("ENTER POST /auth/login called")
     try:
-        import firebase_admin
+        # Assume firebase_admin was initialized at application startup
         from firebase_admin import auth as fb_auth
-
-        # Initialize if needed
-        if not firebase_admin._apps:
-            cred_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
-            if cred_path and os.path.exists(cred_path):
-                from firebase_admin import credentials
-                cred = credentials.Certificate(cred_path)
-                firebase_admin.initialize_app(cred)
-            else:
-                firebase_admin.initialize_app()
 
         decoded = fb_auth.verify_id_token(body.id_token)
         uid = decoded.get("uid")

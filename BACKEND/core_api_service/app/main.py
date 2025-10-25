@@ -2,6 +2,7 @@
 # File: BACKEND/core_api_service/app/main.py
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Depends
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 import logging
@@ -13,7 +14,8 @@ from .comms.manager import frontend_manager
 from .comms.firestore_client import (
     get_firestore_db, 
     save_sensor_data, 
-    save_alert
+    save_alert,
+    initialize_firestore,
 )
 from .models.schemas import DeviceData, Alert, ProcessedData
 from .services.ai_processor import process_data_with_ai
@@ -53,13 +55,22 @@ app.add_middleware(
 # frontend_manager is imported from app.comms.manager
 
 # --- Firestore DB Dependency ---
-# This uses the dependency injection system of FastAPI
-# We will use __app_id and __firebase_config here
-# We'll also handle auth
-# Note: For a real app, you'd get db in routes, but for simplicity:
-db = get_firestore_db()
+# We'll initialize Firebase/Admin and the Firestore client at application startup
+db = None
 app_id = settings.APP_ID # Get app_id from config
 user_id = "temp_user_id" # This would come from Firebase Auth
+
+
+@app.on_event("startup")
+async def startup_event():
+    """Application startup: initialize firebase_admin and Firestore client."""
+    try:
+        initialize_firestore()
+        global db
+        db = get_firestore_db()
+        logger.info("Firebase / Firestore initialized on startup.")
+    except Exception as e:
+        logger.error(f"Error initializing Firebase on startup: {e}")
 
 # --- Routes ---
 
@@ -67,59 +78,21 @@ user_id = "temp_user_id" # This would come from Firebase Auth
 def read_root():
     return {"message": "StanceSense Core API is running."}
 
-# --- Internal Ingestion Route ---
-# This is the endpoint the Node.js service sends data to.
-@app.post("/ingest/data", status_code=202)
-async def http_ingest_data(data: DeviceData):
-    """
-    Receives raw data from the Node.js ingestion service,
-    processes it, and broadcasts it to the frontend.
-    """
+
+@app.get("/health")
+async def health():
+    """Health endpoint: checks Firestore connectivity."""
     try:
-        logger.info(f"CoreAPI: Received data packet: {data.timestamp}")
-        
-        # 1. Save raw data to Firestore
-        await save_sensor_data(db, app_id, user_id, data)
-
-        # 2. Process data with internal AI models (await async processor)
-        processed_data: ProcessedData = await process_data_with_ai(data)
-
-        # 3. Check for critical events (Fall or High Rigidity)
-        # Use the processor's computed decision if available, otherwise fallback
-        critical_event = getattr(processed_data, "critical_event", None)
-        if critical_event is None:
-            if processed_data.safety.fall_detected:
-                critical_event = "fall"
-            elif processed_data.analysis.is_rigid:
-                critical_event = "rigidity_spike"
-
-        if critical_event:
-            # 4. If critical, trigger RAG agent for a rich alert
-            logger.info(f"Critical event detected: {critical_event}. Triggering RAG.")
-            alert_message = await generate_contextual_alert(processed_data, critical_event)
-
-            alert = Alert(
-                timestamp=processed_data.timestamp,
-                event_type=critical_event,
-                message=alert_message,
-                data_snapshot=processed_data.model_dump()
-            )
-
-            # 5. Save the rich alert to Firestore
-            await save_alert(db, app_id, user_id, alert)
-
-            # 6. Broadcast the ALERT to the frontend
-            await frontend_manager.broadcast(alert.model_dump_json())
-
-        else:
-            # 6b. Broadcast the regular PROCESSED DATA to the frontend
-            await frontend_manager.broadcast(processed_data.model_dump_json())
-
-        return {"status": "accepted"}
-
+        db_local = get_firestore_db()
+        firestore_ok = db_local is not None
+        if firestore_ok:
+            return {"status": "ok", "firestore": True}
+        return JSONResponse(status_code=503, content={"status": "unhealthy", "firestore": False})
     except Exception as e:
-        logger.error(f"Error in ingestion pipeline: {e}")
-        return {"status": "error", "detail": str(e)}
+        return JSONResponse(status_code=503, content={"status": "unhealthy", "detail": str(e)})
+
+# Note: the canonical ingest endpoints are implemented in `app.routes.ingest`.
+# The duplicate inline /ingest/data handler was removed to avoid route conflicts.
 
 
 # --- Frontend WebSocket Endpoint ---

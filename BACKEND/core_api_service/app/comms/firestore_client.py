@@ -10,6 +10,8 @@ import google.cloud.firestore
 import json
 import os
 import asyncio
+import firebase_admin
+from firebase_admin import credentials
 
 # --- Firebase Config ---
 if "GOOGLE_APPLICATION_CREDENTIALS" not in os.environ:
@@ -21,17 +23,51 @@ if "GOOGLE_APPLICATION_CREDENTIALS" not in os.environ:
 
 logger = logging.getLogger(__name__)
 
-def get_firestore_db():
+# Module-level Firestore client (initialized on app startup)
+_db: firestore.Client | None = None
+
+def initialize_firestore():
+    """Initializes firebase_admin (if not already) and creates a Firestore client.
+
+    This should be called once at application startup to centralize credentials and
+    ensure firebase_admin is ready for auth operations used elsewhere.
     """
-    Initializes and returns the Firestore client.
-    """
+    global _db
     try:
-        db = firestore.Client()
-        logger.info("Firestore DB client initialized successfully.")
-        return db
+        # Initialize firebase_admin if not already
+        if not firebase_admin._apps:
+            cred_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS", settings.GOOGLE_APPLICATION_CREDENTIALS)
+            if cred_path and os.path.exists(cred_path):
+                cred = credentials.Certificate(cred_path)
+                firebase_admin.initialize_app(cred)
+                logger.info("Initialized firebase_admin with certificate.")
+            else:
+                # Try default application credentials
+                firebase_admin.initialize_app()
+                logger.info("Initialized firebase_admin with default credentials.")
+
+        # Create Firestore client
+        _db = firestore.Client()
+        logger.info("Firestore DB client initialized successfully (startup).")
     except Exception as e:
-        logger.error(f"Failed to initialize Firestore: {e}")
-        return None 
+        logger.error(f"Failed to initialize Firestore during startup: {e}")
+        _db = None
+
+def get_firestore_db():
+    """Return the initialized Firestore client, or attempt to create one.
+
+    Prefer calling `initialize_firestore()` at startup so this returns a ready client.
+    """
+    global _db
+    if _db is not None:
+        return _db
+    try:
+        _db = firestore.Client()
+        logger.info("Firestore DB client initialized lazily.")
+        return _db
+    except Exception as e:
+        logger.error(f"Failed to initialize Firestore lazily: {e}")
+        return None
 
 async def save_sensor_data(db: firestore.Client, app_id: str, user_id: str, data: DeviceData):
     """

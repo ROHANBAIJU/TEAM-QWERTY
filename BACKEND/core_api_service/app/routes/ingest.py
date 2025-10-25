@@ -18,39 +18,15 @@ from firebase_admin import auth as fb_auth
 from ..services.ai_processor import process_data_with_ai
 from ..services.rag_agent import generate_contextual_alert
 from ..comms.manager import frontend_manager
-from ..models.schemas import ProcessedData, Alert as AlertModel
+from ..models.schemas import ProcessedData, Alert as AlertModel, DeviceData
+import logging
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
 # Use shared manager imported from app.comms.manager
 # frontend_manager is the shared singleton instance
-
-
-class SafetyData(BaseModel):
-	fall_detected: bool
-	accel_x_g: float
-	accel_y_g: float
-	accel_z_g: float
-
-
-class TremorData(BaseModel):
-	frequency_hz: float
-	amplitude_g: float
-	tremor_detected: bool
-
-
-class RigidityData(BaseModel):
-	emg_wrist: float
-	emg_arm: float
-	rigid: bool
-
-
-class DeviceData(BaseModel):
-	timestamp: str
-	device_id: Optional[str] = Field(default="unknown")
-	safety: SafetyData
-	tremor: TremorData
-	rigidity: RigidityData
 
 
 def _normalize_packet(raw: dict) -> dict:
@@ -93,7 +69,7 @@ def _normalize_packet(raw: dict) -> dict:
 
 @router.post("/data", status_code=202)
 async def ingest_data(body: dict, background_tasks: BackgroundTasks, authorization: str | None = Header(default=None)):
-	print("ENTER POST /ingest/data called")
+	logger.info("ENTER POST /ingest/data called")
 
 	# Authenticate request via Firebase ID token in Authorization header
 	uid = None
@@ -107,7 +83,7 @@ async def ingest_data(body: dict, background_tasks: BackgroundTasks, authorizati
 			id_token = authorization
 		decoded = fb_auth.verify_id_token(id_token)
 		uid = decoded.get("uid")
-		print(f"Authenticated ingest request for uid: {uid}")
+		logger.info("Authenticated ingest request for uid: %s", uid)
 	except Exception as e:
 		raise HTTPException(status_code=401, detail=f"Invalid token: {e}")
 
@@ -130,18 +106,18 @@ async def ingest_data(body: dict, background_tasks: BackgroundTasks, authorizati
 			doc_ref = db.collection("artifacts").document("stancesense").collection("users").document(uid).collection("sensor_data").document(doc_id)
 			doc_ref.set(data.model_dump())
 			saved = True
-			print(f"Saved raw packet to Firestore for user {uid} with id {doc_id}")
+			logger.info("Saved raw packet to Firestore for user %s with id %s", uid, doc_id)
 		except Exception as e:
-			print(f"Error saving to Firestore: {e}")
+			logger.error("Error saving to Firestore: %s", e)
 	else:
-		print("Firestore not available or uid missing; skipping save")
+		logger.warning("Firestore not available or uid missing; skipping save")
 
 	# Enqueue AI processing in background (async-safe)
 	async def _process_and_save_async():
 		try:
 			# Run AI processing (async). process_data_with_ai is async, so await it directly.
 			processed: ProcessedData = await process_data_with_ai(data)
-			print(f"AI processing complete for {doc_id}")
+			logger.info("AI processing complete for %s", doc_id)
 
 			# Persist processed data to Firestore via helper
 			db = get_firestore_db()
@@ -151,9 +127,9 @@ async def ingest_data(body: dict, background_tasks: BackgroundTasks, authorizati
 					# Also write to processed_data collection for historical records
 					proc_ref = db.collection("artifacts").document("stancesense").collection("users").document(uid).collection("processed_data").document(doc_id)
 					await asyncio.to_thread(proc_ref.set, processed.model_dump())
-					print(f"Saved processed data for {doc_id}")
+					logger.info("Saved processed data for %s", doc_id)
 				except Exception as e:
-					print(f"Error saving processed data: {e}")
+					logger.error("Error saving processed data: %s", e)
 
 			# Determine critical events
 			critical_event = None
@@ -187,25 +163,25 @@ async def ingest_data(body: dict, background_tasks: BackgroundTasks, authorizati
 					if db and uid:
 						try:
 							await save_alert(db, "stancesense", uid, alert_doc)
-							print(f"Saved alert for {doc_id} event {critical_event}")
+							logger.info("Saved alert for %s event %s", doc_id, critical_event)
 						except Exception as e:
-							print(f"Error saving alert: {e}")
+							logger.error("Error saving alert: %s", e)
 
 					# Broadcast alert to frontend
 					try:
 						await frontend_manager.broadcast(alert_doc.model_dump_json())
 					except Exception as e:
-						print(f"Error broadcasting alert: {e}")
+						logger.error("Error broadcasting alert: %s", e)
 				except Exception as e:
-					print(f"Error generating contextual alert: {e}")
+					logger.error("Error generating contextual alert: %s", e)
 			else:
 				# Non-critical: broadcast processed data
 				try:
 					await frontend_manager.broadcast(processed.model_dump_json())
 				except Exception as e:
-					print(f"Error broadcasting processed data: {e}")
+					logger.error("Error broadcasting processed data: %s", e)
 		except Exception as e:
-			print(f"Error in background AI processing: {e}")
+			logger.exception("Error in background AI processing: %s", e)
 
 	# Schedule the async task without blocking the request
 	asyncio.create_task(_process_and_save_async())
@@ -236,7 +212,7 @@ async def get_raw_sensor_data(limit: int = 10, authorization: str | None = Heade
 		coll = db.collection("artifacts").document("stancesense").collection("users").document(uid).collection("sensor_data")
 		docs = coll.order_by("timestamp", direction="DESCENDING").limit(limit).stream()
 		items = [d.to_dict() for d in docs]
-		print(f"GET /ingest/raw returned {len(items)} items for user {uid}")
+		logger.info("GET /ingest/raw returned %d items for user %s", len(items), uid)
 		return {"items": items}
 	except Exception as e:
 		raise HTTPException(status_code=500, detail=str(e))

@@ -16,18 +16,19 @@ class SafetyData(BaseModel):
 class TremorData(BaseModel):
     frequency_hz: float
     amplitude_g: float
-    tremor_detected: str  # "yes" or "no"
+    tremor_detected: bool
 
 class RigidityData(BaseModel):
     emg_wrist: float
     emg_arm: float
-    rigid: str  # "yes" or "no"
+    rigid: bool
 
 class DeviceData(BaseModel):
     """
     The main data packet as received from the Node.js service.
     """
     timestamp: str
+    device_id: Optional[str] = None
     safety: SafetyData
     tremor: TremorData
     rigidity: RigidityData
