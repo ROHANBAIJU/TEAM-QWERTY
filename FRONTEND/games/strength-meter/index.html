@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Strength Meter - Rigidity Training</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #0a0c10 0%, #1a1d24 100%);
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .game-container {
+            text-align: center;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: #ef4444;
+        }
+
+        .instructions {
+            font-size: 14px;
+            color: rgba(255,255,255,0.7);
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .phase-indicator {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(255,255,255,0.1);
+            border: 2px solid rgba(239, 68, 68, 0.5);
+            border-radius: 8px;
+            color: #ef4444;
+        }
+
+        .meter-container {
+            margin: 30px 0;
+        }
+
+        .meter-label {
+            font-size: 14px;
+            color: rgba(255,255,255,0.7);
+            margin-bottom: 10px;
+        }
+
+        .meter-bar {
+            width: 100%;
+            height: 60px;
+            background: rgba(255,255,255,0.1);
+            border: 3px solid #ef4444;
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 4px 20px rgba(239, 68, 68, 0.3);
+        }
+
+        .meter-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #dc2626, #ef4444, #f87171);
+            width: 0%;
+            transition: width 0.1s linear;
+            position: relative;
+        }
+
+        .meter-value {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 24px;
+            font-weight: 700;
+            color: #fff;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+            z-index: 10;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 30px;
+            gap: 20px;
+        }
+
+        .stat-box {
+            background: rgba(255,255,255,0.1);
+            border: 2px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
+            padding: 12px 20px;
+            flex: 1;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: rgba(255,255,255,0.6);
+            margin-bottom: 4px;
+        }
+
+        .stat-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: #ef4444;
+        }
+
+        .controls {
+            margin-top: 30px;
+        }
+
+        button {
+            padding: 12px 24px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #fff;
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 0 5px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .demo-controls {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(59, 130, 246, 0.1);
+            border: 2px solid rgba(59, 130, 246, 0.3);
+            border-radius: 8px;
+        }
+
+        .demo-controls p {
+            font-size: 13px;
+            margin-bottom: 10px;
+            color: rgba(255,255,255,0.8);
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        input[type="range"] {
+            flex: 1;
+            height: 8px;
+            border-radius: 5px;
+            background: rgba(255,255,255,0.2);
+            outline: none;
+            accent-color: #ef4444;
+        }
+
+        .game-over {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(10, 12, 16, 0.95);
+            border: 3px solid #ef4444;
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            z-index: 1000;
+            min-width: 300px;
+        }
+
+        .game-over.show {
+            display: block;
+        }
+
+        .game-over h2 {
+            font-size: 28px;
+            margin-bottom: 15px;
+            color: #ef4444;
+        }
+
+        .game-over p {
+            font-size: 16px;
+            margin-bottom: 20px;
+            color: rgba(255,255,255,0.8);
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>💪 Strength Meter</h1>
+        <p class="instructions">
+            This exercise trains muscle control and relaxation. Follow the instructions to clench and relax your muscles.
+            <br><strong>Demo Mode:</strong> Use the slider below to simulate EMG input.
+        </p>
+
+        <div class="phase-indicator" id="phaseIndicator">
+            Ready to Start
+        </div>
+
+        <div class="meter-container">
+            <div class="meter-label">EMG Signal Strength</div>
+            <div class="meter-bar">
+                <div class="meter-fill" id="meterFill"></div>
+                <div class="meter-value" id="meterValue">0%</div>
+            </div>
+        </div>
+
+        <div class="stats">
+            <div class="stat-box">
+                <div class="stat-label">Round</div>
+                <div class="stat-value" id="round">0 / 5</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Max Clench</div>
+                <div class="stat-value" id="maxClench">0%</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Relax Score</div>
+                <div class="stat-value" id="relaxScore">100%</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button id="startBtn">Start Training</button>
+            <button id="resetBtn">Reset</button>
+        </div>
+
+        <div class="demo-controls">
+            <p>🎮 Demo Mode: Move slider to simulate muscle activity</p>
+            <div class="slider-container">
+                <span>Relax</span>
+                <input type="range" id="emgSlider" min="0" max="100" value="0">
+                <span>Clench</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="game-over" id="gameOver">
+        <h2>🎉 Training Complete!</h2>
+        <p id="finalScore"></p>
+        <button onclick="location.reload()">Train Again</button>
+    </div>
+
+    <script>
+        const phaseIndicatorEl = document.getElementById('phaseIndicator');
+        const meterFillEl = document.getElementById('meterFill');
+        const meterValueEl = document.getElementById('meterValue');
+        const roundEl = document.getElementById('round');
+        const maxClenchEl = document.getElementById('maxClench');
+        const relaxScoreEl = document.getElementById('relaxScore');
+        const startBtn = document.getElementById('startBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const emgSlider = document.getElementById('emgSlider');
+        const gameOverEl = document.getElementById('gameOver');
+        const finalScoreEl = document.getElementById('finalScore');
+
+        // Game state
+        let gameActive = false;
+        let currentRound = 0;
+        let totalRounds = 5;
+        let phase = 'ready'; // ready, clench, relax
+        let emgValue = 0;
+        let maxClenchValue = 0;
+        let relaxScores = [];
+        let phaseTimer = null;
+
+        // Event listeners
+        startBtn.addEventListener('click', startGame);
+        resetBtn.addEventListener('click', resetGame);
+        emgSlider.addEventListener('input', (e) => {
+            emgValue = parseInt(e.target.value);
+            updateMeter();
+        });
+
+        function startGame() {
+            gameActive = true;
+            startBtn.disabled = true;
+            currentRound = 0;
+            maxClenchValue = 0;
+            relaxScores = [];
+            nextRound();
+        }
+
+        function resetGame() {
+            gameActive = false;
+            phase = 'ready';
+            currentRound = 0;
+            emgValue = 0;
+            maxClenchValue = 0;
+            relaxScores = [];
+            startBtn.disabled = false;
+            emgSlider.value = 0;
+            
+            if (phaseTimer) {
+                clearTimeout(phaseTimer);
+                phaseTimer = null;
+            }
+            
+            updateUI();
+            phaseIndicatorEl.textContent = 'Ready to Start';
+            phaseIndicatorEl.style.borderColor = 'rgba(239, 68, 68, 0.5)';
+        }
+
+        function nextRound() {
+            if (currentRound >= totalRounds) {
+                endGame();
+                return;
+            }
+
+            currentRound++;
+            maxClenchValue = 0;
+            startClenchPhase();
+        }
+
+        function startClenchPhase() {
+            phase = 'clench';
+            phaseIndicatorEl.textContent = '💪 CLENCH! Squeeze as hard as you can!';
+            phaseIndicatorEl.style.borderColor = '#ef4444';
+            
+            // Clench phase lasts 3 seconds
+            phaseTimer = setTimeout(() => {
+                startRelaxPhase();
+            }, 3000);
+        }
+
+        function startRelaxPhase() {
+            phase = 'relax';
+            phaseIndicatorEl.textContent = '😌 RELAX! Let all tension go...';
+            phaseIndicatorEl.style.borderColor = '#10b981';
+            
+            // Relax phase lasts 4 seconds
+            phaseTimer = setTimeout(() => {
+                // Calculate relax score (how well they relaxed)
+                const relaxScore = Math.max(0, 100 - emgValue);
+                relaxScores.push(relaxScore);
+                
+                nextRound();
+            }, 4000);
+        }
+
+        function updateMeter() {
+            meterFillEl.style.width = emgValue + '%';
+            meterValueEl.textContent = emgValue + '%';
+
+            // Track max clench during clench phase
+            if (phase === 'clench' && emgValue > maxClenchValue) {
+                maxClenchValue = emgValue;
+            }
+
+            updateUI();
+        }
+
+        function updateUI() {
+            roundEl.textContent = `${currentRound} / ${totalRounds}`;
+            maxClenchEl.textContent = maxClenchValue + '%';
+            
+            // Average relax score
+            if (relaxScores.length > 0) {
+                const avgRelax = Math.round(relaxScores.reduce((a, b) => a + b, 0) / relaxScores.length);
+                relaxScoreEl.textContent = avgRelax + '%';
+            }
+        }
+
+        function endGame() {
+            gameActive = false;
+            phase = 'complete';
+            
+            const avgMaxClench = maxClenchValue;
+            const avgRelax = Math.round(relaxScores.reduce((a, b) => a + b, 0) / relaxScores.length);
+            const finalScore = Math.round((avgMaxClench * 0.4) + (avgRelax * 0.6));
+
+            let feedback = '';
+            if (avgRelax > 80) {
+                feedback = 'Excellent relaxation control! ';
+            } else if (avgRelax > 60) {
+                feedback = 'Good progress on relaxation. ';
+            } else {
+                feedback = 'Keep practicing relaxation. ';
+            }
+
+            if (avgMaxClench > 70) {
+                feedback += 'Strong muscle activation!';
+            } else if (avgMaxClench > 50) {
+                feedback += 'Good muscle strength.';
+            } else {
+                feedback += 'Try to clench harder next time.';
+            }
+
+            finalScoreEl.innerHTML = `
+                <strong>Score: ${finalScore}/100</strong><br><br>
+                Max Clench: ${avgMaxClench}%<br>
+                Relax Control: ${avgRelax}%<br><br>
+                ${feedback}
+            `;
+            gameOverEl.classList.add('show');
+        }
+
+        // Simulate EMG fluctuation for realism
+        setInterval(() => {
+            if (gameActive && phase === 'relax') {
+                // Add small tremor during relax phase
+                emgValue = Math.max(0, Math.min(100, emgValue + (Math.random() - 0.5) * 5));
+                emgSlider.value = emgValue;
+                updateMeter();
+            }
+        }, 100);
+
+        // Initial UI
+        updateUI();
+    </script>
+</body>
+</html>

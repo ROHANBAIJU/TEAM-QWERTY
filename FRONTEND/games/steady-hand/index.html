@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Steady Hand Maze - Tremor Training</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #0a0c10 0%, #1a1d24 100%);
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .game-container {
+            text-align: center;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: #fbbf24;
+        }
+
+        .instructions {
+            font-size: 14px;
+            color: rgba(255,255,255,0.7);
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .game-canvas {
+            border: 3px solid #fbbf24;
+            border-radius: 12px;
+            background: #000;
+            box-shadow: 0 8px 32px rgba(251, 191, 36, 0.3);
+            cursor: none;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+            gap: 20px;
+        }
+
+        .stat-box {
+            background: rgba(255,255,255,0.1);
+            border: 2px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
+            padding: 12px 20px;
+            flex: 1;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: rgba(255,255,255,0.6);
+            margin-bottom: 4px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #fbbf24;
+        }
+
+        .controls {
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 12px 24px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #fff;
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 0 5px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(251, 191, 36, 0.4);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .game-over {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(10, 12, 16, 0.95);
+            border: 3px solid #fbbf24;
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            z-index: 1000;
+        }
+
+        .game-over.show {
+            display: block;
+        }
+
+        .game-over h2 {
+            font-size: 28px;
+            margin-bottom: 15px;
+            color: #fbbf24;
+        }
+
+        .game-over p {
+            font-size: 16px;
+            margin-bottom: 20px;
+            color: rgba(255,255,255,0.8);
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>🤚 Steady Hand Maze</h1>
+        <p class="instructions">
+            Guide the yellow dot through the maze without hitting the walls. 
+            Tilting your wrist controls the dot. Tremor spikes will cause jitter.
+            <br><strong>Demo Mode:</strong> Use arrow keys or mouse to control.
+        </p>
+
+        <canvas id="gameCanvas" class="game-canvas" width="500" height="500"></canvas>
+
+        <div class="stats">
+            <div class="stat-box">
+                <div class="stat-label">Score</div>
+                <div class="stat-value" id="score">0</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Collisions</div>
+                <div class="stat-value" id="collisions">0</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Tremor Level</div>
+                <div class="stat-value" id="tremorLevel">Low</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button id="startBtn">Start Game</button>
+            <button id="resetBtn">Reset</button>
+        </div>
+    </div>
+
+    <div class="game-over" id="gameOver">
+        <h2>🎉 Game Complete!</h2>
+        <p id="finalScore"></p>
+        <button onclick="location.reload()">Play Again</button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreEl = document.getElementById('score');
+        const collisionsEl = document.getElementById('collisions');
+        const tremorLevelEl = document.getElementById('tremorLevel');
+        const startBtn = document.getElementById('startBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const gameOverEl = document.getElementById('gameOver');
+        const finalScoreEl = document.getElementById('finalScore');
+
+        // Game state
+        let gameActive = false;
+        let player = { x: 50, y: 50, radius: 8, vx: 0, vy: 0 };
+        let score = 0;
+        let collisions = 0;
+        let tremorLevel = 0;
+        let keysPressed = {};
+
+        // Simple maze (walls)
+        const walls = [
+            // Outer walls
+            { x: 0, y: 0, width: 500, height: 20 },
+            { x: 0, y: 0, width: 20, height: 500 },
+            { x: 480, y: 0, width: 20, height: 500 },
+            { x: 0, y: 480, width: 500, height: 20 },
+            
+            // Inner maze
+            { x: 100, y: 100, width: 20, height: 200 },
+            { x: 200, y: 200, width: 200, height: 20 },
+            { x: 380, y: 100, width: 20, height: 200 },
+            { x: 200, y: 100, width: 180, height: 20 },
+            { x: 100, y: 380, width: 300, height: 20 },
+            { x: 280, y: 280, width: 20, height: 100 },
+        ];
+
+        // Goal
+        const goal = { x: 450, y: 450, radius: 20 };
+
+        // Event listeners
+        startBtn.addEventListener('click', startGame);
+        resetBtn.addEventListener('click', resetGame);
+
+        document.addEventListener('keydown', (e) => {
+            keysPressed[e.key] = true;
+        });
+
+        document.addEventListener('keyup', (e) => {
+            keysPressed[e.key] = false;
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (!gameActive) return;
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+            
+            // Move towards mouse (demo mode)
+            const dx = mouseX - player.x;
+            const dy = mouseY - player.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            
+            if (dist > 5) {
+                player.vx = (dx / dist) * 2;
+                player.vy = (dy / dist) * 2;
+            }
+        });
+
+        function startGame() {
+            gameActive = true;
+            startBtn.disabled = true;
+            score = 0;
+            collisions = 0;
+            updateUI();
+            simulateTremor();
+            gameLoop();
+        }
+
+        function resetGame() {
+            gameActive = false;
+            player = { x: 50, y: 50, radius: 8, vx: 0, vy: 0 };
+            score = 0;
+            collisions = 0;
+            tremorLevel = 0;
+            startBtn.disabled = false;
+            updateUI();
+            draw();
+        }
+
+        function simulateTremor() {
+            if (!gameActive) return;
+
+            // Simulate tremor with random amplitude (4-6 Hz range)
+            tremorLevel = Math.random() * 100;
+            
+            // Apply tremor jitter to player velocity
+            if (tremorLevel > 60) {
+                player.vx += (Math.random() - 0.5) * (tremorLevel / 20);
+                player.vy += (Math.random() - 0.5) * (tremorLevel / 20);
+            }
+
+            // Update tremor display
+            if (tremorLevel < 33) {
+                tremorLevelEl.textContent = 'Low';
+                tremorLevelEl.style.color = '#10b981';
+            } else if (tremorLevel < 66) {
+                tremorLevelEl.textContent = 'Med';
+                tremorLevelEl.style.color = '#fbbf24';
+            } else {
+                tremorLevelEl.textContent = 'High';
+                tremorLevelEl.style.color = '#ef4444';
+            }
+
+            setTimeout(simulateTremor, 200); // ~5 Hz
+        }
+
+        function gameLoop() {
+            if (!gameActive) return;
+
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        function update() {
+            // Keyboard controls (demo mode)
+            if (keysPressed['ArrowUp'] || keysPressed['w']) player.vy = -3;
+            else if (keysPressed['ArrowDown'] || keysPressed['s']) player.vy = 3;
+            else player.vy *= 0.95;
+
+            if (keysPressed['ArrowLeft'] || keysPressed['a']) player.vx = -3;
+            else if (keysPressed['ArrowRight'] || keysPressed['d']) player.vx = 3;
+            else player.vx *= 0.95;
+
+            // Update position
+            player.x += player.vx;
+            player.y += player.vy;
+
+            // Apply friction
+            player.vx *= 0.98;
+            player.vy *= 0.98;
+
+            // Check wall collisions
+            walls.forEach(wall => {
+                if (circleRectCollision(player, wall)) {
+                    collisions++;
+                    // Bounce back
+                    player.x -= player.vx * 2;
+                    player.y -= player.vy * 2;
+                    player.vx *= -0.5;
+                    player.vy *= -0.5;
+                }
+            });
+
+            // Check goal
+            const dx = player.x - goal.x;
+            const dy = player.y - goal.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+
+            if (dist < player.radius + goal.radius) {
+                gameActive = false;
+                score = Math.max(0, 1000 - collisions * 50 - Math.floor(tremorLevel * 5));
+                showGameOver();
+            }
+
+            // Increment score over time
+            if (gameActive) {
+                score++;
+            }
+
+            updateUI();
+        }
+
+        function draw() {
+            // Clear canvas
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw walls
+            ctx.fillStyle = '#3b82f6';
+            walls.forEach(wall => {
+                ctx.fillRect(wall.x, wall.y, wall.width, wall.height);
+            });
+
+            // Draw goal
+            ctx.fillStyle = '#10b981';
+            ctx.beginPath();
+            ctx.arc(goal.x, goal.y, goal.radius, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Draw player
+            ctx.fillStyle = '#fbbf24';
+            ctx.beginPath();
+            ctx.arc(player.x, player.y, player.radius, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Draw tremor effect (visual feedback)
+            if (tremorLevel > 50) {
+                ctx.strokeStyle = `rgba(239, 68, 68, ${(tremorLevel - 50) / 100})`;
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.arc(player.x, player.y, player.radius + 5, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+        }
+
+        function circleRectCollision(circle, rect) {
+            const closestX = Math.max(rect.x, Math.min(circle.x, rect.x + rect.width));
+            const closestY = Math.max(rect.y, Math.min(circle.y, rect.y + rect.height));
+            const dx = circle.x - closestX;
+            const dy = circle.y - closestY;
+            return (dx * dx + dy * dy) < (circle.radius * circle.radius);
+        }
+
+        function updateUI() {
+            scoreEl.textContent = score;
+            collisionsEl.textContent = collisions;
+        }
+
+        function showGameOver() {
+            finalScoreEl.textContent = `Final Score: ${score}\nCollisions: ${collisions}\nGreat job training your steady hand!`;
+            gameOverEl.classList.add('show');
+        }
+
+        // Initial draw
+        draw();
+    </script>
+</body>
+</html>

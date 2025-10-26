@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rhythm Tap - Slowness Training</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #0a0c10 0%, #1a1d24 100%);
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+            overflow: hidden;
+        }
+
+        .game-container {
+            text-align: center;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: #3b82f6;
+        }
+
+        .instructions {
+            font-size: 14px;
+            color: rgba(255,255,255,0.7);
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .game-canvas {
+            border: 3px solid #3b82f6;
+            border-radius: 12px;
+            background: linear-gradient(180deg, #000428 0%, #004e92 100%);
+            box-shadow: 0 8px 32px rgba(59, 130, 246, 0.4);
+            position: relative;
+        }
+
+        .tap-zone {
+            position: absolute;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 150px;
+            height: 150px;
+            border: 4px solid #3b82f6;
+            border-radius: 50%;
+            background: rgba(59, 130, 246, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.1s ease;
+        }
+
+        .tap-zone:active {
+            background: rgba(59, 130, 246, 0.4);
+            transform: translateX(-50%) scale(0.95);
+        }
+
+        .tap-zone.hit {
+            background: rgba(16, 185, 129, 0.4);
+            border-color: #10b981;
+        }
+
+        .tap-zone.miss {
+            background: rgba(239, 68, 68, 0.4);
+            border-color: #ef4444;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+            gap: 20px;
+        }
+
+        .stat-box {
+            background: rgba(255,255,255,0.1);
+            border: 2px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
+            padding: 12px 20px;
+            flex: 1;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: rgba(255,255,255,0.6);
+            margin-bottom: 4px;
+        }
+
+        .stat-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: #3b82f6;
+        }
+
+        .controls {
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 12px 24px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #fff;
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 0 5px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .game-over {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(10, 12, 16, 0.95);
+            border: 3px solid #3b82f6;
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            z-index: 1000;
+            min-width: 350px;
+        }
+
+        .game-over.show {
+            display: block;
+        }
+
+        .game-over h2 {
+            font-size: 28px;
+            margin-bottom: 15px;
+            color: #3b82f6;
+        }
+
+        .game-over p {
+            font-size: 16px;
+            margin-bottom: 20px;
+            color: rgba(255,255,255,0.8);
+            line-height: 1.6;
+        }
+
+        canvas {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>🐢 Rhythm Tap</h1>
+        <p class="instructions">
+            Tap in rhythm with the falling targets! Improve your movement speed and timing.
+            <br><strong>Demo Mode:</strong> Click or tap the circle when targets reach it.
+        </p>
+
+        <div style="position: relative; display: inline-block;">
+            <canvas id="gameCanvas" class="game-canvas" width="400" height="500"></canvas>
+            <div class="tap-zone" id="tapZone">TAP!</div>
+        </div>
+
+        <div class="stats">
+            <div class="stat-box">
+                <div class="stat-label">Score</div>
+                <div class="stat-value" id="score">0</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Combo</div>
+                <div class="stat-value" id="combo">0x</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Accuracy</div>
+                <div class="stat-value" id="accuracy">100%</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">BPM</div>
+                <div class="stat-value" id="bpm">80</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button id="startBtn">Start Game</button>
+            <button id="resetBtn">Reset</button>
+        </div>
+    </div>
+
+    <div class="game-over" id="gameOver">
+        <h2>🎉 Great Job!</h2>
+        <p id="finalScore"></p>
+        <button onclick="location.reload()">Play Again</button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const tapZone = document.getElementById('tapZone');
+        const scoreEl = document.getElementById('score');
+        const comboEl = document.getElementById('combo');
+        const accuracyEl = document.getElementById('accuracy');
+        const bpmEl = document.getElementById('bpm');
+        const startBtn = document.getElementById('startBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const gameOverEl = document.getElementById('gameOver');
+        const finalScoreEl = document.getElementById('finalScore');
+
+        // Game state
+        let gameActive = false;
+        let score = 0;
+        let combo = 0;
+        let hits = 0;
+        let misses = 0;
+        let targets = [];
+        let bpm = 80;
+        let lastSpawnTime = 0;
+        let gameTime = 0;
+        let gameDuration = 30000; // 30 seconds
+
+        // Target config
+        const tapY = 420; // Y position of tap zone
+        const targetRadius = 25;
+        const hitZoneThreshold = 40;
+
+        // Event listeners
+        startBtn.addEventListener('click', startGame);
+        resetBtn.addEventListener('click', resetGame);
+
+        tapZone.addEventListener('click', handleTap);
+        canvas.addEventListener('click', handleTap);
+
+        // Keyboard support
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' && gameActive) {
+                e.preventDefault();
+                handleTap();
+            }
+        });
+
+        function startGame() {
+            gameActive = true;
+            startBtn.disabled = true;
+            score = 0;
+            combo = 0;
+            hits = 0;
+            misses = 0;
+            targets = [];
+            gameTime = 0;
+            lastSpawnTime = 0;
+            bpm = 80;
+            
+            updateUI();
+            gameLoop();
+        }
+
+        function resetGame() {
+            gameActive = false;
+            score = 0;
+            combo = 0;
+            hits = 0;
+            misses = 0;
+            targets = [];
+            gameTime = 0;
+            startBtn.disabled = false;
+            tapZone.classList.remove('hit', 'miss');
+            updateUI();
+            draw();
+        }
+
+        function spawnTarget() {
+            const lane = Math.floor(Math.random() * 3); // 3 lanes
+            const x = 100 + lane * 100;
+            
+            targets.push({
+                x: x,
+                y: -targetRadius,
+                lane: lane,
+                speed: 2 + (bpm - 80) / 40, // Speed increases with BPM
+                hit: false
+            });
+        }
+
+        function handleTap() {
+            if (!gameActive) return;
+
+            let hitTarget = false;
+
+            // Check for targets in hit zone
+            targets.forEach((target, index) => {
+                if (!target.hit) {
+                    const distance = Math.abs(target.y - tapY);
+                    
+                    if (distance < hitZoneThreshold) {
+                        // Hit!
+                        target.hit = true;
+                        hits++;
+                        combo++;
+                        score += 100 * combo;
+                        hitTarget = true;
+                        
+                        // Visual feedback
+                        tapZone.classList.add('hit');
+                        setTimeout(() => tapZone.classList.remove('hit'), 200);
+                    }
+                }
+            });
+
+            if (!hitTarget) {
+                // Missed tap
+                combo = 0;
+                tapZone.classList.add('miss');
+                setTimeout(() => tapZone.classList.remove('miss'), 200);
+            }
+
+            updateUI();
+        }
+
+        function gameLoop() {
+            if (!gameActive) return;
+
+            const now = Date.now();
+            gameTime += 16; // ~60fps
+
+            // Check if game should end
+            if (gameTime >= gameDuration) {
+                endGame();
+                return;
+            }
+
+            // Spawn targets based on BPM
+            const spawnInterval = (60000 / bpm); // ms per beat
+            if (now - lastSpawnTime > spawnInterval) {
+                spawnTarget();
+                lastSpawnTime = now;
+                
+                // Gradually increase BPM
+                if (bpm < 120) {
+                    bpm += 0.5;
+                }
+            }
+
+            // Update targets
+            targets = targets.filter(target => {
+                target.y += target.speed;
+
+                // Remove if past screen
+                if (target.y > canvas.height + targetRadius) {
+                    if (!target.hit) {
+                        misses++;
+                        combo = 0;
+                    }
+                    return false;
+                }
+
+                return true;
+            });
+
+            updateUI();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        function draw() {
+            // Clear canvas
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#000428');
+            gradient.addColorStop(1, '#004e92');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw lanes
+            ctx.strokeStyle = 'rgba(59, 130, 246, 0.2)';
+            ctx.lineWidth = 2;
+            for (let i = 1; i < 3; i++) {
+                const x = i * 133;
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+                ctx.stroke();
+            }
+
+            // Draw hit zone line
+            ctx.strokeStyle = '#3b82f6';
+            ctx.lineWidth = 3;
+            ctx.setLineDash([10, 5]);
+            ctx.beginPath();
+            ctx.moveTo(0, tapY);
+            ctx.lineTo(canvas.width, tapY);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Draw targets
+            targets.forEach(target => {
+                if (target.hit) {
+                    ctx.fillStyle = 'rgba(16, 185, 129, 0.6)';
+                } else {
+                    ctx.fillStyle = '#3b82f6';
+                }
+
+                ctx.beginPath();
+                ctx.arc(target.x, target.y, targetRadius, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Draw inner circle
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                ctx.beginPath();
+                ctx.arc(target.x, target.y, targetRadius * 0.4, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            // Draw timer
+            const timeLeft = Math.ceil((gameDuration - gameTime) / 1000);
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 24px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(`Time: ${timeLeft}s`, canvas.width / 2, 40);
+        }
+
+        function updateUI() {
+            scoreEl.textContent = score;
+            comboEl.textContent = combo + 'x';
+            bpmEl.textContent = Math.round(bpm);
+            
+            const totalTaps = hits + misses;
+            const accuracy = totalTaps > 0 ? Math.round((hits / totalTaps) * 100) : 100;
+            accuracyEl.textContent = accuracy + '%';
+        }
+
+        function endGame() {
+            gameActive = false;
+            
+            const totalTaps = hits + misses;
+            const accuracy = totalTaps > 0 ? Math.round((hits / totalTaps) * 100) : 0;
+            const tapsPerSecond = (hits / (gameDuration / 1000)).toFixed(1);
+
+            let feedback = '';
+            if (accuracy > 90) {
+                feedback = 'Excellent timing! ';
+            } else if (accuracy > 70) {
+                feedback = 'Good rhythm sense! ';
+            } else {
+                feedback = 'Keep practicing! ';
+            }
+
+            if (hits > 30) {
+                feedback += 'Great tap speed!';
+            } else if (hits > 20) {
+                feedback += 'Good speed.';
+            } else {
+                feedback += 'Try to tap faster.';
+            }
+
+            finalScoreEl.innerHTML = `
+                <strong>Final Score: ${score}</strong><br><br>
+                Hits: ${hits}<br>
+                Misses: ${misses}<br>
+                Accuracy: ${accuracy}%<br>
+                Taps/second: ${tapsPerSecond}<br>
+                Max Combo: ${combo}x<br><br>
+                ${feedback}
+            `;
+            gameOverEl.classList.add('show');
+        }
+
+        // Initial draw
+        draw();
+    </script>
+</body>
+</html>
