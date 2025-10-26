@@ -13,6 +13,7 @@ import datetime
 import asyncio
 
 from ..comms.firestore_client import get_firestore_db, save_sensor_data, save_alert
+from ..config import settings
 import firebase_admin
 from firebase_admin import auth as fb_auth
 from ..services.ai_processor import process_data_with_ai
@@ -68,24 +69,32 @@ def _normalize_packet(raw: dict) -> dict:
 
 
 @router.post("/data", status_code=202)
-async def ingest_data(body: dict, background_tasks: BackgroundTasks, authorization: str | None = Header(default=None)):
+async def ingest_data(body: dict, background_tasks: BackgroundTasks, authorization: str | None = Header(default=None), x_internal_key: str | None = Header(default=None)):
 	logger.info("ENTER POST /ingest/data called")
 
-	# Authenticate request via Firebase ID token in Authorization header
+	# NOTE: For local/dev testing we accept unauthenticated requests from devices.
+	# If an Authorization header is provided we will try to verify it; otherwise
+	# we proceed without a uid. Firestore saves are skipped when uid is None.
 	uid = None
-	if not authorization:
-		raise HTTPException(status_code=401, detail="Missing Authorization header")
-	try:
-		# Expect header like: Bearer <id_token>
-		if authorization.lower().startswith("bearer "):
-			id_token = authorization.split(" ", 1)[1]
-		else:
-			id_token = authorization
-		decoded = fb_auth.verify_id_token(id_token)
-		uid = decoded.get("uid")
-		logger.info("Authenticated ingest request for uid: %s", uid)
-	except Exception as e:
-		raise HTTPException(status_code=401, detail=f"Invalid token: {e}")
+
+	# First, accept internal forwarder key as trusted (dev only)
+	if x_internal_key and settings.INTERNAL_KEY and x_internal_key == settings.INTERNAL_KEY:
+		uid = settings.INTERNAL_FORWARDER_UID or "internal_forwarder"
+		logger.info("Internal forwarder authenticated via X-Internal-Key, assigning uid=%s", uid)
+	else:
+		if authorization:
+			try:
+				# Expect header like: Bearer <id_token>
+				if authorization.lower().startswith("bearer "):
+					id_token = authorization.split(" ", 1)[1]
+				else:
+					id_token = authorization
+				decoded = fb_auth.verify_id_token(id_token)
+				uid = decoded.get("uid")
+				logger.info("Authenticated ingest request for uid: %s", uid)
+			except Exception as e:
+				# Log and continue — treat as unauthenticated for local testing
+				logger.warning("Invalid token provided; continuing as unauthenticated: %s", e)
 
 	# Normalize
 	packet = _normalize_packet(body)
@@ -94,12 +103,18 @@ async def ingest_data(body: dict, background_tasks: BackgroundTasks, authorizati
 	try:
 		data = DeviceData(**packet)
 	except Exception as e:
+		# Log full packet and exception for easier local debugging
+		logger.error("Invalid payload received for /ingest/data; packet=%s", packet)
+		logger.exception("Pydantic validation error: %s", e)
 		raise HTTPException(status_code=400, detail=f"Invalid payload: {e}")
 
 	# Save raw packet to Firestore
 	db = get_firestore_db()
 	doc_id = str(uuid.uuid4())
 	saved = False
+	# Try to save to Firestore if available and we have a UID.
+	# For local development, if Firestore is not available we persist to a local file
+	# so you can inspect incoming packets.
 	if db and uid:
 		try:
 			# Path: artifacts/stancesense/users/{uid}/sensor_data/{doc_id}
@@ -110,7 +125,18 @@ async def ingest_data(body: dict, background_tasks: BackgroundTasks, authorizati
 		except Exception as e:
 			logger.error("Error saving to Firestore: %s", e)
 	else:
-		logger.warning("Firestore not available or uid missing; skipping save")
+		# Firestore not available or uid missing. Persist locally for dev testing.
+		try:
+			import pathlib, json
+			base_dir = pathlib.Path(__file__).resolve().parents[2] / "local_data"
+			base_dir.mkdir(parents=True, exist_ok=True)
+			file_path = base_dir / f"{doc_id}.json"
+			with file_path.open("w", encoding="utf-8") as f:
+				json.dump(data.model_dump(), f, ensure_ascii=False, indent=2)
+			saved = True
+			logger.info("Saved raw packet to local file %s (uid=%s)", str(file_path), uid)
+		except Exception as e:
+			logger.warning("Firestore not available or uid missing; skipping save. Local fallback failed: %s", e)
 
 	# Enqueue AI processing in background (async-safe)
 	async def _process_and_save_async():

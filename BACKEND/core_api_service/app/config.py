@@ -17,6 +17,10 @@ class Settings(BaseSettings):
     FIREBASE_CONFIG: str = os.getenv("__firebase_config", "{}")
     GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "") # Get your API key from Google AI Studio
     GOOGLE_APPLICATION_CREDENTIALS: str = os.getenv("GOOGLE_APPLICATION_CREDENTIALS", "")
+    # Internal key used by the Node ingestion service for trusted forwards (dev only)
+    INTERNAL_KEY: str = os.getenv("INTERNAL_KEY", "")
+    # UID to assign to forwarded packets from the internal forwarder when present
+    INTERNAL_FORWARDER_UID: str = os.getenv("INTERNAL_FORWARDER_UID", "internal_forwarder")
 
     class Config:
         # This allows loading from a .env file (if you use one)

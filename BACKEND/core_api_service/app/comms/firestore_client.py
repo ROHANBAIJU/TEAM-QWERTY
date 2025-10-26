@@ -36,15 +36,33 @@ def initialize_firestore():
     try:
         # Initialize firebase_admin if not already
         if not firebase_admin._apps:
+            # Priority order for credentials:
+            # 1. FIREBASE_SERVICE_ACCOUNT_JSON (full JSON content string)
+            # 2. GOOGLE_APPLICATION_CREDENTIALS (path to service account file)
+            # 3. Application Default Credentials
+            sa_json = os.getenv("FIREBASE_SERVICE_ACCOUNT_JSON")
             cred_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS", settings.GOOGLE_APPLICATION_CREDENTIALS)
-            if cred_path and os.path.exists(cred_path):
-                cred = credentials.Certificate(cred_path)
-                firebase_admin.initialize_app(cred)
-                logger.info("Initialized firebase_admin with certificate.")
-            else:
-                # Try default application credentials
-                firebase_admin.initialize_app()
-                logger.info("Initialized firebase_admin with default credentials.")
+
+            if sa_json:
+                try:
+                    sa_dict = json.loads(sa_json)
+                    cred = credentials.Certificate(sa_dict)
+                    firebase_admin.initialize_app(cred)
+                    logger.info("Initialized firebase_admin from FIREBASE_SERVICE_ACCOUNT_JSON env var.")
+                except Exception as e:
+                    logger.error(f"Failed to initialize firebase_admin from FIREBASE_SERVICE_ACCOUNT_JSON: {e}")
+                    # fallback to other methods below
+                    sa_json = None
+
+            if not sa_json:
+                if cred_path and os.path.exists(cred_path):
+                    cred = credentials.Certificate(cred_path)
+                    firebase_admin.initialize_app(cred)
+                    logger.info("Initialized firebase_admin with certificate path.")
+                else:
+                    # Try default application credentials
+                    firebase_admin.initialize_app()
+                    logger.info("Initialized firebase_admin with default credentials.")
 
         # Create Firestore client
         _db = firestore.Client()

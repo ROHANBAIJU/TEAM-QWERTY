@@ -47,6 +47,45 @@ def _load_models():
 _load_models()
 
 
+def _predict_with_feature_names(model, X):
+    """Predict while preserving feature names when the model was trained with them.
+
+    model: an sklearn-like estimator
+    X: a single-row list of feature values (or a 1D/2D list)
+    """
+    try:
+        fn = getattr(model, "feature_names_in_", None)
+        # If model exposes feature names, build a DataFrame with those column names
+        if fn is not None:
+            try:
+                import pandas as pd
+                import numpy as np
+            except Exception:
+                # pandas/numpy not available; fallback to raw predict
+                raise
+
+            # Normalize X into a 2D array-like
+            if len(X) > 0 and not isinstance(X[0], (list, tuple, np.ndarray)):
+                arr = np.atleast_2d(np.array(X, dtype=float))
+            else:
+                arr = np.array(X, dtype=float)
+
+            # Truncate or pad columns to match arr shape if necessary
+            ncols = arr.shape[1]
+            cols = list(fn)[:ncols]
+            df = pd.DataFrame(arr, columns=cols)
+            pred = model.predict(df)
+            return pred[0] if hasattr(pred, '__len__') else pred
+    except Exception:
+        # Let caller fall back to generic predict
+        raise
+
+    # Generic fallback
+    if len(X) > 0 and isinstance(X[0], (list, tuple)):
+        return model.predict(X)[0]
+    return model.predict([X])[0]
+
+
 def _process_tremor(tremor_data) -> float:
     """Simulated tremor model: scale amplitude_g to 0..1 with max 30.0."""
     try:
@@ -86,8 +125,11 @@ def _process_rigidity(rigidity_data) -> float:
                     else:
                         # Default placeholder
                         X.append(0.0)
-                # Model may expect 2D array
-                pred = model.predict([X])[0]
+                # Use helper to predict with preserved feature names when possible
+                try:
+                    pred = _predict_with_feature_names(model, X)
+                except Exception:
+                    pred = model.predict([X])[0]
                 # If classifier returns {0,1}, normalize to float
                 try:
                     return float(pred)
@@ -95,8 +137,12 @@ def _process_rigidity(rigidity_data) -> float:
                     return min(1.0, float(pred))
             else:
                 # If raw model object, try a simple predict using emg features
-                pred = _rigidity_model.predict([[wrist, arm]])
-                return float(pred[0])
+                try:
+                    pred = _predict_with_feature_names(_rigidity_model, [wrist, arm])
+                    return float(pred)
+                except Exception:
+                    pred = _rigidity_model.predict([[wrist, arm]])
+                    return float(pred[0])
     except Exception as e:
         logger.warning("Rigidity model inference failed: %s", e)
 
@@ -164,7 +210,10 @@ async def process_data_with_ai(data: DeviceData) -> ProcessedData:
                         X.append(mag)
                     else:
                         X.append(0.0)
-                pred = mdl.predict([X])[0]
+                try:
+                    pred = _predict_with_feature_names(mdl, X)
+                except Exception:
+                    pred = mdl.predict([X])[0]
                 # assume pred contains gait/slowness in [0,1]
                 gait_score = float(pred)
     except Exception as e:
@@ -184,7 +233,10 @@ async def process_data_with_ai(data: DeviceData) -> ProcessedData:
                         X.append(float(getattr(data.rigidity, "emg_arm", 0.0)))
                     else:
                         X.append(0.0)
-                pred = mdl.predict([X])[0]
+                try:
+                    pred = _predict_with_feature_names(mdl, X)
+                except Exception:
+                    pred = mdl.predict([X])[0]
                 rigidity_score = float(pred)
     except Exception as e:
         logger.debug("sEMG model inference skipped/failed: %s", e)

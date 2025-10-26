@@ -1,0 +1,7 @@
+{
+  "timestamp": "2025-10-26T15:56:00Z",
+  "device_id": "local_test_client",
+  "safety": { "fall_detected": false, "accel_x_g": 0.0, "accel_y_g": 0.0, "accel_z_g": 1.0 },
+  "tremor": { "frequency_hz": 0.0, "amplitude_g": 0.0, "tremor_detected": false },
+  "rigidity": { "emg_wrist": 0.0, "emg_arm": 0.0, "rigid": false }
+}
