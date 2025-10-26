@@ -100,6 +100,29 @@ export default function Dashboard() {
         }
       }
     });
+
+    // WebSocket live data from backend
+    const [liveMessage, setLiveMessage] = useState<string | null>(null);
+    useEffect(() => {
+      // Only run in browser
+      try {
+        const wsUrl = (process.env.NEXT_PUBLIC_WS_URL as string) || 'ws://127.0.0.1:8000/ws/frontend-data';
+        const ws = new WebSocket(wsUrl);
+        ws.onopen = () => console.info('Connected to backend WS', wsUrl);
+        ws.onmessage = (ev) => {
+          try {
+            const payload = typeof ev.data === 'string' ? ev.data : JSON.stringify(ev.data);
+            setLiveMessage(payload);
+            console.debug('WS message', payload);
+          } catch (e) { console.warn('WS parse error', e); }
+        };
+        ws.onerror = (e) => console.warn('WS error', e);
+        ws.onclose = () => console.info('WS closed');
+        return () => { ws.close(); };
+      } catch (e) {
+        console.warn('WS init failed', e);
+      }
+    }, []);
   }, []);
 
   useEffect(() => {

@@ -1,0 +1,20 @@
+{
+  "timestamp": "17:27:10",
+  "device_id": "arduino_r4_01",
+  "safety": {
+    "fall_detected": false,
+    "accel_x_g": -0.346191,
+    "accel_y_g": 0.375977,
+    "accel_z_g": 0.920898
+  },
+  "tremor": {
+    "frequency_hz": 10.0,
+    "amplitude_g": 3.138324,
+    "tremor_detected": false
+  },
+  "rigidity": {
+    "emg_wrist": 4.987367,
+    "emg_arm": 0.872481,
+    "rigid": false
+  }
+}
