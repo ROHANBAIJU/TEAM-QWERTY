@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Parkinson's Disease Monitor - StanceSense</title>
-    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="styles.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -21,42 +20,26 @@
         }
     </script>
     
-    <!-- Mobile Menu Button -->
-    <button id="mobileMenuBtn" class="mobile-menu-btn lg:hidden fixed top-4 left-4 z-50 bg-gray-800 text-white p-3 rounded-lg shadow-lg">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path id="menuIcon" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
-            <path id="closeIcon" class="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-        </svg>
+    <!-- Theme Toggle Button -->
+    <button class="theme-toggle" id="themeToggle" aria-label="Toggle light/dark mode" title="Switch to light mode (Alt+T)">
+        🌙
     </button>
-
     <!-- Left Sidebar Navigation -->
-    <aside id="sidebar" class="sidebar-nav">
+    <aside class="sidebar-nav">
         <div class="sidebar-header">
             <div class="logo-icon">📊</div>
             <span class="logo-text">StanceSense</span>
         </div>
         <nav class="sidebar-menu">
-            <a href="#" class="menu-item active" data-tab="dashboard">
+            <a href="#" class="menu-item active">
                 <span class="menu-icon">📈</span>
                 <span class="menu-text">Dashboard</span>
             </a>
-            <a href="#" class="menu-item" data-tab="analytics">
-                <span class="menu-icon">📊</span>
-                <span class="menu-text">Analytics</span>
-            </a>
-            <a href="#" class="menu-item" data-tab="patient-notes">
-                <span class="menu-icon">📝</span>
-                <span class="menu-text">Patient Notes</span>
-            </a>
-            <a href="#" class="menu-item" data-tab="hardware-status">
-                <span class="menu-icon">🔧</span>
-                <span class="menu-text">Hardware Status</span>
-            </a>
-            <a href="#" class="menu-item" data-tab="patient-profile">
+            <a href="#" class="menu-item">
                 <span class="menu-icon">💊</span>
                 <span class="menu-text">Patient Profile</span>
             </a>
-            <a href="#" class="menu-item" data-tab="settings">
+            <a href="#" class="menu-item">
                 <span class="menu-icon">⚙️</span>
                 <span class="menu-text">Settings</span>
             </a>
@@ -68,285 +51,127 @@
     </aside>
 
     <div class="container">
-        <!-- TAB 1: DASHBOARD (Default View) -->
-        <div id="tab-dashboard" class="tab-content active">
-            <!-- Header Buttons -->
-            <div class="header-buttons mb-4">
-                <button class="btn-log-dose" aria-label="Log medication dose" title="Log when you take your medication">LOG DOSE</button>
-                <button class="btn-log-symptom" aria-label="Log symptoms" title="Record your current symptoms">LOG SYMPTOM</button>
-            </div>
-
-            <!-- Summary Section at Top -->
-            <div class="card mb-4" style="border-left: 4px solid #fbbf24;">
-                <div class="chart-summary" style="margin: 0;">
-                    <strong>📋 Summary:</strong> Your symptoms were <strong>stable today</strong>. Peak levels occurred at <strong>6AM</strong> and <strong>4PM</strong>. You're doing well compared to yesterday.
-                </div>
-            </div>
-
-            <!-- Responsive Flex Layout: 2/3 Trends + 1/3 Summary -->
-            <div class="flex flex-col lg:flex-row gap-6">
-                <!-- Left Section: Trends Chart (2/3 width on desktop) -->
-                <div class="w-full lg:w-2/3 space-y-6">
-                    <div class="card chart-card">
-                        <div class="chart-header">
-                            <h3>📊 Your Symptom Trends (Last 24 Hours)</h3>
-                        </div>
-                        <canvas id="symptomChart"></canvas>
-                        <div class="chart-legend">
-                            <span class="legend-item"><span class="dot blue"></span> Your Symptoms</span>
-                            <span class="legend-item"><span class="dot yellow"></span> Medication Taken</span>
-                        </div>
-                    </div>
-                    
-                    <!-- Progress This Week (Collapsible - Open by Default) -->
-                    <div class="card progress-week-card">
-                        <div class="collapsible-header" onclick="toggleCollapsible('progressWeek')">
-                            <div class="flex items-center gap-2">
-                                <span class="text-2xl">🏆</span>
-                                <h3 class="text-sm font-semibold">Your Progress This Week</h3>
-                            </div>
-                            <svg id="progressWeek-icon" class="collapse-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                <polyline points="6 9 12 15 18 9"></polyline>
-                            </svg>
-                        </div>
-                        
-                        <div id="progressWeek-content" class="collapsible-content space-y-3">
-                            <div class="medication-ontime">
-                                <div class="ontime-header">
-                                    <span class="ontime-icon">📈</span>
-                                    <span class="ontime-label">Medication On Time</span>
-                                </div>
-                                <div class="ontime-percentage">85%</div>
-                            </div>
-                            
-                            <div class="progress-bar-large">
-                                <div class="progress-fill-large" style="width: 85%"></div>
-                            </div>
-                            
-                            <div class="progress-message">Great job staying on schedule!</div>
-                            
-                            <div class="activity-goal-card">
-                                <div class="activity-icon">📅</div>
-                                <div class="activity-content">
-                                    <div class="activity-label">Activity Goal Met</div>
-                                    <div class="activity-days">5 / 7 Days</div>
-                                </div>
-                            </div>
-                            
-                            <div class="safety-record-card">
-                                <div class="safety-icon">🛡️</div>
-                                <div class="safety-content">
-                                    <div class="safety-label">Safety Record</div>
-                                    <div class="safety-status">Last Fall: <span class="safety-highlight">30 Days Ago</span></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Right Section: Summary & Action Metrics (1/3 width on desktop) -->
-                <div class="w-full lg:w-1/3 space-y-6">
-                    <!-- Collapsible Status Summary -->
-                    <div class="card">
-                        <div class="collapsible-header" onclick="toggleCollapsible('statusSummary')">
-                            <h3 class="text-lg font-bold flex items-center gap-2">
-                                <span>📊</span>
-                                <span>Status Summary</span>
-                            </h3>
-                            <svg id="statusSummary-icon" class="collapse-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                <polyline points="6 9 12 15 18 9"></polyline>
-                            </svg>
-                        </div>
-                        
-                        <div id="statusSummary-content" class="collapsible-content space-y-4">
-                            <!-- Medication Status -->
-                            <div class="status-item">
-                                <div class="status-icon success">✓</div>
-                                <div class="status-info">
-                                    <div class="status-label">Medication Status</div>
-                                    <div class="status-value">Feeling Good</div>
-                                </div>
-                            </div>
-
-                            <!-- Next Medication -->
-                            <div class="status-item">
-                                <div class="status-icon clock">⏰</div>
-                                <div class="status-info">
-                                    <div class="status-label">Next Medication</div>
-                                    <div class="status-value time">Due at 2:00 PM</div>
-                                </div>
-                            </div>
-
-                            <!-- Safety Check -->
-                            <div class="status-item">
-                                <div class="status-icon check">✓</div>
-                                <div class="status-info">
-                                    <div class="status-label">Safety Check</div>
-                                    <div class="status-value">No Recent Falls</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Today's Doses -->
-                    <div class="card doses-card">
-                        <div class="doses-header">Today's Doses</div>
-                        <div class="dose-item taken">
-                            <div class="dose-time">8:00 AM</div>
-                            <div class="dose-name">Morning Dose</div>
-                            <span class="dose-status">Taken</span>
-                        </div>
-                        <div class="dose-item">
-                            <div class="dose-time">2:00 PM</div>
-                            <div class="dose-name">Afternoon Dose</div>
-                        </div>
-                        <div class="dose-item">
-                            <div class="dose-time">8:00 PM</div>
-                            <div class="dose-name">Evening Dose</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <!-- Header Buttons -->
+        <div class="header-buttons">
+            <button class="btn-log-dose" aria-label="Log medication dose" title="Log when you take your medication">LOG DOSE</button>
+            <button class="btn-log-symptom" aria-label="Log symptoms" title="Record your current symptoms">LOG SYMPTOM</button>
         </div>
 
-        <!-- TAB 2: ANALYTICS -->
-        <div id="tab-analytics" class="tab-content">
-            <!-- Demo Mode Toggle -->
-            <div class="analytics-controls" style="margin-bottom: 12px; display: flex; align-items: center; gap: 12px;">
-                <label class="demo-toggle" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                    <input type="checkbox" id="demo-mode-toggle" style="width: 16px; height: 16px;">
-                    <span style="font-size: 13px; color: rgba(255,255,255,0.9);">Demo Sensor Data</span>
-                </label>
-                <span id="sensor-status" style="font-size: 12px; color: rgba(255,255,255,0.6);">● Disconnected</span>
-            </div>
-
-            <!-- Symptom Breakdown Section -->
-            <div class="symptom-breakdown-grid">
-                <!-- Tremor Card -->
-                <div class="symptom-card" data-symptom="tremor">
-                    <div class="symptom-card-header">
-                        <div class="symptom-title-row">
-                            <h4>🤚 Tremor</h4>
-                            <span class="symptom-score" data-score="tremor">42</span>
-                        </div>
-                        <span class="symptom-trend" data-trend="tremor">▲ 3</span>
-                    </div>
-                    <div class="symptom-meta">
-                        <small class="symptom-desc">Measured by wrist MPU6050 — amplitude-based shaking detection</small>
-                    </div>
-                    <div class="symptom-visuals">
-                        <div class="symptom-mini-bar">
-                            <div class="symptom-bar-fill tremor-color" data-bar="tremor" style="width: 42%"></div>
-                        </div>
-                        <canvas class="symptom-sparkline" data-sparkline="tremor" width="140" height="40"></canvas>
-                    </div>
-                    <div class="symptom-card-footer">
-                        <button class="btn-suggest-game" data-game="steady-hand" data-symptom="tremor">
-                            🎮 Steady Hand Maze
-                        </button>
+        <!-- Main Grid Layout -->
+        <div class="dashboard-grid">
+            <!-- Left Column - Status Cards -->
+            <div class="center-column">
+                <!-- Medication Status -->
+                <div class="card status-card">
+                    <div class="status-icon success">✓</div>
+                    <div class="status-info">
+                        <div class="status-label">Medication Status</div>
+                        <div class="status-value">Feeling Good</div>
                     </div>
                 </div>
 
-                <!-- Rigidity Card -->
-                <div class="symptom-card" data-symptom="rigidity">
-                    <div class="symptom-card-header">
-                        <div class="symptom-title-row">
-                            <h4>💪 Rigidity</h4>
-                            <span class="symptom-score" data-score="rigidity">28</span>
-                        </div>
-                        <span class="symptom-trend" data-trend="rigidity">▼ 2</span>
-                    </div>
-                    <div class="symptom-meta">
-                        <small class="symptom-desc">EMG co-contraction — measures muscle stiffness during movement</small>
-                    </div>
-                    <div class="symptom-visuals">
-                        <div class="symptom-mini-bar">
-                            <div class="symptom-bar-fill rigidity-color" data-bar="rigidity" style="width: 28%"></div>
-                        </div>
-                        <canvas class="symptom-sparkline" data-sparkline="rigidity" width="140" height="40"></canvas>
-                    </div>
-                    <div class="symptom-card-footer">
-                        <button class="btn-suggest-game" data-game="strength-meter" data-symptom="rigidity">
-                            🎮 Strength Meter
-                        </button>
+                <!-- Next Medication -->
+                <div class="card next-med-card">
+                    <div class="status-icon clock">⏰</div>
+                    <div class="status-info">
+                        <div class="status-label">Next Medication</div>
+                        <div class="status-value time">Due at 2:00 PM</div>
                     </div>
                 </div>
 
-                <!-- Slowness Card -->
-                <div class="symptom-card" data-symptom="slowness">
-                    <div class="symptom-card-header">
-                        <div class="symptom-title-row">
-                            <h4>🐢 Slowness</h4>
-                            <span class="symptom-score" data-score="slowness">55</span>
-                        </div>
-                        <span class="symptom-trend" data-trend="slowness">▲ 1</span>
-                    </div>
-                    <div class="symptom-meta">
-                        <small class="symptom-desc">Tap frequency assessment — bradykinesia detection via rhythm</small>
-                    </div>
-                    <div class="symptom-visuals">
-                        <div class="symptom-mini-bar">
-                            <div class="symptom-bar-fill slowness-color" data-bar="slowness" style="width: 55%"></div>
-                        </div>
-                        <canvas class="symptom-sparkline" data-sparkline="slowness" width="140" height="40"></canvas>
-                    </div>
-                    <div class="symptom-card-footer">
-                        <button class="btn-suggest-game" data-game="rhythm-tap" data-symptom="slowness">
-                            🎮 Rhythm Tap
-                        </button>
+                <!-- Safety Check -->
+                <div class="card safety-card">
+                    <div class="status-icon check">✓</div>
+                    <div class="status-info">
+                        <div class="status-label">Safety Check</div>
+                        <div class="status-value">No Recent Falls</div>
                     </div>
                 </div>
-
-                <!-- Gait Card -->
-                <div class="symptom-card" data-symptom="gait">
-                    <div class="symptom-card-header">
-                        <div class="symptom-title-row">
-                            <h4>🚶 Gait</h4>
-                            <span class="symptom-score" data-score="gait">33</span>
+                
+                <!-- Parkinson's Progression Card moved here -->
+                <div class="card bottom-card-integrated">
+                    <div class="card-header">
+                        <h3>Parkinson's Progression</h3>
+                        <span class="badge">STABLE</span>
+                    </div>
+                    <div class="progression-value">42% <span class="trend">↓ 2% vs yesterday</span></div>
+                    <div class="progression-label">Tremor: <span class="risk">Balanced</span></div>
+                    <div class="circular-progress">
+                        <svg viewBox="0 0 100 100">
+                            <circle cx="50" cy="50" r="45" class="progress-bg"></circle>
+                            <circle cx="50" cy="50" r="45" class="progress-circle" style="stroke-dashoffset: 70"></circle>
+                        </svg>
+                        <div class="progress-icon">⚡</div>
+                    </div>
+                    <div class="symptom-breakdown">
+                        <div class="breakdown-header">Symptom Breakdown</div>
+                        <div class="symptom-bar">
+                            <div class="symptom-name">Tremor</div>
+                            <div class="bar"><div class="bar-fill orange" style="width: 48%"></div></div>
+                            <div class="symptom-percent">48%</div>
                         </div>
-                        <span class="symptom-trend" data-trend="gait">▼ 1</span>
-                    </div>
-                    <div class="symptom-meta">
-                        <small class="symptom-desc">Step consistency & arm swing — fall risk indicator</small>
-                    </div>
-                    <div class="symptom-visuals">
-                        <div class="symptom-mini-bar">
-                            <div class="symptom-bar-fill gait-color" data-bar="gait" style="width: 50%"></div>
+                        <div class="symptom-bar">
+                            <div class="symptom-name">Rigidity</div>
+                            <div class="bar"><div class="bar-fill yellow" style="width: 38%"></div></div>
+                            <div class="symptom-percent">38%</div>
                         </div>
-                        <canvas class="symptom-sparkline" data-sparkline="gait" width="140" height="40"></canvas>
+                        <div class="symptom-bar">
+                            <div class="symptom-name">Slowness</div>
+                            <div class="bar"><div class="bar-fill blue" style="width: 46%"></div></div>
+                            <div class="symptom-percent">46%</div>
+                        </div>
+                        <div class="symptom-bar">
+                            <div class="symptom-name">Gait</div>
+                            <div class="bar"><div class="bar-fill purple" style="width: 40%"></div></div>
+                            <div class="symptom-percent">40%</div>
+                        </div>
                     </div>
-                    <div class="symptom-card-footer">
-                        <button class="btn-suggest-game" data-game="rhythm-walker" data-symptom="gait">
-                            🎮 Rhythm Walker
-                        </button>
-                    </div>
+                    <div class="last-assessment">Last assessment: 2 days ago<br>Next assessment: In 3 days</div>
                 </div>
             </div>
 
-            <!-- Game Modal -->
-            <div id="game-modal" class="game-modal hidden">
-                <div class="game-modal-overlay"></div>
-                <div class="game-modal-content">
-                    <div class="game-modal-header">
-                        <h3 id="game-title">Loading Game...</h3>
-                        <button id="close-game" class="btn-close-game">✕</button>
+            <!-- Center - Chart -->
+            <div class="main-chart">
+                <div class="card chart-card">
+                    <div class="chart-header">
+                        <h3>📊 Your Symptom Trends (Last 24 Hours)</h3>
                     </div>
-                    <div class="game-modal-body">
-                        <iframe id="game-frame" src="" frameborder="0"></iframe>
+                    <canvas id="symptomChart"></canvas>
+                    <div class="chart-legend">
+                        <span class="legend-item"><span class="dot blue"></span> Your Symptoms</span>
+                        <span class="legend-item"><span class="dot yellow"></span> Medication Taken</span>
                     </div>
-                    <div class="game-modal-footer">
-                        <span id="game-timer">Time: 0:00</span>
-                        <button id="stop-game" class="btn-stop-game">Stop Game</button>
+                    <div class="chart-summary">
+                        <strong>📋 Summary:</strong> Your symptoms were <strong>stable today</strong>. Peak levels occurred at <strong>6AM</strong> and <strong>4PM</strong>. You're doing well compared to yesterday.
                     </div>
                 </div>
-            </div>
-        </div>
-
-        <!-- TAB 3: PATIENT NOTES -->
-        <div id="tab-patient-notes" class="tab-content">
-            <div class="max-w-4xl mx-auto">
+                
+                <!-- Muscle Rigidity Score moved here -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Muscle Rigidity Score</h3>
+                        <span class="badge secondary">Primary</span>
+                    </div>
+                    <div class="severity-value">54% <span class="severity-label">Severity</span></div>
+                    <div class="severity-metrics">
+                        <div class="metric">
+                            <div class="metric-label">Morning</div>
+                            <div class="metric-value">3.2 <span class="unit">/ 5</span></div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Afternoon</div>
+                            <div class="metric-value">2.1 <span class="unit">/ 5</span></div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Evening</div>
+                            <div class="metric-value">2.8 <span class="unit">/ 5</span></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- My Notes & Symptoms moved here -->
                 <div class="card notes-card">
-                    <h3>📋 Notes and Symptoms</h3>
+                    <h3>📋 My Notes & Symptoms</h3>
                     <p class="note-text">Your logged symptoms and observations</p>
                     
                     <!-- Example Notes List -->
@@ -373,11 +198,66 @@
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- TAB 4: HARDWARE STATUS -->
-        <div id="tab-hardware-status" class="tab-content">
-            <div class="max-w-4xl mx-auto">
+            <!-- Right Sidebar -->
+            <div class="right-sidebar">
+                <!-- Progress This Week -->
+                <div class="card progress-week-card">
+                    <div class="progress-week-header">
+                        <div class="progress-icon-large">🏆</div>
+                        <h3>Your Progress This Week</h3>
+                    </div>
+                    
+                    <div class="medication-ontime">
+                        <div class="ontime-header">
+                            <span class="ontime-icon">📈</span>
+                            <span class="ontime-label">Medication On Time</span>
+                        </div>
+                        <div class="ontime-percentage">85%</div>
+                    </div>
+                    
+                    <div class="progress-bar-large">
+                        <div class="progress-fill-large" style="width: 85%"></div>
+                    </div>
+                    
+                    <div class="progress-message">Great job staying on schedule!</div>
+                    
+                    <div class="activity-goal-card">
+                        <div class="activity-icon">📅</div>
+                        <div class="activity-content">
+                            <div class="activity-label">Activity Goal Met</div>
+                            <div class="activity-days">5 / 7 Days</div>
+                        </div>
+                    </div>
+                    
+                    <div class="safety-record-card">
+                        <div class="safety-icon">🛡️</div>
+                        <div class="safety-content">
+                            <div class="safety-label">Safety Record</div>
+                            <div class="safety-status">Last Fall: <span class="safety-highlight">30 Days Ago</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Today's Doses -->
+                <div class="card doses-card">
+                    <div class="doses-header">Today's Doses</div>
+                    <div class="dose-item taken">
+                        <div class="dose-time">8:00 AM</div>
+                        <div class="dose-name">Morning Dose</div>
+                        <span class="dose-status">Taken</span>
+                    </div>
+                    <div class="dose-item">
+                        <div class="dose-time">2:00 PM</div>
+                        <div class="dose-name">Afternoon Dose</div>
+                    </div>
+                    <div class="dose-item">
+                        <div class="dose-time">8:00 PM</div>
+                        <div class="dose-name">Evening Dose</div>
+                    </div>
+                </div>
+
+                <!-- Hardware Status -->
                 <div class="card hardware-card">
                     <div class="hardware-header">Hardware Status</div>
                     <div class="hardware-item online">
@@ -403,106 +283,25 @@
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-
-        <!-- TAB 5: PATIENT PROFILE (Placeholder) -->
-        <div id="tab-patient-profile" class="tab-content">
-            <div class="max-w-4xl mx-auto">
+                
+                <!-- Daily Fall Events moved here -->
                 <div class="card">
-                    <h3>💊 Patient Profile</h3>
-                    <p class="text-gray-400 mt-4">Patient profile information will be displayed here.</p>
+                    <div class="card-header">
+                        <h3>Daily Fall Events</h3>
+                        <span class="badge warning">⚠️ 3 this week</span>
+                    </div>
+                    <canvas id="fallChart"></canvas>
+                    <div class="alert-box">
+                        <span class="alert-icon">⚠️</span>
+                        <span class="alert-text">Moderate Risk: Consider post-dosing supervision</span>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- TAB 6: SETTINGS (Placeholder) -->
-        <div id="tab-settings" class="tab-content">
-            <div class="max-w-4xl mx-auto">
-                <div class="card">
-                    <h3>⚙️ Settings</h3>
-                    <p class="text-gray-400 mt-4">Application settings will be displayed here.</p>
-                </div>
-            </div>
-        </div>
+        <!-- Bottom Notes Section removed from here -->
     </div>
 
-    <script src="../dist/FRONTEND/script.js"></script>
-    <script src="../dist/FRONTEND/analytics.js"></script>
-    <script>
-        // Collapsible toggle function
-        function toggleCollapsible(id) {
-            const content = document.getElementById(id + '-content');
-            const icon = document.getElementById(id + '-icon');
-            
-            if (content && icon) {
-                content.classList.toggle('collapsed');
-                icon.classList.toggle('collapsed');
-            }
-        }
-        
-        // Tab switching functionality
-        document.addEventListener('DOMContentLoaded', function() {
-            const menuItems = document.querySelectorAll('.menu-item:not(.menu-item-logout)');
-            const tabContents = document.querySelectorAll('.tab-content');
-            const mobileMenuBtn = document.getElementById('mobileMenuBtn');
-            const sidebar = document.getElementById('sidebar');
-            const menuIcon = document.getElementById('menuIcon');
-            const closeIcon = document.getElementById('closeIcon');
-            
-            // Tab switching
-            menuItems.forEach(item => {
-                item.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    
-                    const targetTab = this.getAttribute('data-tab');
-                    if (!targetTab) return;
-                    
-                    // Remove active class from all menu items
-                    menuItems.forEach(mi => mi.classList.remove('active'));
-                    
-                    // Add active class to clicked item
-                    this.classList.add('active');
-                    
-                    // Hide all tab contents
-                    tabContents.forEach(tc => tc.classList.remove('active'));
-                    
-                    // Show target tab
-                    const targetContent = document.getElementById('tab-' + targetTab);
-                    if (targetContent) {
-                        targetContent.classList.add('active');
-                    }
-                    
-                    // Close mobile menu if open
-                    if (window.innerWidth < 1024) {
-                        sidebar.classList.remove('mobile-open');
-                        menuIcon.classList.remove('hidden');
-                        closeIcon.classList.add('hidden');
-                    }
-                });
-            });
-            
-            // Mobile menu toggle
-            if (mobileMenuBtn) {
-                mobileMenuBtn.addEventListener('click', function() {
-                    sidebar.classList.toggle('mobile-open');
-                    menuIcon.classList.toggle('hidden');
-                    closeIcon.classList.toggle('hidden');
-                });
-            }
-            
-            // Close mobile menu when clicking outside
-            document.addEventListener('click', function(e) {
-                if (window.innerWidth < 1024 && 
-                    !sidebar.contains(e.target) && 
-                    !mobileMenuBtn.contains(e.target) &&
-                    sidebar.classList.contains('mobile-open')) {
-                    sidebar.classList.remove('mobile-open');
-                    menuIcon.classList.remove('hidden');
-                    closeIcon.classList.add('hidden');
-                }
-            });
-        });
-    </script>
+    <script src="dist/script.js"></script>
 </body>
 </html>

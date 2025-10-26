@@ -1,0 +1,78 @@
+
+
+
+ARDUINO AND CIRCUTRY
+
+SEND THIS JSON RESPONSE 
+
+
+{
+  "deviceId": "StanceSense_01",
+  "timestamp": 1678886400,
+  "safety": {
+    "fall_detected": false,
+    "posture": "upright"
+  },
+  "tremor": {
+    "frequency_hz": 5.2,
+    "amplitude_g": 0.8
+  },
+  "rigidity": {
+    "emg_bicep": 431,
+    "emg_tricep": 120
+  }
+}
+
+
+TO OUR PYTHON BACKEND, INSIDE OUR PYTHON BACKEND WE WILL HAVE OUR OWN CUSTOM AI MODEL WHICH TAKES THE DATA FROM THE DATA PACKET AND PROCESSES IT TO GIVE US AN OUTPUT..
+
+THIS OUTPUT WILL BE SENT TO OUR REACT JS FRONTEND AND DISPLAYED 
+ 
+WEB DASHBOARD  -- REACT JS, NODE JS, FASTAPI -- PYTHON
+
+
+
+
+
+
+ARDUINO WILL BE SENDING THIS JSON RESPONSE TO A CUSTOM URL ENDPOINT LIKE SENDING TO A CUSTOM WEBPAGE, AND FROM THIS WEBPAGE FETCH AND USE IN FRONTEND
+
+
+
+
+
+
+
+
+JSON RESPONSE - BACKEND FUNCION TO FUNCTION LANGUAGE, ALSO CALLED DATA PACKET--FRONTEND ALSO COMMUNICATES IN THE SAME WAY TO BACKEND
+
+
+{
+  "deviceId": "StanceSense_01",
+  "timestamp": 1678886400,
+  "safety": {
+    "fall_detected": false,
+    "posture": "upright"
+  },
+  "tremor": {
+    "frequency_hz": 5.2,
+    "amplitude_g": 0.8
+  },
+  "rigidity": {
+    "emg_bicep": 431,
+    "emg_tricep": 120
+  }
+}
+
+
+
+
+
+
+UI/UX-
+WE NEED A LOGIN/SIGNUP PAGE -- WE CAN REUSE THE SAME PAGE FROM AYUR SYNC PAGE
+
+A DASHBOARD INTERFACE, 
+
+
+AND OTHER STUFF RELATED TO WHAT IS IMPORTANT FOR A PARKINSONS PATIENT..

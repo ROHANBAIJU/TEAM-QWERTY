@@ -1,0 +1,21 @@
+{
+  "name": "parkinsons-dashboard",
+  "version": "1.0.0",
+  "description": "Parkinson's Disease Monitoring Dashboard",
+  "main": "index.html",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "dev": "tsc && start index.html"
+  },
+  "keywords": ["parkinson", "health", "dashboard", "monitoring"],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/chart.js": "^2.9.37",
+    "typescript": "^5.2.2"
+  },
+  "dependencies": {
+    "chart.js": "^4.4.0"
+  }
+}
