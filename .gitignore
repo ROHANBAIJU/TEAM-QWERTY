@@ -12,10 +12,6 @@ build/
 lib/
 *.tsbuildinfo
 
-### Environment
-.env
-.env.*
-
 ### Logs
 logs/
 *.log
@@ -82,4 +78,3 @@ env/
 .idea/
 
 
-stancesense_qwerty_serviceAccountKey.json
