@@ -10,8 +10,10 @@
 // --- WiFi & Server Settings ---
 const char* ssid = "Udith";
 const char* password = "udithmalu";
-const char* server_host = "10.64.105.230";
-const uint16_t server_port = 8080;
+//const char* server_host = "10.64.105.230";
+//const char* server_host = "10.19.86.95";
+const char* server_host = "10.250.172.95"; // <-- Node ingestion server IP (update if different)
+const uint16_t server_port = 8081; // match Node ingestion service default port
 const char* server_path = "/";
 
 // --- NEW: NTP Client Setup ---
@@ -87,9 +89,10 @@ String buildJsonPayload() {
   tremor["tremor_detected"] = tremorDetected;
 
   JsonObject rigidity = doc.createNestedObject("rigidity");
-  rigidity["emg_wrist_avg"] = avgWristEMG;
-  rigidity["emg_arm_avg"] = avgArmEMG;
-  rigidity["is_rigid"] = isRigid;
+  // use backend-friendly keys
+  rigidity["emg_wrist"] = avgWristEMG;
+  rigidity["emg_arm"] = avgArmEMG;
+  rigidity["rigid"] = isRigid;
 
   doc["device_id"] = "arduino_r4_01";
 
@@ -112,10 +115,10 @@ void setup() {
   // --- Connect to WiFi ---
   Serial.print("Connecting to ");
   Serial.println(ssid);
+  WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
-    WiFi.begin(ssid, password);
   }
   Serial.println("\nWiFi connected");
   Serial.print("IP address: ");

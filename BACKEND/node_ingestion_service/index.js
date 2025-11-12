@@ -4,15 +4,36 @@ const { WebSocketServer } = require('ws');
 const axios = require('axios'); // Used to send data to Python backend
 
 // --- CONFIGURATION ---
-const NODE_SERVER_PORT = 8080; // Port the Arduino connects to
+// Allow overriding the node server port via env var, default to 8081 to avoid clashes
+const NODE_SERVER_PORT = process.env.NODE_SERVER_PORT ? parseInt(process.env.NODE_SERVER_PORT, 10) : 8081; // Port the Arduino connects to
 const FASTAPI_INGEST_URL = 'http://127.0.0.1:8000/ingest/data'; // Internal URL for your Python API
 // Optional internal key for trusted forwarders (dev only)
 const INTERNAL_KEY = process.env.INTERNAL_KEY || null;
 
 // Create the WebSocket server
-const wss = new WebSocketServer({ port: NODE_SERVER_PORT });
+const os = require('os');
+// Listen on all interfaces so devices on the LAN can connect
+const wss = new WebSocketServer({ port: NODE_SERVER_PORT, host: '0.0.0.0' });
 
-console.log(`[Node.js] WebSocket Ingestion Service running on ws://localhost:${NODE_SERVER_PORT}`);
+// Prevent unhandled errors from crashing the process and log them instead
+wss.on('error', (err) => {
+  console.error('[Node.js] WebSocket server error:', err && err.message ? err.message : err);
+});
+
+// Log listening addresses for convenience
+const nets = os.networkInterfaces();
+const addresses = [];
+for (const name of Object.keys(nets)) {
+  for (const net of nets[name]) {
+    // skip over internal (i.e. 127.0.0.1) and non-ipv4
+    if (net.family === 'IPv4' && !net.internal) {
+      addresses.push(net.address);
+    }
+  }
+}
+console.log('[Node.js] WebSocket Ingestion Service running on:');
+addresses.forEach(a => console.log(`  ws://${a}:${NODE_SERVER_PORT}`));
+console.log(`  (also ws://localhost:${NODE_SERVER_PORT})`);
 
 wss.on('connection', ws => {
   console.log('[Node.js] Arduino device connected.');
