@@ -1,12 +1,14 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation'; // Import useRouter
+import { usePathname, useRouter } from 'next/navigation';
 import Image from 'next/image';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function Sidebar() {
   const pathname = usePathname();
-  const router = useRouter(); // Get router instance for redirecting
+  const router = useRouter();
+  const { logout } = useAuth();
 
   const menuItems = [
     { href: '/', icon: '/icons/dashboard.svg', text: 'Dashboard', tab: 'dashboard' },
@@ -30,10 +32,10 @@ export default function Sidebar() {
   ];
 
   // Logout event handler
-  const handleLogout = (e: React.MouseEvent) => {
-    e.preventDefault(); // Prevent the default link navigation
-    localStorage.removeItem('isLoggedIn'); // Clear the authentication flag
-    router.push('/login'); // Redirect to the login page
+  const handleLogout = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    await logout();
+    router.push('/login');
   };
 
   // --- Main Fix ---

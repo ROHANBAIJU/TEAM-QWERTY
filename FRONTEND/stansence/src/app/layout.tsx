@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Sidebar from "@/components/Sidebar";
+import { AuthProvider } from "@/contexts/AuthContext";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -15,12 +16,14 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="antialiased min-h-screen flex overflow-hidden">
-        <Sidebar />
-        <div className="main-layout">
-          <div className="container">
-            {children}
+        <AuthProvider>
+          <Sidebar />
+          <div className="main-layout">
+            <div className="container">
+              {children}
+            </div>
           </div>
-        </div>
+        </AuthProvider>
       </body>
     </html>
   );

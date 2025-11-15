@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import ProtectedRoute from '@/components/ProtectedRoute';
+import { useAuth } from '@/contexts/AuthContext';
 
 // Define Chart type
 interface ChartConfig {
@@ -23,22 +25,14 @@ interface WindowWithChart extends Window {
 
 export default function Dashboard() {
   const router = useRouter();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { user } = useAuth();
   const [doses, setDoses] = useState([
     { time: '8:00 AM', name: 'Morning Dose', taken: true, takenAt: null as string | null },
     { time: '2:00 PM', name: 'Afternoon Dose', taken: false, takenAt: null as string | null },
     { time: '8:00 PM', name: 'Evening Dose', taken: false, takenAt: null as string | null },
   ]);
 
-  // Check authentication on mount
-  useEffect(() => {
-    const loggedIn = localStorage.getItem('isLoggedIn');
-    if (loggedIn === 'true') {
-      setIsAuthenticated(true);
-    } else {
-      router.push('/login');
-    }
-  }, [router]);
+  // Remove old localStorage auth check
 
   const initializeChart = useCallback(() => {
     const ctx = document.getElementById('symptomChart') as HTMLCanvasElement;
@@ -155,13 +149,8 @@ export default function Dashboard() {
     router.push('/notes');
   };
 
-  // Don't render dashboard until authenticated
-  if (!isAuthenticated) {
-    return null;
-  }
-
   return (
-    <>
+    <ProtectedRoute>
       <div className="header-buttons">
         <button className="btn-log-dose" onClick={handleLogDose}>
           💊 LOG DOSE
@@ -320,7 +309,7 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
-    </>
+    </ProtectedRoute>
   );
 }
 
