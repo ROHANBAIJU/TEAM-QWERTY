@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import CoinService from '@/services/coinService';
+import { CoinService } from '@/services/coinService';
 
 interface Redemption {
   id: string;
