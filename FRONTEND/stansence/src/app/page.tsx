@@ -1,22 +1,21 @@
-﻿'use client';
+'use client';
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { useAuth } from '@/contexts/AuthContext';
+import { useSensorData } from '@/contexts/SensorDataContext';
+import { logMedication } from '@/services/medicationService';
 
-// Define Chart type
 interface ChartConfig {
   type: string;
-  data: {
-    labels: string[];
-    datasets: Array<Record<string, unknown>>;
-  };
+  data: { labels: string[]; datasets: Array<Record<string, unknown>> };
   options: Record<string, unknown>;
 }
 
 interface ChartInstance {
   destroy(): void;
+  update(mode?: string): void;
 }
 
 interface WindowWithChart extends Window {
@@ -26,78 +25,138 @@ interface WindowWithChart extends Window {
 export default function Dashboard() {
   const router = useRouter();
   const { user } = useAuth();
-  const [doses, setDoses] = useState([
-    { time: '8:00 AM', name: 'Morning Dose', taken: true, takenAt: null as string | null },
-    { time: '2:00 PM', name: 'Afternoon Dose', taken: false, takenAt: null as string | null },
-    { time: '8:00 PM', name: 'Evening Dose', taken: false, takenAt: null as string | null },
-  ]);
+  const { latestData, alerts, isConnected, connectionStatus } = useSensorData();
+  
+  const [chartInstance, setChartInstance] = useState<ChartInstance | null>(null);
+  const [chartData, setChartData] = useState<{
+    labels: string[];
+    tremor: number[];
+    rigidity: number[];
+    gait: number[];
+  }>({ labels: [], tremor: [], rigidity: [], gait: [] });
+  
+  const [showMedicationModal, setShowMedicationModal] = useState(false);
+  const [medicationForm, setMedicationForm] = useState({
+    medication_name: '',
+    dosage: '',
+    notes: ''
+  });
 
-  // Remove old localStorage auth check
-
-  const initializeChart = useCallback(() => {
-    const ctx = document.getElementById('symptomChart') as HTMLCanvasElement;
+  // Initialize Chart
+  const initializeChart = useCallback(async () => {
+    const ctx = document.getElementById('liveChart') as HTMLCanvasElement;
     const windowWithChart = window as WindowWithChart;
     if (!ctx || !windowWithChart.Chart) return;
 
     const Chart = windowWithChart.Chart;
-    new Chart(ctx, {
+    
+    const chart = new Chart(ctx, {
       type: 'line',
       data: {
-        labels: ['12AM', '2AM', '4AM', '6AM', '8AM', '10AM', '12PM', '2PM', '4PM', '6PM', '8PM', '10PM', '12AM'],
+        labels: [],
         datasets: [
           {
-            label: 'Your Symptoms',
-            data: [3, 2.8, 3.2, 4, 3.5, 3, 2.5, 2, 3.5, 2.8, 3.2, 3, 3.5],
-            borderColor: '#3b82f6',
-            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+            label: 'Tremor',
+            data: [],
+            borderColor: '#ef4444',
+            backgroundColor: 'rgba(239, 68, 68, 0.1)',
             tension: 0.4,
             fill: true,
+            borderWidth: 3,
+            pointRadius: 0,
+            pointHoverRadius: 6,
           },
           {
-            label: 'Medication Taken',
-            data: [null, null, null, null, 4.5, null, null, null, 4.5, null, null, null, null],
-            borderColor: '#fbbf24',
-            backgroundColor: '#fbbf24',
-            pointStyle: 'circle',
-            pointRadius: 8,
-            showLine: false,
+            label: 'Rigidity',
+            data: [],
+            borderColor: '#f59e0b',
+            backgroundColor: 'rgba(245, 158, 11, 0.1)',
+            tension: 0.4,
+            fill: true,
+            borderWidth: 3,
+            pointRadius: 0,
+            pointHoverRadius: 6,
+          },
+          {
+            label: 'Gait',
+            data: [],
+            borderColor: '#8b5cf6',
+            backgroundColor: 'rgba(139, 92, 246, 0.1)',
+            tension: 0.4,
+            fill: true,
+            borderWidth: 3,
+            pointRadius: 0,
+            pointHoverRadius: 6,
           }
         ]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        animation: { duration: 0 },
+        interaction: {
+          mode: 'index',
+          intersect: false,
+        },
         plugins: {
-          legend: { display: false },
+          legend: {
+            display: true,
+            position: 'top',
+            labels: {
+              color: '#d1d5db',
+              font: { size: 14, weight: '600', family: "'Inter', sans-serif" },
+              padding: 16,
+              usePointStyle: true,
+              pointStyle: 'circle',
+            }
+          },
           tooltip: {
+            enabled: true,
+            backgroundColor: 'rgba(17, 24, 39, 0.98)',
+            titleColor: '#f3f4f6',
+            bodyColor: '#d1d5db',
+            borderColor: '#374151',
+            borderWidth: 1,
+            padding: 14,
+            titleFont: { size: 14, weight: '600' },
+            bodyFont: { size: 13 },
             callbacks: {
-              label: (context: { datasetIndex: number; parsed: { y: number } }) => {
-                if (context.datasetIndex === 1 && context.parsed.y) {
-                  return 'Medication Taken: ' + context.parsed.y;
-                }
-                return 'Your Symptoms: ' + context.parsed.y;
+              label: (context: { dataset: { label: string }; parsed: { y: number } }) => {
+                return `${context.dataset.label}: ${Math.round(context.parsed.y)}%`;
               }
             }
           }
         },
         scales: {
-          y: { 
-            beginAtZero: true, 
-            max: 5,
-            ticks: { color: '#9ca3af', font: { size: 12 } },
-            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+          y: {
+            beginAtZero: true,
+            max: 100,
+            ticks: {
+              color: '#9ca3af',
+              font: { size: 12, family: "'Inter', sans-serif" },
+              callback: (value: string | number) => `${value}%`
+            },
+            grid: { color: 'rgba(255, 255, 255, 0.06)' },
+            border: { display: false }
           },
-          x: { 
-            ticks: { color: '#9ca3af', font: { size: 12 } },
-            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+          x: {
+            ticks: {
+              color: '#9ca3af',
+              font: { size: 11, family: "'Inter', sans-serif" },
+              maxTicksLimit: 8
+            },
+            grid: { display: false },
+            border: { display: false }
           }
         }
       }
     });
+
+    setChartInstance(chart);
   }, []);
 
+  // Load Chart.js
   useEffect(() => {
-    // Load Chart.js for the symptom chart
     const script = document.createElement('script');
     script.src = 'https://cdn.jsdelivr.net/npm/chart.js';
     script.async = true;
@@ -105,211 +164,582 @@ export default function Dashboard() {
     document.body.appendChild(script);
 
     return () => {
-      if (document.body.contains(script)) {
-        document.body.removeChild(script);
-      }
+      if (chartInstance) chartInstance.destroy();
+      if (document.body.contains(script)) document.body.removeChild(script);
     };
   }, [initializeChart]);
 
-  const handleLogDose = () => {
+  // Update chart with live data
+  useEffect(() => {
+    if (!latestData || !chartInstance || !latestData.scores) return;
+
     const now = new Date();
-    const currentHour = now.getHours();
-    
-    let doseIndex = -1;
-    let doseLabel = '';
-    
-    if (currentHour >= 6 && currentHour < 11) {
-      doseIndex = 0;
-      doseLabel = 'Morning Dose';
-    } else if (currentHour >= 11 && currentHour < 18) {
-      doseIndex = 1;
-      doseLabel = 'Afternoon Dose';
-    } else {
-      doseIndex = 2;
-      doseLabel = 'Evening Dose';
+    const timeLabel = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+    setChartData(prev => {
+      const newLabels = [...prev.labels, timeLabel].slice(-20);
+      const newTremor = [...prev.tremor, latestData.scores.tremor * 100].slice(-20);
+      const newRigidity = [...prev.rigidity, latestData.scores.rigidity * 100].slice(-20);
+      const newGait = [...prev.gait, latestData.scores.gait * 100].slice(-20);
+
+      chartInstance.data.labels = newLabels;
+      chartInstance.data.datasets[0].data = newTremor;
+      chartInstance.data.datasets[1].data = newRigidity;
+      chartInstance.data.datasets[2].data = newGait;
+      chartInstance.update('none');
+
+      return { labels: newLabels, tremor: newTremor, rigidity: newRigidity, gait: newGait };
+    });
+  }, [latestData, chartInstance]);
+
+  const handleLogMedication = () => {
+    setShowMedicationModal(true);
+  };
+
+  const handleSubmitMedication = async () => {
+    if (!medicationForm.medication_name || !medicationForm.dosage) {
+      alert('Please fill in medication name and dosage');
+      return;
     }
 
-    if (doseIndex !== -1) {
-      const hours = now.getHours() > 12 ? now.getHours() - 12 : (now.getHours() === 0 ? 12 : now.getHours());
-      const minutes = now.getMinutes() < 10 ? '0' + now.getMinutes() : now.getMinutes();
-      const ampm = now.getHours() >= 12 ? 'PM' : 'AM';
-      const actualTime = `${hours}:${minutes} ${ampm}`;
-
-      setDoses(prev => {
-        const newDoses = [...prev];
-        newDoses[doseIndex] = { ...newDoses[doseIndex], taken: true, takenAt: actualTime };
-        return newDoses;
+    try {
+      const now = new Date();
+      await logMedication({
+        timestamp: now.toISOString(),
+        medication_name: medicationForm.medication_name,
+        dosage: medicationForm.dosage,
+        notes: medicationForm.notes || undefined,
+        taken_at: now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
       });
 
-      alert(`✓ ${doseLabel} logged successfully\nRecorded at: ${actualTime}`);
+      alert(`✓ ${medicationForm.medication_name} logged successfully!`);
+      setShowMedicationModal(false);
+      setMedicationForm({ medication_name: '', dosage: '', notes: '' });
+    } catch (error) {
+      console.error('Failed to log medication:', error);
+      alert('Failed to log medication. Please try again.');
     }
   };
 
-  const handleLogSymptom = () => {
-    router.push('/notes');
+  const getSeverityColor = (value: number) => {
+    if (value < 30) return '#10b981';
+    if (value < 60) return '#f59e0b';
+    return '#ef4444';
+  };
+
+  const getSeverityLabel = (value: number) => {
+    if (value < 30) return 'Mild';
+    if (value < 60) return 'Moderate';
+    return 'Severe';
   };
 
   return (
     <ProtectedRoute>
-      <div className="header-buttons">
-        <button className="btn-log-dose" onClick={handleLogDose}>
-          💊 LOG DOSE
-          <span className="keyboard-hint">Alt+D</span>
-        </button>
-        <button className="btn-log-symptom" onClick={handleLogSymptom}>
-          📝 LOG SYMPTOM
-          <span className="keyboard-hint">Alt+S</span>
-        </button>
-      </div>
-
-      <div className="dashboard-grid">
-        <div className="main-chart">
-          <div className="card chart-card" style={{ flex: 1.6 }}>
-            <h3 style={{ fontSize: '24px', fontWeight: '700', marginBottom: '16px', flexShrink: 0 }}>Your Symptom Trends (Last 24 Hours)</h3>
-            <div style={{ flex: 1, minHeight: 0, position: 'relative' }}>
-              <canvas id="symptomChart"></canvas>
-            </div>
-            <div style={{ display: 'flex', gap: '14px', marginTop: '16px', justifyContent: 'center', fontSize: '16px', flexShrink: 0 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <div style={{ width: '16px', height: '16px', borderRadius: '50%', background: '#3b82f6' }}></div>
-                <span>Your Symptoms</span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <div style={{ width: '16px', height: '16px', borderRadius: '50%', background: '#fbbf24' }}></div>
-                <span>Medication Taken</span>
-              </div>
-            </div>
+      <div style={{
+        minHeight: '100vh',
+        height: '100vh',
+        overflowY: 'auto',
+        overflowX: 'hidden',
+        background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
+        padding: '24px',
+        fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+      }}>
+        {/* Header */}
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: '32px',
+          flexWrap: 'wrap',
+          gap: '16px'
+        }}>
+          <div>
+            <h1 style={{
+              fontSize: 'clamp(24px, 4vw, 36px)',
+              fontWeight: '800',
+              color: '#ffffff',
+              marginBottom: '8px',
+              letterSpacing: '-0.02em'
+            }}>
+              StanceSense Dashboard
+            </h1>
+            <p style={{ fontSize: '14px', color: '#94a3b8' }}>
+              Real-time Parkinson's monitoring • {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+            </p>
           </div>
 
-          <div className="card" style={{ padding: '20px 22px', flex: 1.35, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
-            <h3 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '16px', flexShrink: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-              Your Progress This Week
-            </h3>
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '14px', minHeight: 0 }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2px' }}>
-                  <span style={{ fontSize: '15px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    Medication On Time
-                  </span>
-                  <span style={{ fontSize: '17px', fontWeight: '700', color: '#3b82f6', background: 'rgba(59, 130, 246, 0.14)', padding: '4px 10px', borderRadius: '6px' }}>85%</span>
-                </div>
-                <div style={{ width: '100%', height: '10px', background: 'rgba(255, 255, 255, 0.1)', borderRadius: '6px', overflow: 'hidden' }}>
-                  <div style={{ width: '85%', height: '100%', background: 'linear-gradient(90deg, #3b82f6, #60a5fa)', borderRadius: '6px' }}></div>
-                </div>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2px' }}>
-                  <span style={{ fontSize: '15px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    Activity Goal Met
-                  </span>
-                  <span style={{ fontSize: '15px', fontWeight: '700', color: '#a78bfa', background: 'rgba(139, 92, 246, 0.14)', padding: '4px 10px', borderRadius: '6px' }}>5 / 7 Days</span>
-                </div>
-                <div style={{ width: '100%', height: '10px', background: 'rgba(255, 255, 255, 0.1)', borderRadius: '6px', overflow: 'hidden' }}>
-                  <div style={{ width: '71%', height: '100%', background: 'linear-gradient(90deg, #8b5cf6, #a78bfa)', borderRadius: '6px' }}></div>
-                </div>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2px' }}>
-                  <span style={{ fontSize: '15px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    Safety Record
-                  </span>
-                  <span style={{ fontSize: '13px', fontWeight: '600', color: '#10b981' }}>Last Fall: 30 Days Ago</span>
-                </div>
-                <div style={{ width: '100%', height: '10px', background: 'rgba(255, 255, 255, 0.1)', borderRadius: '6px', overflow: 'hidden' }}>
-                  <div style={{ width: '100%', height: '100%', background: 'linear-gradient(90deg, #10b981, #34d399)', borderRadius: '6px' }}></div>
-                </div>
-              </div>
+          <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
+            {/* Connection Status */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '10px 16px',
+              background: isConnected ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+              borderRadius: '12px',
+              border: `1px solid ${isConnected ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`,
+            }}>
+              <div style={{
+                width: '8px',
+                height: '8px',
+                borderRadius: '50%',
+                background: isConnected ? '#10b981' : '#ef4444',
+                animation: isConnected ? 'pulse 2s infinite' : 'none'
+              }} />
+              <span style={{ fontSize: '13px', fontWeight: '600', color: isConnected ? '#10b981' : '#ef4444' }}>
+                {isConnected ? 'Live' : 'Offline'}
+              </span>
             </div>
+
+            {/* Log Medication Button */}
+            <button
+              onClick={handleLogMedication}
+              style={{
+                padding: '12px 24px',
+                background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+                color: '#ffffff',
+                border: 'none',
+                borderRadius: '12px',
+                fontSize: '14px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)',
+                transition: 'all 0.2s ease',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 6px 16px rgba(59, 130, 246, 0.4)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(59, 130, 246, 0.3)';
+              }}
+            >
+              💊 Log Medication
+            </button>
           </div>
         </div>
 
-        <div className="right-sidebar">
-          <div
-            className="card"
-            style={{
-              borderLeft: '4px solid #fbbf24',
-              padding: '14px 16px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '12px',
-              maxHeight: '160px',
-              overflow: 'hidden',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '700' }}>Summary</h3>
-            </div>
-            <div
-              style={{
-                fontSize: '14px',
-                lineHeight: 1.5,
-                color: '#d1d5db',
-                background: 'rgba(0, 0, 0, 0.15)',
-                borderRadius: '8px',
-                padding: '10px 12px',
-                overflowY: 'auto',
+        {/* Main Grid */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+          gap: '24px',
+          marginBottom: '24px'
+        }}>
+          {/* Live Sensor Cards */}
+          {latestData && (
+            <>
+              {/* Tremor Card */}
+              <div style={{
+                background: 'rgba(255, 255, 255, 0.05)',
+                backdropFilter: 'blur(10px)',
+                borderRadius: '20px',
+                padding: '24px',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+                transition: 'transform 0.2s ease',
               }}
-            >
-              <p style={{ margin: 0 }}>
-                Your symptoms were <strong style={{ color: '#10b981' }}>stable today</strong>. Peak levels occurred at
-                <strong style={{ color: '#fbbf24' }}> 6AM </strong>and
-                <strong style={{ color: '#fbbf24' }}> 4PM</strong>. You&apos;re doing well compared to yesterday.
-              </p>
+              onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-4px)'}
+              onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+                  <div>
+                    <div style={{ fontSize: '13px', color: '#94a3b8', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Tremor</div>
+                    <div style={{ fontSize: '40px', fontWeight: '800', color: getSeverityColor(latestData.scores?.tremor * 100 || 0), marginTop: '8px' }}>
+                      {Math.round(latestData.scores?.tremor * 100 || 0)}%
+                    </div>
+                  </div>
+                  <div style={{
+                    padding: '8px 14px',
+                    background: `${getSeverityColor(latestData.scores?.tremor * 100 || 0)}20`,
+                    borderRadius: '12px',
+                    fontSize: '12px',
+                    fontWeight: '700',
+                    color: getSeverityColor(latestData.scores?.tremor * 100 || 0)
+                  }}>
+                    {getSeverityLabel(latestData.scores?.tremor * 100 || 0)}
+                  </div>
+                </div>
+                <div style={{ fontSize: '13px', color: '#94a3b8', marginBottom: '12px' }}>
+                  Frequency: {latestData.tremor.frequency_hz.toFixed(1)} Hz • Amplitude: {latestData.tremor.amplitude_g.toFixed(2)}g
+                </div>
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '10px 14px',
+                  background: latestData.tremor.tremor_detected ? 'rgba(239, 68, 68, 0.15)' : 'rgba(16, 185, 129, 0.15)',
+                  borderRadius: '10px',
+                  fontSize: '12px',
+                  fontWeight: '600',
+                  color: latestData.tremor.tremor_detected ? '#ef4444' : '#10b981'
+                }}>
+                  {latestData.tremor.tremor_detected ? '⚠️ Tremor Detected' : '✓ Normal'}
+                </div>
+              </div>
+
+              {/* Rigidity Card */}
+              <div style={{
+                background: 'rgba(255, 255, 255, 0.05)',
+                backdropFilter: 'blur(10px)',
+                borderRadius: '20px',
+                padding: '24px',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+                transition: 'transform 0.2s ease',
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-4px)'}
+              onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+                  <div>
+                    <div style={{ fontSize: '13px', color: '#94a3b8', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Rigidity</div>
+                    <div style={{ fontSize: '40px', fontWeight: '800', color: getSeverityColor(latestData.scores?.rigidity * 100 || 0), marginTop: '8px' }}>
+                      {Math.round(latestData.scores?.rigidity * 100 || 0)}%
+                    </div>
+                  </div>
+                  <div style={{
+                    padding: '8px 14px',
+                    background: `${getSeverityColor(latestData.scores?.rigidity * 100 || 0)}20`,
+                    borderRadius: '12px',
+                    fontSize: '12px',
+                    fontWeight: '700',
+                    color: getSeverityColor(latestData.scores?.rigidity * 100 || 0)
+                  }}>
+                    {getSeverityLabel(latestData.scores?.rigidity * 100 || 0)}
+                  </div>
+                </div>
+                <div style={{ fontSize: '13px', color: '#94a3b8', marginBottom: '12px' }}>
+                  EMG Wrist: {latestData.rigidity.emg_wrist.toFixed(0)} µV • Arm: {latestData.rigidity.emg_arm.toFixed(0)} µV
+                </div>
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '10px 14px',
+                  background: latestData.rigidity.rigid ? 'rgba(239, 68, 68, 0.15)' : 'rgba(16, 185, 129, 0.15)',
+                  borderRadius: '10px',
+                  fontSize: '12px',
+                  fontWeight: '600',
+                  color: latestData.rigidity.rigid ? '#ef4444' : '#10b981'
+                }}>
+                  {latestData.rigidity.rigid ? '⚠️ Rigidity Detected' : '✓ Normal'}
+                </div>
+              </div>
+
+              {/* Gait Card */}
+              <div style={{
+                background: 'rgba(255, 255, 255, 0.05)',
+                backdropFilter: 'blur(10px)',
+                borderRadius: '20px',
+                padding: '24px',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+                transition: 'transform 0.2s ease',
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-4px)'}
+              onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+                  <div>
+                    <div style={{ fontSize: '13px', color: '#94a3b8', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Gait Stability</div>
+                    <div style={{ fontSize: '40px', fontWeight: '800', color: getSeverityColor(100 - (latestData.analysis?.gait_stability_score || 0)), marginTop: '8px' }}>
+                      {Math.round(latestData.analysis?.gait_stability_score || 0)}%
+                    </div>
+                  </div>
+                  <div style={{
+                    padding: '8px 14px',
+                    background: `${getSeverityColor(100 - (latestData.analysis?.gait_stability_score || 0))}20`,
+                    borderRadius: '12px',
+                    fontSize: '12px',
+                    fontWeight: '700',
+                    color: getSeverityColor(100 - (latestData.analysis?.gait_stability_score || 0))
+                  }}>
+                    {getSeverityLabel(100 - (latestData.analysis?.gait_stability_score || 0))}
+                  </div>
+                </div>
+                <div style={{ fontSize: '13px', color: '#94a3b8', marginBottom: '12px' }}>
+                  Acceleration: X:{latestData.safety.accel_x_g.toFixed(2)}g Y:{latestData.safety.accel_y_g.toFixed(2)}g Z:{latestData.safety.accel_z_g.toFixed(2)}g
+                </div>
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '10px 14px',
+                  background: latestData.safety.fall_detected ? 'rgba(239, 68, 68, 0.15)' : 'rgba(16, 185, 129, 0.15)',
+                  borderRadius: '10px',
+                  fontSize: '12px',
+                  fontWeight: '600',
+                  color: latestData.safety.fall_detected ? '#ef4444' : '#10b981'
+                }}>
+                  {latestData.safety.fall_detected ? '🚨 FALL DETECTED' : '✓ No Fall Detected'}
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Live Chart */}
+        <div style={{
+          background: 'rgba(255, 255, 255, 0.05)',
+          backdropFilter: 'blur(10px)',
+          borderRadius: '20px',
+          padding: '32px',
+          border: '1px solid rgba(255, 255, 255, 0.1)',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+          marginBottom: '24px'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+            <h2 style={{ fontSize: '20px', fontWeight: '700', color: '#ffffff' }}>
+              Live Symptom Monitoring
+            </h2>
+            <div style={{
+              padding: '6px 12px',
+              background: 'rgba(239, 68, 68, 0.15)',
+              borderRadius: '8px',
+              fontSize: '12px',
+              fontWeight: '700',
+              color: '#ef4444',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}>
+              <div style={{
+                width: '6px',
+                height: '6px',
+                borderRadius: '50%',
+                background: '#ef4444',
+                animation: 'pulse 1.5s infinite'
+              }} />
+              LIVE
             </div>
           </div>
-
-          <div className="card" style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: '10px', flexShrink: 0, maxHeight: '190px', overflow: 'hidden' }}>
-            <h3 style={{ fontSize: '18px', fontWeight: '700', margin: 0 }}>Status Summary</h3>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '10px', overflowY: 'auto', paddingRight: '4px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <div style={{ width: '34px', height: '34px', borderRadius: '50%', background: 'rgba(16, 185, 129, 0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <span style={{ color: '#10b981', fontSize: '18px', fontWeight: '700' }}>✓</span>
-                </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: '12px', color: '#9ca3af', marginBottom: '2px' }}>Medication Status</div>
-                  <div style={{ fontSize: '15px', fontWeight: '700', color: '#10b981' }}>Feeling Good</div>
-                </div>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <div style={{ width: '34px', height: '34px', borderRadius: '50%', background: 'rgba(239, 68, 68, 0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <span style={{ color: '#ef4444', fontSize: '18px', fontWeight: '700' }}>⏰</span>
-                </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: '12px', color: '#9ca3af', marginBottom: '2px' }}>Next Medication</div>
-                  <div style={{ fontSize: '15px', fontWeight: '700', color: '#3b82f6' }}>Due at 2:00 PM</div>
-                </div>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <div style={{ width: '34px', height: '34px', borderRadius: '50%', background: 'rgba(16, 185, 129, 0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <span style={{ color: '#10b981', fontSize: '18px', fontWeight: '700' }}>✓</span>
-                </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: '12px', color: '#9ca3af', marginBottom: '2px' }}>Safety Check</div>
-                  <div style={{ fontSize: '15px', fontWeight: '700', color: '#10b981' }}>No Recent Falls</div>
-                </div>
-              </div>
-            </div>
+          <div style={{ height: '400px', position: 'relative' }}>
+            <canvas id="liveChart"></canvas>
           </div>
+          <div style={{ marginTop: '16px', fontSize: '12px', color: '#94a3b8', textAlign: 'center' }}>
+            Displaying last 20 data points • Updates every 3 seconds
+          </div>
+        </div>
 
-          <div className="card doses-card">
-            <div className="doses-header">Today&apos;s Doses</div>
-            <div className="doses-list">
-              {doses.map((dose, index) => (
-                <div key={index} className={`dose-item ${dose.taken ? 'taken' : ''}`}>
-                  <div className="dose-time">{dose.time}</div>
-                  <div className="dose-name">{dose.name}</div>
-                  {dose.taken && (
-                    <span className="dose-status" dangerouslySetInnerHTML={{
-                      __html: `✓ Taken${dose.takenAt ? `<br><small style="font-size: 10px; opacity: 0.8;">${dose.takenAt}</small>` : ''}`
-                    }} />
-                  )}
+        {/* Alerts Section */}
+        {alerts.length > 0 && (
+          <div style={{
+            background: 'rgba(239, 68, 68, 0.1)',
+            backdropFilter: 'blur(10px)',
+            borderRadius: '20px',
+            padding: '24px',
+            border: '1px solid rgba(239, 68, 68, 0.3)',
+            boxShadow: '0 8px 32px rgba(239, 68, 68, 0.2)',
+          }}>
+            <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#ef4444', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              🚨 Critical Alerts ({alerts.length})
+            </h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {alerts.slice(0, 3).map((alert, index) => (
+                <div key={index} style={{
+                  padding: '16px',
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  borderRadius: '12px',
+                  borderLeft: '4px solid #ef4444'
+                }}>
+                  <div style={{ fontSize: '14px', fontWeight: '600', color: '#ffffff', marginBottom: '8px' }}>
+                    {alert.event_type.replace('_', ' ').toUpperCase()}
+                  </div>
+                  <div style={{ fontSize: '13px', color: '#cbd5e1', lineHeight: '1.6' }}>
+                    {alert.message.split('\n')[0]}
+                  </div>
+                  <div style={{ fontSize: '11px', color: '#64748b', marginTop: '8px' }}>
+                    {new Date(alert.timestamp).toLocaleString()}
+                  </div>
                 </div>
               ))}
             </div>
           </div>
-        </div>
+        )}
+
+        {/* Medication Modal */}
+        {showMedicationModal && (
+          <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.8)',
+            backdropFilter: 'blur(8px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999,
+            padding: '20px'
+          }} onClick={() => setShowMedicationModal(false)}>
+            <div style={{
+              background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
+              borderRadius: '24px',
+              padding: '40px',
+              maxWidth: '500px',
+              width: '100%',
+              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)',
+              border: '1px solid rgba(255, 255, 255, 0.1)'
+            }} onClick={(e) => e.stopPropagation()}>
+              <h2 style={{ fontSize: '28px', fontWeight: '800', color: '#ffffff', marginBottom: '32px' }}>
+                💊 Log Medication
+              </h2>
+              
+              <div style={{ marginBottom: '24px' }}>
+                <label style={{ display: 'block', marginBottom: '10px', fontSize: '14px', fontWeight: '600', color: '#cbd5e1' }}>
+                  Medication Name *
+                </label>
+                <input
+                  type="text"
+                  value={medicationForm.medication_name}
+                  onChange={(e) => setMedicationForm({ ...medicationForm, medication_name: e.target.value })}
+                  placeholder="e.g., Levodopa, Carbidopa"
+                  style={{
+                    width: '100%',
+                    padding: '14px 16px',
+                    fontSize: '16px',
+                    borderRadius: '12px',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    background: 'rgba(255, 255, 255, 0.05)',
+                    color: '#ffffff',
+                    outline: 'none',
+                    transition: 'border-color 0.2s ease'
+                  }}
+                  onFocus={(e) => e.currentTarget.style.borderColor = '#3b82f6'}
+                  onBlur={(e) => e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)'}
+                />
+              </div>
+
+              <div style={{ marginBottom: '24px' }}>
+                <label style={{ display: 'block', marginBottom: '10px', fontSize: '14px', fontWeight: '600', color: '#cbd5e1' }}>
+                  Dosage *
+                </label>
+                <input
+                  type="text"
+                  value={medicationForm.dosage}
+                  onChange={(e) => setMedicationForm({ ...medicationForm, dosage: e.target.value })}
+                  placeholder="e.g., 100mg, 2 tablets"
+                  style={{
+                    width: '100%',
+                    padding: '14px 16px',
+                    fontSize: '16px',
+                    borderRadius: '12px',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    background: 'rgba(255, 255, 255, 0.05)',
+                    color: '#ffffff',
+                    outline: 'none'
+                  }}
+                  onFocus={(e) => e.currentTarget.style.borderColor = '#3b82f6'}
+                  onBlur={(e) => e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)'}
+                />
+              </div>
+
+              <div style={{ marginBottom: '32px' }}>
+                <label style={{ display: 'block', marginBottom: '10px', fontSize: '14px', fontWeight: '600', color: '#cbd5e1' }}>
+                  Notes (optional)
+                </label>
+                <textarea
+                  value={medicationForm.notes}
+                  onChange={(e) => setMedicationForm({ ...medicationForm, notes: e.target.value })}
+                  placeholder="Any additional notes..."
+                  rows={3}
+                  style={{
+                    width: '100%',
+                    padding: '14px 16px',
+                    fontSize: '16px',
+                    borderRadius: '12px',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    background: 'rgba(255, 255, 255, 0.05)',
+                    color: '#ffffff',
+                    outline: 'none',
+                    resize: 'vertical',
+                    fontFamily: 'inherit'
+                  }}
+                  onFocus={(e) => e.currentTarget.style.borderColor = '#3b82f6'}
+                  onBlur={(e) => e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)'}
+                />
+              </div>
+
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <button
+                  onClick={() => setShowMedicationModal(false)}
+                  style={{
+                    flex: 1,
+                    padding: '14px',
+                    fontSize: '16px',
+                    fontWeight: '600',
+                    borderRadius: '12px',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    background: 'transparent',
+                    color: '#cbd5e1',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)'}
+                  onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSubmitMedication}
+                  disabled={!medicationForm.medication_name || !medicationForm.dosage}
+                  style={{
+                    flex: 1,
+                    padding: '14px',
+                    fontSize: '16px',
+                    fontWeight: '600',
+                    borderRadius: '12px',
+                    border: 'none',
+                    background: medicationForm.medication_name && medicationForm.dosage
+                      ? 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)'
+                      : 'rgba(255, 255, 255, 0.1)',
+                    color: '#ffffff',
+                    cursor: medicationForm.medication_name && medicationForm.dosage ? 'pointer' : 'not-allowed',
+                    transition: 'all 0.2s ease',
+                    boxShadow: medicationForm.medication_name && medicationForm.dosage
+                      ? '0 4px 12px rgba(59, 130, 246, 0.3)'
+                      : 'none'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (medicationForm.medication_name && medicationForm.dosage) {
+                      e.currentTarget.style.transform = 'translateY(-2px)';
+                      e.currentTarget.style.boxShadow = '0 6px 16px rgba(59, 130, 246, 0.4)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = medicationForm.medication_name && medicationForm.dosage
+                      ? '0 4px 12px rgba(59, 130, 246, 0.3)'
+                      : 'none';
+                  }}
+                >
+                  Log Medication
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Pulse Animation Keyframes */}
+        <style>{`
+          @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+          }
+          
+          @media (max-width: 768px) {
+            body {
+              padding: 16px;
+            }
+          }
+        `}</style>
       </div>
     </ProtectedRoute>
   );
 }
-

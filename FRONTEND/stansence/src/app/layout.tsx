@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Sidebar from "@/components/Sidebar";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { SensorDataProvider } from "@/contexts/SensorDataContext";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -15,14 +16,19 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="antialiased min-h-screen flex overflow-hidden">
+      <body style={{ margin: 0, padding: 0, width: '100vw', height: '100vh', overflow: 'hidden' }}>
         <AuthProvider>
-          <Sidebar />
-          <div className="main-layout">
-            <div className="container">
+          <SensorDataProvider>
+            <Sidebar />
+            <main style={{ 
+              marginLeft: '200px',
+              width: 'calc(100vw - 200px)',
+              height: '100vh',
+              overflow: 'hidden'
+            }}>
               {children}
-            </div>
-          </div>
+            </main>
+          </SensorDataProvider>
         </AuthProvider>
       </body>
     </html>

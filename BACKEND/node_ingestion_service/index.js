@@ -1,19 +1,49 @@
 // File: BACKEND/node_ingestion_service/index.js
 
+require('dotenv').config(); // Load environment variables
 const { WebSocketServer } = require('ws');
 const axios = require('axios'); // Used to send data to Python backend
+const { startSimulation } = require('./simulator'); // Hardware simulator
 
 // --- CONFIGURATION ---
 const NODE_SERVER_PORT = 8080; // Port the Arduino connects to
 const FASTAPI_INGEST_URL = 'http://127.0.0.1:8000/ingest/data'; // Internal URL for your Python API
+const ENABLE_SIMULATOR = process.env.SIMULATOR === 'true' || true; // Enable by default for testing
+const SIMULATOR_INTERVAL = 3000; // Send data every 3 seconds
 
 // Create the WebSocket server
 const wss = new WebSocketServer({ port: NODE_SERVER_PORT });
 
 console.log(`[Node.js] WebSocket Ingestion Service running on ws://localhost:${NODE_SERVER_PORT}`);
+console.log(`[Node.js] Simulator mode: ${ENABLE_SIMULATOR ? 'ENABLED ✓' : 'DISABLED (waiting for real hardware)'}`);
+
+// Helper function to forward data to FastAPI
+async function forwardToFastAPI(dataPacket) {
+  const authToken = process.env.FIREBASE_TEST_TOKEN || 'simulator_test_token';
+  
+  try {
+    const response = await axios.post(FASTAPI_INGEST_URL, dataPacket, {
+      headers: {
+        'Authorization': `Bearer ${authToken}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    console.log(`[Node.js] ✓ Forwarded to FastAPI - Status: ${response.status}, ID: ${response.data.id}`);
+    return response.data;
+  } catch (err) {
+    console.error('[Node.js] ❌ FAILED to forward to FastAPI:', err.response?.data || err.message);
+    throw err;
+  }
+}
 
 wss.on('connection', ws => {
-  console.log('[Node.js] Arduino device connected.');
+  console.log('[Node.js] Device connected.');
+  
+  // Start simulator if enabled - pass forwardToFastAPI callback
+  if (ENABLE_SIMULATOR) {
+    console.log('[Node.js] Starting hardware simulator...');
+    startSimulation(ws, SIMULATOR_INTERVAL, forwardToFastAPI);
+  }
 
   ws.on('message', async (message) => {
     try {
@@ -41,11 +71,7 @@ wss.on('connection', ws => {
       console.log('[Node.js] Received data from device:', dataPacket);
 
       // 3. Forward the data to the FastAPI Core Service
-      // We don't wait for a response, just fire and forget.
-      axios.post(FASTAPI_INGEST_URL, dataPacket)
-        .catch(err => {
-          console.error('[Node.js] FAILED to forward data to FastAPI:', err.message);
-        });
+      await forwardToFastAPI(dataPacket);
 
     } catch (error) {
       console.error('[Node.js] Error processing message:', error.message);
@@ -55,7 +81,7 @@ wss.on('connection', ws => {
   });
 
   ws.on('close', () => {
-    console.log('[Node.js] Arduino device disconnected.');
+    console.log('[Node.js] Device disconnected.');
   });
 
   ws.on('error', (error) => {

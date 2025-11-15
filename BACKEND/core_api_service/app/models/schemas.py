@@ -1,7 +1,7 @@
 # File: BACKEND/core_api_service/app/models/schemas.py
 
 from pydantic import BaseModel
-from typing import Optional, Any, Dict
+from typing import Optional, Any, Dict, List
 
 # --- Input Schemas (from Arduino) ---
 # Note: Your example JSON had a syntax error. I've corrected it
@@ -62,4 +62,28 @@ class Alert(BaseModel):
     event_type: str  # "fall", "rigidity_spike", etc.
     message: str     # The rich message from the RAG agent
     data_snapshot: dict # A snapshot of the data that caused the alert
+
+
+# --- Medication & Notes Schemas ---
+
+class MedicationLog(BaseModel):
+    """
+    Schema for logging medication intake.
+    """
+    timestamp: str
+    medication_name: str
+    dosage: str
+    notes: Optional[str] = None
+    taken_at: Optional[str] = None  # Time medication was actually taken
+
+
+class PatientNote(BaseModel):
+    """
+    Schema for patient symptom notes and observations.
+    """
+    timestamp: str
+    content: str
+    severity: Optional[str] = None  # "low", "moderate", "high"
+    category: Optional[str] = None  # "symptom", "observation", "general"
+    tags: Optional[List[str]] = None
 

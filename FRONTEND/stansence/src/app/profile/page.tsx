@@ -26,11 +26,11 @@ interface PatientData {
 }
 
 export default function Profile() {
-  const [messages, setMessages] = useState<Message[]>(() => [{
+  const [messages, setMessages] = useState<Message[]>([{
     id: 'welcome-1',
     sender: 'doctor' as const,
     content: "Hello John! 👋 I hope you're doing well today. I'm here to help you with any questions or concerns about your Parkinson's treatment. Feel free to send me a daily health report anytime!",
-    timestamp: new Date(Date.now() - 3600000), // 1 hour ago
+    timestamp: new Date(Date.now() - 3600000),
   }]);
   const [inputMessage, setInputMessage] = useState('');
   const [showQuickStats, setShowQuickStats] = useState(false);
@@ -38,7 +38,6 @@ export default function Profile() {
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Mock patient data
   const [patientData] = useState<PatientData>({
     name: "John Doe",
     age: 68,
@@ -57,6 +56,10 @@ export default function Profile() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
   const getTrendIcon = (value: number): string => {
     if (value >= 65) return '⬆️ High';
     if (value >= 45) return '➡️ Moderate';
@@ -65,16 +68,8 @@ export default function Profile() {
 
   const generateStatusReport = (): string => {
     const now = new Date();
-    const dateStr = now.toLocaleDateString('en-US', { 
-      weekday: 'long', 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
-    });
-    const timeStr = now.toLocaleTimeString('en-US', { 
-      hour: '2-digit', 
-      minute: '2-digit' 
-    });
+    const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
 
     return `📊 COMPREHENSIVE DAILY HEALTH REPORT
 
@@ -92,9 +87,9 @@ export default function Profile() {
 📈 CURRENT SYMPTOM LEVELS
 
 🤝 Tremor: ${patientData.tremorLevel}/100 ${getTrendIcon(patientData.tremorLevel)}
-� Rigidity: ${patientData.rigidityLevel}/100 ${getTrendIcon(patientData.rigidityLevel)}
+💪 Rigidity: ${patientData.rigidityLevel}/100 ${getTrendIcon(patientData.rigidityLevel)}
 ⏱️ Slowness: ${patientData.slownessLevel}/100 ${getTrendIcon(patientData.slownessLevel)}
-� Gait Stability: ${patientData.gaitLevel}/100 ${getTrendIcon(patientData.gaitLevel)}
+🚶 Gait Stability: ${patientData.gaitLevel}/100 ${getTrendIcon(patientData.gaitLevel)}
 
 Average Score: ${Math.round((patientData.tremorLevel + patientData.rigidityLevel + patientData.slownessLevel + patientData.gaitLevel) / 4)}/100
 
@@ -134,10 +129,6 @@ Based on your current gait stability score (${patientData.gaitLevel}/100):
 This comprehensive report was automatically generated from real-time dashboard and analytics data. All metrics are continuously monitored by StanceSense AI.`;
   };
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
   const handleSendMessage = () => {
     if (inputMessage.trim() === '') return;
 
@@ -151,7 +142,6 @@ This comprehensive report was automatically generated from real-time dashboard a
     setMessages([...messages, newMessage]);
     setInputMessage('');
 
-    // Simulate doctor typing
     setIsTyping(true);
     setTimeout(() => {
       setIsTyping(false);
@@ -183,7 +173,6 @@ This comprehensive report was automatically generated from real-time dashboard a
     };
     setMessages([...messages, newMessage]);
 
-    // Doctor acknowledges report
     setTimeout(() => {
       setIsTyping(true);
       setTimeout(() => {
@@ -214,7 +203,6 @@ This comprehensive report was automatically generated from real-time dashboard a
     setMessages([...messages, scheduledMsg]);
     setShowScheduleModal(false);
 
-    // Doctor confirms
     setTimeout(() => {
       const confirmMsg: Message = {
         id: (Date.now() + 1).toString(),
@@ -235,224 +223,532 @@ This comprehensive report was automatically generated from real-time dashboard a
     if (diffMins < 60) return `${diffMins}m ago`;
     if (diffMins < 1440) return `${Math.floor(diffMins / 60)}h ago`;
     
-    return date.toLocaleTimeString('en-US', { 
-      hour: '2-digit', 
-      minute: '2-digit' 
-    });
+    return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
   };
 
   return (
-    <div className="profile-fullscreen">
-      <div className="profile-wrapper-full">
-        {/* Messaging Interface - Full Width */}
-        <div className="messaging-container-full">
-          <div className="messaging-header">
-            <div className="doctor-info">
-              <div className="doctor-avatar online">
-                <span>👨‍⚕️</span>
-              </div>
-              <div className="doctor-details">
-                <h3>Dr. Sarah Mitchell</h3>
-                <span className="doctor-status">
-                  <span className="status-dot online"></span>
-                  Online • Available Now
-                </span>
-              </div>
-            </div>
-            <div className="header-actions">
-              <button className="action-btn video-btn" title="Start Video Call">
-                <span className="btn-icon">�</span>
-                <span className="btn-text">Video Call</span>
-              </button>
-              <button className="action-btn call-btn" title="Start Voice Call">
-                <span className="btn-icon">📞</span>
-                <span className="btn-text">Call</span>
-              </button>
-              <button className="action-btn schedule-btn" onClick={scheduleAppointment} title="Schedule Appointment">
-                <span className="btn-icon">📅</span>
-                <span className="btn-text">Schedule</span>
-              </button>
-              <button className="action-btn menu-btn" title="More Options">
-                <span>⋮</span>
-              </button>
-            </div>
+    <div style={{
+      height: '100vh',
+      overflowY: 'hidden',
+      background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
+      display: 'flex',
+      flexDirection: 'column'
+    }}>
+      {/* Doctor Header */}
+      <div style={{
+        background: 'rgba(255, 255, 255, 0.05)',
+        backdropFilter: 'blur(10px)',
+        borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+        padding: '20px 32px',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        flexShrink: 0
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <div style={{
+            width: '56px',
+            height: '56px',
+            background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '28px',
+            position: 'relative'
+          }}>
+            👨‍⚕️
+            <span style={{
+              position: 'absolute',
+              bottom: '2px',
+              right: '2px',
+              width: '14px',
+              height: '14px',
+              background: '#10b981',
+              border: '2px solid #0f172a',
+              borderRadius: '50%'
+            }} />
           </div>
-
-          <div className="messages-area">
-            {messages.map((message) => (
-              <div 
-                key={message.id} 
-                className={`message ${message.sender} ${message.isStatusReport ? 'status-report' : ''} ${message.isScheduled ? 'scheduled' : ''}`}
-              >
-                {message.sender === 'doctor' && (
-                  <div className="message-avatar">
-                    <span>👨‍⚕️</span>
-                  </div>
-                )}
-                <div className="message-content">
-                  {message.isStatusReport && (
-                    <div className="report-badge">
-                      <span className="badge-icon">📊</span>
-                      <span>Comprehensive Daily Report</span>
-                    </div>
-                  )}
-                  {message.isScheduled && (
-                    <div className="scheduled-badge">
-                      <span className="badge-icon">�</span>
-                      <span>Appointment Request</span>
-                    </div>
-                  )}
-                  <pre className="message-text">{message.content}</pre>
-                  <span className="message-time">{formatTimestamp(message.timestamp)}</span>
-                </div>
-                {message.sender === 'patient' && (
-                  <div className="message-avatar patient-avatar">
-                    <span>{patientData.name.split(' ').map(n => n[0]).join('')}</span>
-                  </div>
-                )}
-              </div>
-            ))}
-            {isTyping && (
-              <div className="message doctor typing-indicator">
-                <div className="message-avatar">
-                  <span>👨‍⚕️</span>
-                </div>
-                <div className="typing-bubble">
-                  <div className="typing-dots">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                  </div>
-                </div>
-              </div>
-            )}
-            <div ref={messagesEndRef} />
-          </div>
-
-          <div className="message-input-container">
-            <div className="quick-actions-bar">
-              <button className="quick-action-btn report-btn" onClick={sendStatusReport} title="Send Daily Health Report">
-                <span className="action-icon">�</span>
-                <span className="action-label">Send Daily Report</span>
-              </button>
-              <button className="quick-action-btn stats-btn" onClick={() => setShowQuickStats(!showQuickStats)} title="View Quick Stats">
-                <span className="action-icon">�</span>
-                <span className="action-label">Health Stats</span>
-              </button>
-              <button className="quick-action-btn appointment-btn" onClick={scheduleAppointment} title="Schedule Appointment">
-                <span className="action-icon">📅</span>
-                <span className="action-label">Schedule</span>
-              </button>
-            </div>
-
-            {showQuickStats && (
-              <div className="quick-stats-panel">
-                <div className="quick-stats-header">
-                  <h4>📊 Today&apos;s Quick Stats</h4>
-                  <button className="close-stats" onClick={() => setShowQuickStats(false)}>×</button>
-                </div>
-                <div className="quick-stats-grid">
-                  <div className="quick-stat">
-                    <span className="stat-icon">🤝</span>
-                    <div className="stat-info">
-                      <span className="stat-label">Tremor</span>
-                      <span className="stat-value">{patientData.tremorLevel}/100</span>
-                    </div>
-                  </div>
-                  <div className="quick-stat">
-                    <span className="stat-icon">💪</span>
-                    <div className="stat-info">
-                      <span className="stat-label">Rigidity</span>
-                      <span className="stat-value">{patientData.rigidityLevel}/100</span>
-                    </div>
-                  </div>
-                  <div className="quick-stat">
-                    <span className="stat-icon">⏱️</span>
-                    <div className="stat-info">
-                      <span className="stat-label">Slowness</span>
-                      <span className="stat-value">{patientData.slownessLevel}/100</span>
-                    </div>
-                  </div>
-                  <div className="quick-stat">
-                    <span className="stat-icon">🚶</span>
-                    <div className="stat-info">
-                      <span className="stat-label">Gait</span>
-                      <span className="stat-value">{patientData.gaitLevel}/100</span>
-                    </div>
-                  </div>
-                  <div className="quick-stat">
-                    <span className="stat-icon">💊</span>
-                    <div className="stat-info">
-                      <span className="stat-label">Next Dose</span>
-                      <span className="stat-value">{patientData.nextDoseTime}</span>
-                    </div>
-                  </div>
-                  <div className="quick-stat">
-                    <span className="stat-icon">⚠️</span>
-                    <div className="stat-info">
-                      <span className="stat-label">Fall Risk</span>
-                      <span className="stat-value">{patientData.fallRiskLevel}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            <div className="message-input-area">
-              <button className="attachment-btn" title="Attach File">
-                <span>📎</span>
-              </button>
-              <textarea
-                className="message-input"
-                placeholder="Type your message to Dr. Sarah Mitchell..."
-                value={inputMessage}
-                onChange={(e) => setInputMessage(e.target.value)}
-                onKeyPress={handleKeyPress}
-                rows={1}
-              />
-              <button 
-                className={`send-btn ${inputMessage.trim() !== '' ? 'active' : ''}`}
-                onClick={handleSendMessage}
-                disabled={inputMessage.trim() === ''}
-                title="Send Message"
-              >
-                <span>➤</span>
-              </button>
+          <div>
+            <h3 style={{ fontSize: '20px', fontWeight: '700', margin: 0, color: 'white' }}>
+              Dr. Sarah Mitchell
+            </h3>
+            <div style={{ fontSize: '13px', color: '#10b981', display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
+              <span style={{
+                width: '8px',
+                height: '8px',
+                background: '#10b981',
+                borderRadius: '50%',
+                animation: 'pulse 2s infinite'
+              }} />
+              Online • Available Now
             </div>
           </div>
         </div>
+        <div style={{ display: 'flex', gap: '12px' }}>
+          {[
+            { icon: '📹', label: 'Video Call' },
+            { icon: '📞', label: 'Call' },
+            { icon: '📅', label: 'Schedule', onClick: scheduleAppointment }
+          ].map((btn) => (
+            <button
+              key={btn.label}
+              onClick={btn.onClick}
+              style={{
+                padding: '10px 18px',
+                background: 'rgba(139, 92, 246, 0.15)',
+                border: '1px solid rgba(139, 92, 246, 0.3)',
+                borderRadius: '10px',
+                color: '#a78bfa',
+                fontSize: '14px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                transition: 'all 0.2s'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(139, 92, 246, 0.25)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'rgba(139, 92, 246, 0.15)';
+              }}
+            >
+              <span style={{ fontSize: '16px' }}>{btn.icon}</span>
+              <span>{btn.label}</span>
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* Schedule Appointment Modal */}
-      {showScheduleModal && (
-        <div className="modal-overlay" onClick={() => setShowScheduleModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>📅 Schedule Appointment</h3>
-              <button className="modal-close" onClick={() => setShowScheduleModal(false)}>×</button>
+      {/* Messages Area */}
+      <div style={{
+        flex: 1,
+        overflowY: 'auto',
+        padding: '24px 32px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '16px'
+      }}>
+        {messages.map((message) => (
+          <div
+            key={message.id}
+            style={{
+              display: 'flex',
+              gap: '12px',
+              alignItems: 'flex-start',
+              flexDirection: message.sender === 'patient' ? 'row-reverse' : 'row'
+            }}
+          >
+            <div style={{
+              width: '40px',
+              height: '40px',
+              borderRadius: '50%',
+              background: message.sender === 'doctor' ? 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)' : 'rgba(255, 255, 255, 0.1)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '18px',
+              flexShrink: 0
+            }}>
+              {message.sender === 'doctor' ? '👨‍⚕️' : patientData.name.split(' ').map(n => n[0]).join('')}
             </div>
-            <div className="modal-body">
-              <p>Request a video or phone consultation with Dr. Sarah Mitchell</p>
-              <div className="appointment-options">
-                <button className="appointment-option" onClick={confirmAppointment}>
-                  <span className="option-icon">📹</span>
-                  <div className="option-details">
-                    <strong>Video Consultation</strong>
-                    <span>Next Available: This Week</span>
-                  </div>
-                </button>
-                <button className="appointment-option" onClick={confirmAppointment}>
-                  <span className="option-icon">📞</span>
-                  <div className="option-details">
-                    <strong>Phone Call</strong>
-                    <span>Next Available: Tomorrow</span>
-                  </div>
-                </button>
+            <div style={{
+              maxWidth: '70%',
+              background: message.sender === 'doctor' ? 'rgba(139, 92, 246, 0.15)' : 'rgba(255, 255, 255, 0.05)',
+              backdropFilter: 'blur(10px)',
+              border: '1px solid ' + (message.sender === 'doctor' ? 'rgba(139, 92, 246, 0.3)' : 'rgba(255, 255, 255, 0.1)'),
+              borderRadius: '16px',
+              padding: '14px 18px'
+            }}>
+              {message.isStatusReport && (
+                <div style={{
+                  padding: '6px 12px',
+                  background: 'rgba(59, 130, 246, 0.2)',
+                  borderRadius: '8px',
+                  fontSize: '12px',
+                  fontWeight: '600',
+                  color: '#3b82f6',
+                  marginBottom: '10px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}>
+                  <span>📊</span> Comprehensive Daily Report
+                </div>
+              )}
+              {message.isScheduled && (
+                <div style={{
+                  padding: '6px 12px',
+                  background: 'rgba(16, 185, 129, 0.2)',
+                  borderRadius: '8px',
+                  fontSize: '12px',
+                  fontWeight: '600',
+                  color: '#10b981',
+                  marginBottom: '10px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}>
+                  <span>📅</span> Appointment Request
+                </div>
+              )}
+              <pre style={{
+                whiteSpace: 'pre-wrap',
+                wordWrap: 'break-word',
+                margin: 0,
+                fontFamily: 'inherit',
+                fontSize: '14px',
+                lineHeight: '1.6',
+                color: 'white'
+              }}>
+                {message.content}
+              </pre>
+              <div style={{
+                fontSize: '11px',
+                color: '#64748b',
+                marginTop: '8px',
+                textAlign: message.sender === 'patient' ? 'right' : 'left'
+              }}>
+                {formatTimestamp(message.timestamp)}
               </div>
+            </div>
+          </div>
+        ))}
+        
+        {isTyping && (
+          <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+            <div style={{
+              width: '40px',
+              height: '40px',
+              borderRadius: '50%',
+              background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '18px'
+            }}>
+              👨‍⚕️
+            </div>
+            <div style={{
+              padding: '16px 20px',
+              background: 'rgba(139, 92, 246, 0.15)',
+              borderRadius: '16px',
+              display: 'flex',
+              gap: '8px'
+            }}>
+              {[0, 1, 2].map((i) => (
+                <span
+                  key={i}
+                  style={{
+                    width: '8px',
+                    height: '8px',
+                    background: '#a78bfa',
+                    borderRadius: '50%',
+                    animation: `bounce 1.4s ${i * 0.2}s infinite`
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+        <div ref={messagesEndRef} />
+      </div>
+
+      {/* Quick Actions Bar */}
+      <div style={{
+        background: 'rgba(255, 255, 255, 0.03)',
+        borderTop: '1px solid rgba(255, 255, 255, 0.1)',
+        padding: '12px 32px',
+        display: 'flex',
+        gap: '12px',
+        flexShrink: 0
+      }}>
+        <button
+          onClick={sendStatusReport}
+          style={{
+            flex: 1,
+            padding: '10px 16px',
+            background: 'rgba(59, 130, 246, 0.15)',
+            border: '1px solid rgba(59, 130, 246, 0.3)',
+            borderRadius: '10px',
+            color: '#3b82f6',
+            fontSize: '13px',
+            fontWeight: '600',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px'
+          }}
+        >
+          <span>📊</span> Send Daily Report
+        </button>
+        <button
+          onClick={() => setShowQuickStats(!showQuickStats)}
+          style={{
+            flex: 1,
+            padding: '10px 16px',
+            background: 'rgba(16, 185, 129, 0.15)',
+            border: '1px solid rgba(16, 185, 129, 0.3)',
+            borderRadius: '10px',
+            color: '#10b981',
+            fontSize: '13px',
+            fontWeight: '600',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px'
+          }}
+        >
+          <span>📈</span> Health Stats
+        </button>
+        <button
+          onClick={scheduleAppointment}
+          style={{
+            flex: 1,
+            padding: '10px 16px',
+            background: 'rgba(139, 92, 246, 0.15)',
+            border: '1px solid rgba(139, 92, 246, 0.3)',
+            borderRadius: '10px',
+            color: '#a78bfa',
+            fontSize: '13px',
+            fontWeight: '600',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px'
+          }}
+        >
+          <span>📅</span> Schedule
+        </button>
+      </div>
+
+      {/* Quick Stats Panel */}
+      {showQuickStats && (
+        <div style={{
+          position: 'fixed',
+          bottom: '180px',
+          right: '32px',
+          width: '320px',
+          background: 'rgba(15, 23, 42, 0.98)',
+          backdropFilter: 'blur(10px)',
+          border: '1px solid rgba(139, 92, 246, 0.3)',
+          borderRadius: '16px',
+          padding: '20px',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)',
+          zIndex: 1000
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <h4 style={{ fontSize: '16px', fontWeight: '700', margin: 0 }}>📊 Today&apos;s Quick Stats</h4>
+            <button
+              onClick={() => setShowQuickStats(false)}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: '#64748b',
+                fontSize: '24px',
+                cursor: 'pointer',
+                padding: '0',
+                lineHeight: '1'
+              }}
+            >
+              ×
+            </button>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
+            {[
+              { icon: '🤝', label: 'Tremor', value: patientData.tremorLevel },
+              { icon: '💪', label: 'Rigidity', value: patientData.rigidityLevel },
+              { icon: '⏱️', label: 'Slowness', value: patientData.slownessLevel },
+              { icon: '🚶', label: 'Gait', value: patientData.gaitLevel }
+            ].map((stat) => (
+              <div
+                key={stat.label}
+                style={{
+                  padding: '12px',
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  borderRadius: '10px',
+                  textAlign: 'center'
+                }}
+              >
+                <div style={{ fontSize: '24px', marginBottom: '6px' }}>{stat.icon}</div>
+                <div style={{ fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>{stat.label}</div>
+                <div style={{ fontSize: '18px', fontWeight: '700', color: '#a78bfa' }}>{stat.value}/100</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Message Input */}
+      <div style={{
+        background: 'rgba(255, 255, 255, 0.05)',
+        backdropFilter: 'blur(10px)',
+        borderTop: '1px solid rgba(255, 255, 255, 0.1)',
+        padding: '20px 32px',
+        display: 'flex',
+        gap: '12px',
+        alignItems: 'flex-end',
+        flexShrink: 0
+      }}>
+        <button
+          style={{
+            padding: '12px',
+            background: 'rgba(255, 255, 255, 0.05)',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            borderRadius: '10px',
+            color: '#cbd5e1',
+            fontSize: '20px',
+            cursor: 'pointer',
+            flexShrink: 0
+          }}
+        >
+          📎
+        </button>
+        <textarea
+          value={inputMessage}
+          onChange={(e) => setInputMessage(e.target.value)}
+          onKeyPress={handleKeyPress}
+          placeholder="Type your message to Dr. Sarah Mitchell..."
+          rows={1}
+          style={{
+            flex: 1,
+            padding: '14px 18px',
+            background: 'rgba(255, 255, 255, 0.05)',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            borderRadius: '12px',
+            color: 'white',
+            fontSize: '14px',
+            resize: 'none',
+            outline: 'none',
+            minHeight: '48px',
+            maxHeight: '120px'
+          }}
+        />
+        <button
+          onClick={handleSendMessage}
+          disabled={inputMessage.trim() === ''}
+          style={{
+            padding: '12px 20px',
+            background: inputMessage.trim() !== '' ? 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)' : 'rgba(255, 255, 255, 0.05)',
+            border: 'none',
+            borderRadius: '10px',
+            color: inputMessage.trim() !== '' ? 'white' : '#64748b',
+            fontSize: '18px',
+            cursor: inputMessage.trim() !== '' ? 'pointer' : 'not-allowed',
+            flexShrink: 0,
+            transition: 'all 0.2s'
+          }}
+        >
+          ➤
+        </button>
+      </div>
+
+      {/* Schedule Modal */}
+      {showScheduleModal && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.7)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 2000
+          }}
+          onClick={() => setShowScheduleModal(false)}
+        >
+          <div
+            style={{
+              background: 'rgba(15, 23, 42, 0.98)',
+              backdropFilter: 'blur(10px)',
+              border: '1px solid rgba(139, 92, 246, 0.3)',
+              borderRadius: '20px',
+              padding: '32px',
+              width: '90%',
+              maxWidth: '480px',
+              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h3 style={{ fontSize: '24px', fontWeight: '700', margin: 0 }}>📅 Schedule Appointment</h3>
+              <button
+                onClick={() => setShowScheduleModal(false)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#64748b',
+                  fontSize: '32px',
+                  cursor: 'pointer',
+                  padding: '0',
+                  lineHeight: '1'
+                }}
+              >
+                ×
+              </button>
+            </div>
+            <p style={{ fontSize: '14px', color: '#cbd5e1', marginBottom: '24px' }}>
+              Request a video or phone consultation with Dr. Sarah Mitchell
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {[
+                { icon: '📹', title: 'Video Consultation', desc: 'Next Available: This Week' },
+                { icon: '📞', title: 'Phone Call', desc: 'Next Available: Tomorrow' }
+              ].map((option) => (
+                <button
+                  key={option.title}
+                  onClick={confirmAppointment}
+                  style={{
+                    padding: '16px 20px',
+                    background: 'rgba(139, 92, 246, 0.15)',
+                    border: '1px solid rgba(139, 92, 246, 0.3)',
+                    borderRadius: '12px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '16px',
+                    transition: 'all 0.2s',
+                    textAlign: 'left'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = 'rgba(139, 92, 246, 0.25)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'rgba(139, 92, 246, 0.15)';
+                  }}
+                >
+                  <span style={{ fontSize: '32px' }}>{option.icon}</span>
+                  <div>
+                    <div style={{ fontSize: '16px', fontWeight: '700', color: 'white', marginBottom: '4px' }}>
+                      {option.title}
+                    </div>
+                    <div style={{ fontSize: '13px', color: '#94a3b8' }}>{option.desc}</div>
+                  </div>
+                </button>
+              ))}
             </div>
           </div>
         </div>
       )}
+
+      <style jsx>{`
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.5; }
+        }
+        @keyframes bounce {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-10px); }
+        }
+      `}</style>
     </div>
   );
 }

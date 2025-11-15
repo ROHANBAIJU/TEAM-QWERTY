@@ -38,13 +38,13 @@ def _normalize_packet(raw: dict) -> dict:
 	"""
 	packet = dict(raw)
 
-	# Normalize string booleans
+	# Normalize string booleans (for backwards compatibility with old hardware)
 	def _str_to_bool(v):
 		if isinstance(v, str):
 			return v.strip().lower() in ("yes", "true", "1")
 		return v
 
-	# tremor
+	# tremor - handle both old format (strings) and new format (booleans)
 	if "tremor" in packet:
 		if "tremor_detected" in packet["tremor"]:
 			packet["tremor"]["tremor_detected"] = _str_to_bool(packet["tremor"]["tremor_detected"])
@@ -53,6 +53,11 @@ def _normalize_packet(raw: dict) -> dict:
 	if "rigidity" in packet:
 		if "rigid" in packet["rigidity"]:
 			packet["rigidity"]["rigid"] = _str_to_bool(packet["rigidity"]["rigid"])
+	
+	# safety
+	if "safety" in packet:
+		if "fall_detected" in packet["safety"]:
+			packet["safety"]["fall_detected"] = _str_to_bool(packet["safety"]["fall_detected"])
 
 	# timestamp: if short like 19:37, convert to today's ISO
 	ts = packet.get("timestamp")
@@ -81,9 +86,16 @@ async def ingest_data(body: dict, background_tasks: BackgroundTasks, authorizati
 			id_token = authorization.split(" ", 1)[1]
 		else:
 			id_token = authorization
-		decoded = fb_auth.verify_id_token(id_token)
-		uid = decoded.get("uid")
-		logger.info("Authenticated ingest request for uid: %s", uid)
+		
+		# SIMULATOR MODE BYPASS: For testing without real Firebase users
+		if id_token == "simulator_test_token" or id_token == "simulator_mode_bypass":
+			uid = "simulator_user_test_123"  # Test user ID
+			logger.warning("🎮 SIMULATOR MODE: Using test user ID: %s", uid)
+		else:
+			# Normal Firebase authentication
+			decoded = fb_auth.verify_id_token(id_token)
+			uid = decoded.get("uid")
+			logger.info("Authenticated ingest request for uid: %s", uid)
 	except Exception as e:
 		raise HTTPException(status_code=401, detail=f"Invalid token: {e}")
 
@@ -167,17 +179,27 @@ async def ingest_data(body: dict, background_tasks: BackgroundTasks, authorizati
 						except Exception as e:
 							logger.error("Error saving alert: %s", e)
 
-					# Broadcast alert to frontend
+					# Broadcast alert to frontend with type wrapper
 					try:
-						await frontend_manager.broadcast(alert_doc.model_dump_json())
+						message = {
+							"type": "alert",
+							"data": alert_doc.model_dump()
+						}
+						import json
+						await frontend_manager.broadcast(json.dumps(message))
 					except Exception as e:
 						logger.error("Error broadcasting alert: %s", e)
 				except Exception as e:
 					logger.error("Error generating contextual alert: %s", e)
 			else:
-				# Non-critical: broadcast processed data
+				# Non-critical: broadcast processed data with type wrapper
 				try:
-					await frontend_manager.broadcast(processed.model_dump_json())
+					message = {
+						"type": "processed_data",
+						"data": processed.model_dump()
+					}
+					import json
+					await frontend_manager.broadcast(json.dumps(message))
 				except Exception as e:
 					logger.error("Error broadcasting processed data: %s", e)
 		except Exception as e:

@@ -1,386 +1,521 @@
-"use client";
+'use client';
 
 import { useState, useEffect, useMemo } from 'react';
+import { useSensorData } from '@/contexts/SensorDataContext';
 
 interface SymptomData {
   tremor: number;
   rigidity: number;
   slowness: number;
   gait: number;
-  history: { tremor: number[]; rigidity: number[]; slowness: number[]; gait: number[] };
 }
 
-type SymptomKey = "tremor" | "rigidity" | "slowness" | "gait";
-
-const symptomLabels: Record<SymptomKey, string> = {
-  tremor: "Tremor",
-  rigidity: "Rigidity",
-  slowness: "Slowness",
-  gait: "Gait",
-};
-
-const gameDirectory: Record<
-  SymptomKey,
-  { name: string; description: string; benefit: string; url: string }
-> = {
-  tremor: {
-    name: "Steady Hand",
-    description: "Targeted hand-eye coordination with steady tracing drills.",
-    benefit: "reinforce fine motor control and reduce tremor variance",
-    url: "/games/steady-hand/index.html",
-  },
-  rigidity: {
-    name: "Strength Meter",
-    description: "Grip and release exercises with progressive resistance cues.",
-    benefit: "loosen muscle stiffness with rhythmic isometric reps",
-    url: "/games/strength-meter/index.html",
-  },
-  slowness: {
-    name: "Rhythm Tap",
-    description: "Tempo-matched tap patterns to quicken initiation speed.",
-    benefit: "boost movement timing and reaction speed",
-    url: "/games/rhythm-tap/index.html",
-  },
-  gait: {
-    name: "Rhythm Walker",
-    description: "Adaptive stepping paths that coach balanced walking.",
-    benefit: "steady gait cadence and improve balance awareness",
-    url: "/games/rhythm-walker/index.html",
-  },
-};
+type SymptomKey = 'tremor' | 'rigidity' | 'slowness' | 'gait';
 
 export default function Analytics() {
-  const [demoMode, setDemoMode] = useState(true);
+  const { latestData, isConnected } = useSensorData();
+  const [lastUpdateTime, setLastUpdateTime] = useState<number>(0);
   const [symptomData, setSymptomData] = useState<SymptomData>({
-    tremor: 45,
-    rigidity: 38,
-    slowness: 55,
-    gait: 50,
-    history: {
-      tremor: [42, 44, 43, 45, 46, 45, 44, 43, 45],
-      rigidity: [35, 37, 36, 38, 39, 38, 37, 36, 38],
-      slowness: [52, 54, 53, 55, 56, 55, 54, 53, 55],
-      gait: [48, 50, 49, 50, 51, 50, 49, 48, 50],
-    },
+    tremor: 0,
+    rigidity: 0,
+    slowness: 0,
+    gait: 0,
   });
-  const [showGamesPanel, setShowGamesPanel] = useState(false);
 
+  // Update from real-time WebSocket data (throttled to 3 seconds)
   useEffect(() => {
-    if (demoMode) {
-      const interval = setInterval(() => {
-        setSymptomData((prev) => ({
-          tremor: Math.max(0, Math.min(100, prev.tremor + (Math.random() - 0.5) * 10)),
-          rigidity: Math.max(0, Math.min(100, prev.rigidity + (Math.random() - 0.5) * 10)),
-          slowness: Math.max(0, Math.min(100, prev.slowness + (Math.random() - 0.5) * 10)),
-          gait: Math.max(0, Math.min(100, prev.gait + (Math.random() - 0.5) * 10)),
-          history: {
-            tremor: [...prev.history.tremor.slice(-8), prev.tremor],
-            rigidity: [...prev.history.rigidity.slice(-8), prev.rigidity],
-            slowness: [...prev.history.slowness.slice(-8), prev.slowness],
-            gait: [...prev.history.gait.slice(-8), prev.gait],
-          },
-        }));
-      }, 3000);
-      return () => clearInterval(interval);
+    if (latestData && latestData.scores) {
+      const now = Date.now();
+      if (now - lastUpdateTime >= 3000) {
+        setSymptomData({
+          tremor: latestData.scores.tremor * 100,
+          rigidity: latestData.scores.rigidity * 100,
+          slowness: latestData.scores.slowness * 100,
+          gait: latestData.scores.gait * 100,
+        });
+        setLastUpdateTime(now);
+      }
     }
-  }, [demoMode]);
+  }, [latestData, lastUpdateTime]);
 
-  const closeGamesPanel = () => {
-    setShowGamesPanel(false);
-  };
-
-  const launchGame = (url: string) => {
-    window.open(url, '_blank');
-    setShowGamesPanel(false);
-  };
-
-  const measurementKeys: SymptomKey[] = useMemo(() => ["tremor", "rigidity", "slowness", "gait"], []);
-
-  const dominantSymptom = useMemo(() => {
-    return measurementKeys.reduce<SymptomKey>((currentMax, candidate) => {
-      return symptomData[candidate] > symptomData[currentMax] ? candidate : currentMax;
-    }, measurementKeys[0]);
-  }, [symptomData, measurementKeys]);
-
-  const recommendedGame = gameDirectory[dominantSymptom];
-
-  const fallRiskScore = useMemo(() => {
-    return Math.round((symptomData.gait + symptomData.rigidity) / 2);
-  }, [symptomData.gait, symptomData.rigidity]);
-
-  const fallRiskLevel = useMemo(() => {
-    if (fallRiskScore >= 65) return "High";
-    if (fallRiskScore >= 45) return "Moderate";
-    return "Low";
-  }, [fallRiskScore]);
-
-  const fallHistory = useMemo(() => {
-    const labels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-    const recentGait = symptomData.history.gait.slice(-7);
-
-    return labels.map((label, index) => {
-      const gaitValue = recentGait[index] ?? symptomData.gait;
-      const incidents = gaitValue >= 65 ? 2 : gaitValue >= 50 ? 1 : 0;
-      return {
-        day: label,
-        incidents,
-        gait: Math.round(gaitValue),
-      };
-    });
+  const overallScore = useMemo(() => {
+    return Math.round((symptomData.tremor + symptomData.rigidity + symptomData.slowness + symptomData.gait) / 4);
   }, [symptomData]);
 
-  const totalWeeklyFalls = useMemo(() => {
-    return fallHistory.reduce((sum, day) => sum + day.incidents, 0);
-  }, [fallHistory]);
+  const progressionStage = useMemo(() => {
+    if (overallScore < 30) return { label: 'Mild', color: '#10b981' };
+    if (overallScore < 60) return { label: 'Moderate', color: '#f59e0b' };
+    return { label: 'Severe', color: '#ef4444' };
+  }, [overallScore]);
 
-  const fallTrendDirection = useMemo(() => {
-    const firstDayIncidents = fallHistory[0]?.incidents ?? 0;
-    const lastDayIncidents = fallHistory[fallHistory.length - 1]?.incidents ?? 0;
-    if (lastDayIncidents > firstDayIncidents) return "Increasing";
-    if (lastDayIncidents < firstDayIncidents) return "Decreasing";
-    return "Stable";
-  }, [fallHistory]);
-
-  const highestFallRiskDay = useMemo(() => {
-    return fallHistory.reduce((maxDay, current) => {
-      if (!maxDay || current.incidents > maxDay.incidents) {
-        return current;
-      }
-      return maxDay;
-    }, fallHistory[0]);
-  }, [fallHistory]);
-
-  const mostRecentIncidentDay = useMemo(() => {
-    const lastIncident = [...fallHistory].reverse().find((day) => day.incidents > 0);
-    return lastIncident ? lastIncident.day : "None";
-  }, [fallHistory]);
-
-  const geminiSummary = useMemo(() => {
-    const history = symptomData.history[dominantSymptom];
-    const recent = Math.round(symptomData[dominantSymptom]);
-    const previous = Math.round(history[history.length - 1] ?? recent);
-    const delta = recent - previous;
-
-    const trendDescriptor = (() => {
-      if (delta > 2) return `trending up by ${delta} pts`;
-      if (delta < -2) return `trending down by ${Math.abs(delta)} pts`;
-      return "holding steady";
-    })();
-
-    const fallRiskDescriptor = fallRiskLevel.toLowerCase();
-
-    return `Gemini AI Summary: ${symptomLabels[dominantSymptom]} symptoms are ${trendDescriptor}. Gait stability score is ${Math.round(
-      symptomData.gait
-    )}, indicating ${fallRiskDescriptor} fall risk. Recommended game: ${recommendedGame.name} — ${recommendedGame.benefit}.`;
-  }, [dominantSymptom, fallRiskLevel, recommendedGame, symptomData]);
+  const getSeverityColor = (value: number) => {
+    if (value < 30) return '#10b981';
+    if (value < 60) return '#f59e0b';
+    return '#ef4444';
+  };
 
   return (
-    <>
-      <div className="analytics-view">
-        <div className="analytics-view-content">
-          <div className="analytics-core-card">
-            <div className="analytics-core-header">
-              <div className="analytics-core-heading-copy">
-                <h2>Symptom Analytics</h2>
-                <p>Live measurements, AI insight, and fall risk monitoring in one view.</p>
-              </div>
-              <div className="analytics-core-actions">
-                <div className="demo-toggle">
-                  <input
-                    type="checkbox"
-                    id="demo-mode"
-                    checked={demoMode}
-                    onChange={(e) => setDemoMode(e.target.checked)}
-                  />
-                  <label htmlFor="demo-mode">Demo Mode</label>
-                </div>
-                <div
-                  id="sensor-status"
-                  className={`sensor-status ${demoMode ? "demo" : "connected"}`}
-                >
-                  {demoMode ? "📡 Demo" : "🔌 Connected"}
-                </div>
-                <button
-                  className="analytics-games-btn"
-                  type="button"
-                  onClick={() => setShowGamesPanel(true)}
-                >
-                  🎮 Games
-                </button>
+    <div style={{
+      minHeight: '100vh',
+      height: '100vh',
+      overflowY: 'auto',
+      overflowX: 'hidden',
+      background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
+      padding: '24px',
+      fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+    }}>
+      {/* Header */}
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: '32px',
+        flexWrap: 'wrap',
+        gap: '16px'
+      }}>
+        <div>
+          <h1 style={{
+            fontSize: 'clamp(24px, 4vw, 36px)',
+            fontWeight: '800',
+            color: '#ffffff',
+            marginBottom: '8px',
+            letterSpacing: '-0.02em'
+          }}>
+            AI Symptom Analysis
+          </h1>
+          <p style={{ fontSize: '14px', color: '#94a3b8' }}>
+            Real-time AI-powered Parkinson's symptom monitoring
+          </p>
+        </div>
+
+        {/* Connection Status */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          padding: '10px 16px',
+          background: isConnected ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+          borderRadius: '12px',
+          border: `1px solid ${isConnected ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`,
+        }}>
+          <div style={{
+            width: '8px',
+            height: '8px',
+            borderRadius: '50%',
+            background: isConnected ? '#10b981' : '#ef4444',
+            animation: isConnected ? 'pulse 2s infinite' : 'none'
+          }} />
+          <span style={{ fontSize: '13px', fontWeight: '600', color: isConnected ? '#10b981' : '#ef4444' }}>
+            {isConnected ? 'AI Active' : 'AI Offline'}
+          </span>
+        </div>
+      </div>
+
+      {/* Overall Score Card */}
+      <div style={{
+        background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(59, 130, 246, 0.1) 100%)',
+        backdropFilter: 'blur(10px)',
+        borderRadius: '24px',
+        padding: '40px',
+        border: '1px solid rgba(139, 92, 246, 0.2)',
+        boxShadow: '0 8px 32px rgba(139, 92, 246, 0.2)',
+        marginBottom: '32px',
+        textAlign: 'center'
+      }}>
+        <div style={{ fontSize: '14px', color: '#94a3b8', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '16px' }}>
+          Overall Symptom Severity
+        </div>
+        <div style={{
+          fontSize: 'clamp(64px, 10vw, 96px)',
+          fontWeight: '900',
+          background: `linear-gradient(135deg, ${progressionStage.color} 0%, ${progressionStage.color}dd 100%)`,
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent',
+          marginBottom: '16px'
+        }}>
+          {overallScore}%
+        </div>
+        <div style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '12px',
+          padding: '12px 24px',
+          background: `${progressionStage.color}20`,
+          borderRadius: '16px',
+          border: `2px solid ${progressionStage.color}40`
+        }}>
+          <div style={{
+            width: '12px',
+            height: '12px',
+            borderRadius: '50%',
+            background: progressionStage.color,
+            animation: 'pulse 1.5s infinite'
+          }} />
+          <span style={{ fontSize: '16px', fontWeight: '700', color: progressionStage.color }}>
+            {progressionStage.label} Stage
+          </span>
+        </div>
+        <div style={{ marginTop: '20px', fontSize: '13px', color: '#94a3b8' }}>
+          Based on UPDRS-III clinical assessment
+        </div>
+      </div>
+
+      {/* Individual Symptom Cards */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+        gap: '24px',
+        marginBottom: '32px'
+      }}>
+        {/* Tremor Card */}
+        <div style={{
+          background: 'rgba(255, 255, 255, 0.05)',
+          backdropFilter: 'blur(10px)',
+          borderRadius: '20px',
+          padding: '32px',
+          border: '1px solid rgba(255, 255, 255, 0.1)',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+          transition: 'all 0.3s ease',
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = 'translateY(-8px)';
+          e.currentTarget.style.boxShadow = '0 12px 48px rgba(239, 68, 68, 0.3)';
+          e.currentTarget.style.borderColor = '#ef4444';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = 'translateY(0)';
+          e.currentTarget.style.boxShadow = '0 8px 32px rgba(0, 0, 0, 0.3)';
+          e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+        }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
+            <div style={{
+              width: '48px',
+              height: '48px',
+              borderRadius: '12px',
+              background: 'rgba(239, 68, 68, 0.15)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '24px'
+            }}>
+              🤝
+            </div>
+            <div>
+              <div style={{ fontSize: '12px', color: '#94a3b8', fontWeight: '600', textTransform: 'uppercase' }}>Tremor</div>
+              <div style={{ fontSize: '32px', fontWeight: '800', color: getSeverityColor(symptomData.tremor) }}>
+                {Math.round(symptomData.tremor)}%
               </div>
             </div>
+          </div>
+          
+          {/* Progress Bar */}
+          <div style={{
+            width: '100%',
+            height: '12px',
+            background: 'rgba(255, 255, 255, 0.05)',
+            borderRadius: '6px',
+            overflow: 'hidden',
+            marginBottom: '16px'
+          }}>
+            <div style={{
+              width: `${symptomData.tremor}%`,
+              height: '100%',
+              background: `linear-gradient(90deg, ${getSeverityColor(symptomData.tremor)} 0%, ${getSeverityColor(symptomData.tremor)}dd 100%)`,
+              borderRadius: '6px',
+              transition: 'width 0.6s ease'
+            }} />
+          </div>
 
-            <section className="gemini-summary-card">
-              <div className="gemini-summary-title">Gemini AI Summary</div>
-              <p>{geminiSummary}</p>
-              <div className="gemini-game-recommendation">
-                <span className="gemini-game-label">Recommended game:</span>
-                <span className="gemini-game-name">{recommendedGame.name}</span>
+          <div style={{ fontSize: '13px', color: '#94a3b8', lineHeight: '1.6' }}>
+            Measures involuntary shaking frequency and amplitude
+          </div>
+        </div>
+
+        {/* Rigidity Card */}
+        <div style={{
+          background: 'rgba(255, 255, 255, 0.05)',
+          backdropFilter: 'blur(10px)',
+          borderRadius: '20px',
+          padding: '32px',
+          border: '1px solid rgba(255, 255, 255, 0.1)',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+          transition: 'all 0.3s ease',
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = 'translateY(-8px)';
+          e.currentTarget.style.boxShadow = '0 12px 48px rgba(245, 158, 11, 0.3)';
+          e.currentTarget.style.borderColor = '#f59e0b';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = 'translateY(0)';
+          e.currentTarget.style.boxShadow = '0 8px 32px rgba(0, 0, 0, 0.3)';
+          e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+        }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
+            <div style={{
+              width: '48px',
+              height: '48px',
+              borderRadius: '12px',
+              background: 'rgba(245, 158, 11, 0.15)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '24px'
+            }}>
+              💪
+            </div>
+            <div>
+              <div style={{ fontSize: '12px', color: '#94a3b8', fontWeight: '600', textTransform: 'uppercase' }}>Rigidity</div>
+              <div style={{ fontSize: '32px', fontWeight: '800', color: getSeverityColor(symptomData.rigidity) }}>
+                {Math.round(symptomData.rigidity)}%
               </div>
-            </section>
+            </div>
+          </div>
+          
+          <div style={{
+            width: '100%',
+            height: '12px',
+            background: 'rgba(255, 255, 255, 0.05)',
+            borderRadius: '6px',
+            overflow: 'hidden',
+            marginBottom: '16px'
+          }}>
+            <div style={{
+              width: `${symptomData.rigidity}%`,
+              height: '100%',
+              background: `linear-gradient(90deg, ${getSeverityColor(symptomData.rigidity)} 0%, ${getSeverityColor(symptomData.rigidity)}dd 100%)`,
+              borderRadius: '6px',
+              transition: 'width 0.6s ease'
+            }} />
+          </div>
 
-            <div className="analytics-main-grid">
-              <div className="progression-card">
-                <div className="progression-header">
-                  <h3>Parkinson&apos;s Progression</h3>
-                  <span className="progression-badge">UPDRS-III</span>
-                </div>
-                <p className="progression-subtitle">Disease severity index</p>
+          <div style={{ fontSize: '13px', color: '#94a3b8', lineHeight: '1.6' }}>
+            EMG-based muscle stiffness and resistance detection
+          </div>
+        </div>
 
-                <div className="progression-main-score">
-                  <div className="score-number">
-                    {Math.round((symptomData.tremor + symptomData.rigidity + symptomData.slowness + symptomData.gait) / 4)}%
-                  </div>
-                  <div className="score-change">
-                    ↗ {Math.round(((symptomData.tremor + symptomData.rigidity + symptomData.slowness + symptomData.gait) / 4) * 0.04)}% vs. baseline
-                  </div>
-                </div>
-
-                <div className="progression-stage">
-                  Stage: <span className="stage-value">
-                    {Math.round((symptomData.tremor + symptomData.rigidity + symptomData.slowness + symptomData.gait) / 4) < 40 ? 'Early' : 
-                     Math.round((symptomData.tremor + symptomData.rigidity + symptomData.slowness + symptomData.gait) / 4) < 60 ? 'Moderate' : 'Advanced'}
-                  </span>
-                </div>
-
-                <div className="symptom-breakdown-section">
-                  <h4 className="breakdown-title">Symptom Breakdown</h4>
-                  
-                  <div className="symptom-bar-item">
-                    <div className="symptom-bar-header">
-                      <span className="symptom-bar-label">Motor</span>
-                      <span className="symptom-bar-value">{Math.round((symptomData.tremor + symptomData.slowness) / 2)}%</span>
-                    </div>
-                    <div className="symptom-bar-track">
-                      <div 
-                        className="symptom-bar-fill motor-fill" 
-                        style={{ width: `${(symptomData.tremor + symptomData.slowness) / 2}%` }}
-                      ></div>
-                    </div>
-                  </div>
-
-                  <div className="symptom-bar-item">
-                    <div className="symptom-bar-header">
-                      <span className="symptom-bar-label">Tremor</span>
-                      <span className="symptom-bar-value">{Math.round(symptomData.tremor)}%</span>
-                    </div>
-                    <div className="symptom-bar-track">
-                      <div 
-                        className="symptom-bar-fill tremor-fill" 
-                        style={{ width: `${symptomData.tremor}%` }}
-                      ></div>
-                    </div>
-                  </div>
-
-                  <div className="symptom-bar-item">
-                    <div className="symptom-bar-header">
-                      <span className="symptom-bar-label">Rigidity</span>
-                      <span className="symptom-bar-value">{Math.round(symptomData.rigidity)}%</span>
-                    </div>
-                    <div className="symptom-bar-track">
-                      <div 
-                        className="symptom-bar-fill rigidity-fill" 
-                        style={{ width: `${symptomData.rigidity}%` }}
-                      ></div>
-                    </div>
-                  </div>
-
-                  <div className="symptom-bar-item">
-                    <div className="symptom-bar-header">
-                      <span className="symptom-bar-label">Gait</span>
-                      <span className="symptom-bar-value">{Math.round(symptomData.gait)}%</span>
-                    </div>
-                    <div className="symptom-bar-track">
-                      <div 
-                        className="symptom-bar-fill gait-fill" 
-                        style={{ width: `${symptomData.gait}%` }}
-                      ></div>
-                    </div>
-                  </div>
-                </div>
+        {/* Slowness Card */}
+        <div style={{
+          background: 'rgba(255, 255, 255, 0.05)',
+          backdropFilter: 'blur(10px)',
+          borderRadius: '20px',
+          padding: '32px',
+          border: '1px solid rgba(255, 255, 255, 0.1)',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+          transition: 'all 0.3s ease',
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = 'translateY(-8px)';
+          e.currentTarget.style.boxShadow = '0 12px 48px rgba(59, 130, 246, 0.3)';
+          e.currentTarget.style.borderColor = '#3b82f6';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = 'translateY(0)';
+          e.currentTarget.style.boxShadow = '0 8px 32px rgba(0, 0, 0, 0.3)';
+          e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+        }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
+            <div style={{
+              width: '48px',
+              height: '48px',
+              borderRadius: '12px',
+              background: 'rgba(59, 130, 246, 0.15)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '24px'
+            }}>
+              ⏱️
+            </div>
+            <div>
+              <div style={{ fontSize: '12px', color: '#94a3b8', fontWeight: '600', textTransform: 'uppercase' }}>Slowness</div>
+              <div style={{ fontSize: '32px', fontWeight: '800', color: getSeverityColor(symptomData.slowness) }}>
+                {Math.round(symptomData.slowness)}%
               </div>
+            </div>
+          </div>
+          
+          <div style={{
+            width: '100%',
+            height: '12px',
+            background: 'rgba(255, 255, 255, 0.05)',
+            borderRadius: '6px',
+            overflow: 'hidden',
+            marginBottom: '16px'
+          }}>
+            <div style={{
+              width: `${symptomData.slowness}%`,
+              height: '100%',
+              background: `linear-gradient(90deg, ${getSeverityColor(symptomData.slowness)} 0%, ${getSeverityColor(symptomData.slowness)}dd 100%)`,
+              borderRadius: '6px',
+              transition: 'width 0.6s ease'
+            }} />
+          </div>
 
-              <section className="fall-alert-card">
-                <div className="fall-alert-header">
-                  <h3>Fall Alert</h3>
-                  <span className={`fall-risk-badge fall-risk-${fallRiskLevel.toLowerCase()}`}>
-                    {fallRiskLevel} Risk
-                  </span>
-                </div>
-                <p className="fall-alert-overview">
-                  {totalWeeklyFalls} incidents reported this week.
-                </p>
-                <div className="fall-chart">
-                  {fallHistory.map((day) => (
-                    <div key={day.day} className="fall-bar">
-                      <div
-                        className="fall-bar-fill"
-                        style={{ height: `${day.incidents === 0 ? 8 : day.incidents * 30 + 20}%` }}
-                        title={`${day.incidents} alerts`}
-                      ></div>
-                      <span className="fall-bar-label">{day.day}</span>
-                    </div>
-                  ))}
-                </div>
-                <p className="fall-alert-footnote">
-                  Monitoring gait variability (avg {Math.round(symptomData.gait)}%) and rigidity to anticipate falls.
-                </p>
-                <div className="fall-insights">
-                  <div className="fall-insight">
-                    <span className="fall-insight-label">Incident trend</span>
-                    <span className={`fall-insight-value fall-insight-${fallTrendDirection.toLowerCase()}`}>
-                      {fallTrendDirection}
-                    </span>
-                  </div>
-                  <div className="fall-insight">
-                    <span className="fall-insight-label">Peak day</span>
-                    <span className="fall-insight-value">
-                      {highestFallRiskDay?.day ?? "—"}
-                    </span>
-                  </div>
-                  <div className="fall-insight">
-                    <span className="fall-insight-label">Last incident</span>
-                    <span className="fall-insight-value">{mostRecentIncidentDay}</span>
-                  </div>
-                </div>
-              </section>
+          <div style={{ fontSize: '13px', color: '#94a3b8', lineHeight: '1.6' }}>
+            Movement initiation speed and bradykinesia assessment
+          </div>
+        </div>
+
+        {/* Gait Card */}
+        <div style={{
+          background: 'rgba(255, 255, 255, 0.05)',
+          backdropFilter: 'blur(10px)',
+          borderRadius: '20px',
+          padding: '32px',
+          border: '1px solid rgba(255, 255, 255, 0.1)',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+          transition: 'all 0.3s ease',
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = 'translateY(-8px)';
+          e.currentTarget.style.boxShadow = '0 12px 48px rgba(139, 92, 246, 0.3)';
+          e.currentTarget.style.borderColor = '#8b5cf6';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = 'translateY(0)';
+          e.currentTarget.style.boxShadow = '0 8px 32px rgba(0, 0, 0, 0.3)';
+          e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+        }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
+            <div style={{
+              width: '48px',
+              height: '48px',
+              borderRadius: '12px',
+              background: 'rgba(139, 92, 246, 0.15)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '24px'
+            }}>
+              🚶
+            </div>
+            <div>
+              <div style={{ fontSize: '12px', color: '#94a3b8', fontWeight: '600', textTransform: 'uppercase' }}>Gait Instability</div>
+              <div style={{ fontSize: '32px', fontWeight: '800', color: getSeverityColor(symptomData.gait) }}>
+                {Math.round(symptomData.gait)}%
+              </div>
+            </div>
+          </div>
+          
+          <div style={{
+            width: '100%',
+            height: '12px',
+            background: 'rgba(255, 255, 255, 0.05)',
+            borderRadius: '6px',
+            overflow: 'hidden',
+            marginBottom: '16px'
+          }}>
+            <div style={{
+              width: `${symptomData.gait}%`,
+              height: '100%',
+              background: `linear-gradient(90deg, ${getSeverityColor(symptomData.gait)} 0%, ${getSeverityColor(symptomData.gait)}dd 100%)`,
+              borderRadius: '6px',
+              transition: 'width 0.6s ease'
+            }} />
+          </div>
+
+          <div style={{ fontSize: '13px', color: '#94a3b8', lineHeight: '1.6' }}>
+            Walking stability, balance, and fall risk evaluation
+          </div>
+        </div>
+      </div>
+
+      {/* AI Summary Card */}
+      <div style={{
+        background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(6, 95, 70, 0.1) 100%)',
+        backdropFilter: 'blur(10px)',
+        borderRadius: '20px',
+        padding: '32px',
+        border: '1px solid rgba(16, 185, 129, 0.2)',
+        boxShadow: '0 8px 32px rgba(16, 185, 129, 0.2)'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
+          <div style={{
+            width: '40px',
+            height: '40px',
+            borderRadius: '10px',
+            background: 'rgba(16, 185, 129, 0.2)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '20px'
+          }}>
+            🤖
+          </div>
+          <div>
+            <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#10b981', marginBottom: '4px' }}>
+              AI Clinical Summary
+            </h3>
+            <p style={{ fontSize: '12px', color: '#94a3b8' }}>
+              Powered by StanceSense AI Engine
+            </p>
+          </div>
+        </div>
+
+        <div style={{ fontSize: '15px', color: '#cbd5e1', lineHeight: '1.8', marginBottom: '20px' }}>
+          Patient is currently in <strong style={{ color: progressionStage.color }}>{progressionStage.label.toLowerCase()} stage</strong> with an overall symptom severity of <strong style={{ color: '#10b981' }}>{overallScore}%</strong>. 
+          {symptomData.tremor > 60 && ' Tremor levels are elevated, indicating increased involuntary movement patterns.'}
+          {symptomData.rigidity > 60 && ' Significant muscle rigidity detected, suggesting enhanced muscle tone resistance.'}
+          {symptomData.slowness > 60 && ' Bradykinesia assessment shows notable movement slowness.'}
+          {symptomData.gait > 60 && ' Gait instability is concerning - recommend fall prevention strategies.'}
+          {overallScore < 40 && ' Symptoms are well-controlled. Continue current therapy regimen.'}
+        </div>
+
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+          gap: '16px'
+        }}>
+          <div style={{
+            padding: '16px',
+            background: 'rgba(255, 255, 255, 0.05)',
+            borderRadius: '12px',
+            borderLeft: '4px solid #10b981'
+          }}>
+            <div style={{ fontSize: '12px', color: '#94a3b8', marginBottom: '8px', fontWeight: '600' }}>Dominant Symptom</div>
+            <div style={{ fontSize: '18px', fontWeight: '700', color: '#ffffff' }}>
+              {Object.entries(symptomData).reduce((a, b) => a[1] > b[1] ? a : b)[0].charAt(0).toUpperCase() + Object.entries(symptomData).reduce((a, b) => a[1] > b[1] ? a : b)[0].slice(1)}
+            </div>
+          </div>
+
+          <div style={{
+            padding: '16px',
+            background: 'rgba(255, 255, 255, 0.05)',
+            borderRadius: '12px',
+            borderLeft: '4px solid #3b82f6'
+          }}>
+            <div style={{ fontSize: '12px', color: '#94a3b8', marginBottom: '8px', fontWeight: '600' }}>Fall Risk Level</div>
+            <div style={{ fontSize: '18px', fontWeight: '700', color: getSeverityColor(symptomData.gait) }}>
+              {symptomData.gait < 30 ? 'Low' : symptomData.gait < 60 ? 'Moderate' : 'High'}
+            </div>
+          </div>
+
+          <div style={{
+            padding: '16px',
+            background: 'rgba(255, 255, 255, 0.05)',
+            borderRadius: '12px',
+            borderLeft: '4px solid #8b5cf6'
+          }}>
+            <div style={{ fontSize: '12px', color: '#94a3b8', marginBottom: '8px', fontWeight: '600' }}>Last Update</div>
+            <div style={{ fontSize: '18px', fontWeight: '700', color: '#ffffff' }}>
+              {lastUpdateTime ? new Date(lastUpdateTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : '--:--'}
             </div>
           </div>
         </div>
       </div>
 
-      {showGamesPanel && (
-        <div className="game-modal-overlay" onClick={closeGamesPanel}>
-          <div
-            className="game-modal-content games-directory"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="games-directory-header">
-              <h3>Select a Game</h3>
-              <button type="button" className="game-modal-close" onClick={closeGamesPanel}>
-                ✕
-              </button>
-            </div>
-            <p className="games-directory-intro">
-              Choose a training experience tailored by Gemini AI to reinforce today&apos;s therapy focus.
-            </p>
-            <ul className="games-directory-list">
-              {measurementKeys.map((key) => {
-                const game = gameDirectory[key];
-                return (
-                  <li key={game.name} onClick={() => launchGame(game.url)} style={{ cursor: 'pointer' }}>
-                    <div className="games-directory-name">{game.name}</div>
-                    <div className="games-directory-description">{game.description}</div>
-                  </li>
-                );
-              })}
-            </ul>
-            <button type="button" className="games-directory-primary" onClick={closeGamesPanel}>
-              Close
-            </button>
-          </div>
-        </div>
-      )}
-    </>
+      {/* Pulse Animation */}
+      <style>{`
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.5; }
+        }
+      `}</style>
+    </div>
   );
 }

@@ -23,6 +23,7 @@ from .services.rag_agent import generate_contextual_alert
 from .routes.auth import router as auth_router
 from .routes import ingest as ingest_router_module
 from .routes import consent as consent_router_module
+from .routes import frontend as frontend_router_module
 
 # --- Globals & Setup ---
 logging.basicConfig(level=logging.INFO)
@@ -38,6 +39,7 @@ app = FastAPI(
 app.include_router(auth_router, prefix="/auth", tags=["auth"])
 app.include_router(ingest_router_module.router, prefix="/ingest", tags=["ingest"])
 app.include_router(consent_router_module.router, prefix="/user", tags=["consent"])
+app.include_router(frontend_router_module.router, prefix="/api", tags=["analytics"])
 
 # --- CORS Middleware ---
 # Allow all origins for the hackathon
