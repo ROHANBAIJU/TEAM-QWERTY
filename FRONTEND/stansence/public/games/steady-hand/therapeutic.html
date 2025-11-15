@@ -1,0 +1,1332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movement Training Exercise - Therapeutic Design</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Roboto', 'Segoe UI', sans-serif;
+            background: #FAF9F6;
+            color: #2D3436;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .screen {
+            display: none;
+            max-width: 800px;
+            width: 100%;
+            text-align: center;
+            animation: fadeIn 800ms ease-in-out;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .home-screen h1 {
+            font-size: 32px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #2D3436;
+        }
+
+        .home-screen .subtitle {
+            font-size: 20px;
+            font-weight: 500;
+            color: #636E72;
+            margin-bottom: 40px;
+        }
+
+        .btn-primary {
+            min-width: 280px;
+            min-height: 80px;
+            border-radius: 16px;
+            font-size: 22px;
+            font-weight: 600;
+            padding: 20px 40px;
+            margin: 20px auto;
+            display: block;
+            background: #5DADE2;
+            color: white;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+            transition: all 300ms ease;
+        }
+
+        .btn-primary:hover {
+            background: #4A9FD8;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-primary:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-secondary {
+            min-width: 200px;
+            min-height: 60px;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            padding: 16px 32px;
+            margin: 12px 8px;
+            display: inline-block;
+            background: #E8E8E8;
+            color: #2D3436;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+            transition: all 300ms ease;
+        }
+
+        .btn-secondary:hover {
+            background: #DCDCDC;
+        }
+
+        .tip-text {
+            font-size: 18px;
+            color: #636E72;
+            margin-top: 40px;
+            line-height: 1.7;
+        }
+
+        .level-card {
+            background: white;
+            border: 2px solid #E8E8E8;
+            border-radius: 16px;
+            padding: 24px;
+            margin: 16px auto;
+            max-width: 500px;
+            cursor: pointer;
+            transition: all 300ms ease;
+            text-align: left;
+        }
+
+        .level-card:hover {
+            border-color: #5DADE2;
+            box-shadow: 0 4px 12px rgba(93, 173, 226, 0.2);
+        }
+
+        .level-card.selected {
+            border-color: #5DADE2;
+            background: #F0F8FF;
+        }
+
+        .level-card h3 {
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #2D3436;
+        }
+
+        .level-card p {
+            font-size: 18px;
+            color: #636E72;
+            margin-bottom: 12px;
+        }
+
+        .difficulty-bar {
+            height: 8px;
+            background: #E8E8E8;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+
+        .difficulty-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #A8E6CF, #77DD77);
+            transition: width 300ms ease;
+        }
+
+        .level-hint {
+            font-size: 18px;
+            color: #636E72;
+            margin: 24px 0;
+        }
+
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .btn-pause {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: #FF9A56;
+            color: white;
+            border: none;
+            font-size: 24px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+            transition: all 300ms ease;
+        }
+
+        .btn-pause:hover {
+            background: #FF8A46;
+            transform: scale(1.05);
+        }
+
+        .time-display {
+            font-size: 24px;
+            font-weight: 600;
+            color: #636E72;
+        }
+
+        .game-canvas {
+            border: 3px solid #B8B8B8;
+            border-radius: 16px;
+            background: #FEFEFE;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            display: block;
+            margin: 0 auto;
+        }
+
+        .guidance-text {
+            font-size: 24px;
+            font-weight: 600;
+            color: #5DADE2;
+            margin-top: 24px;
+            min-height: 36px;
+            opacity: 0;
+            transition: opacity 500ms ease;
+        }
+
+        .guidance-text.show {
+            opacity: 1;
+        }
+
+        .pause-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .pause-overlay.show {
+            display: flex;
+        }
+
+        .pause-content {
+            background: #FAF9F6;
+            border-radius: 16px;
+            padding: 48px;
+            text-align: center;
+            max-width: 500px;
+        }
+
+        .pause-content h2 {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #2D3436;
+        }
+
+        .pause-content p {
+            font-size: 20px;
+            color: #636E72;
+            margin-bottom: 32px;
+        }
+
+        .complete-screen h2 {
+            font-size: 32px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #2D3436;
+        }
+
+        .complete-screen .duration-text {
+            font-size: 22px;
+            color: #636E72;
+            margin-bottom: 32px;
+        }
+
+        .feedback-box {
+            background: white;
+            border: 2px solid #A8E6CF;
+            border-radius: 16px;
+            padding: 24px;
+            margin: 24px auto;
+            max-width: 500px;
+        }
+
+        .feedback-box p {
+            font-size: 20px;
+            color: #2D3436;
+            line-height: 1.7;
+        }
+
+        .quality-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin: 32px auto;
+            max-width: 500px;
+        }
+
+        .quality-item {
+            background: white;
+            border: 2px solid #E8E8E8;
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .quality-item .emoji {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .quality-item .label {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2D3436;
+        }
+
+        .progression-text {
+            font-size: 20px;
+            color: #636E72;
+            margin-top: 32px;
+        }
+
+        /* IMPROVED HOME SCREEN DESIGN */
+        .home-container {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .header-section {
+            background: white;
+            border-radius: 20px;
+            padding: 32px 40px;
+            margin-bottom: 32px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+            border-left: 6px solid #77DD77;
+        }
+
+        .header-section h1 {
+            font-size: 28px;
+            font-weight: 600;
+            color: #2D3436;
+            margin-bottom: 12px;
+            line-height: 1.3;
+        }
+
+        .header-section .subtitle {
+            font-size: 19px;
+            font-weight: 500;
+            color: #636E72;
+            line-height: 1.6;
+            margin-bottom: 0;
+        }
+
+        .exercise-icon {
+            display: inline-block;
+            font-size: 36px;
+            margin-bottom: 8px;
+        }
+
+        .main-action-section {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+            text-align: center;
+        }
+
+        .btn-start-improved {
+            min-width: 320px;
+            min-height: 90px;
+            border-radius: 18px;
+            font-size: 24px;
+            font-weight: 600;
+            padding: 24px 48px;
+            margin: 0 auto;
+            display: block;
+            background: linear-gradient(135deg, #6BBF9A 0%, #5AA885 100%);
+            color: white;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 16px rgba(90, 168, 133, 0.3);
+            transition: all 300ms ease;
+            position: relative;
+        }
+
+        .btn-start-improved:hover {
+            background: linear-gradient(135deg, #5AA885 0%, #4A9670 100%);
+            box-shadow: 0 6px 20px rgba(90, 168, 133, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .btn-start-improved:active {
+            transform: translateY(0px);
+            box-shadow: 0 2px 8px rgba(90, 168, 133, 0.3);
+        }
+
+        .btn-start-improved .btn-icon {
+            font-size: 28px;
+            margin-right: 12px;
+            vertical-align: middle;
+        }
+
+        .ready-message {
+            font-size: 18px;
+            color: #636E72;
+            margin-top: 20px;
+            font-weight: 500;
+        }
+
+        .secondary-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .action-card {
+            background: white;
+            border: 2px solid #E8E8E8;
+            border-radius: 16px;
+            padding: 24px 20px;
+            cursor: pointer;
+            transition: all 300ms ease;
+            text-align: left;
+        }
+
+        .action-card:hover {
+            border-color: #6BBF9A;
+            box-shadow: 0 4px 12px rgba(107, 191, 154, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .action-card-icon {
+            font-size: 32px;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .action-card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2D3436;
+            margin-bottom: 6px;
+        }
+
+        .action-card-desc {
+            font-size: 15px;
+            color: #636E72;
+            line-height: 1.5;
+        }
+
+        .advanced-option {
+            background: white;
+            border: 2px solid #FFD93D;
+            border-radius: 16px;
+            padding: 20px 24px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: all 300ms ease;
+        }
+
+        .advanced-option:hover {
+            border-color: #FFC107;
+            box-shadow: 0 4px 12px rgba(255, 217, 61, 0.2);
+        }
+
+        .advanced-option-content {
+            flex: 1;
+        }
+
+        .advanced-option-label {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2D3436;
+            margin-bottom: 4px;
+        }
+
+        .advanced-option-desc {
+            font-size: 15px;
+            color: #636E72;
+        }
+
+        .advanced-badge {
+            background: #FFD93D;
+            color: #2D3436;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-left: 16px;
+        }
+
+        .tip-section {
+            background: linear-gradient(135deg, #E8F5F1 0%, #D4EDE5 100%);
+            border-radius: 16px;
+            padding: 20px 28px;
+            border-left: 5px solid #6BBF9A;
+        }
+
+        .tip-section-icon {
+            font-size: 24px;
+            margin-right: 12px;
+            vertical-align: middle;
+        }
+
+        .tip-section-text {
+            font-size: 17px;
+            color: #2D3436;
+            line-height: 1.6;
+            display: inline;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <script src="../reward-system.js"></script>
+
+    <!-- HOME SCREEN - REDESIGNED FOR PARKINSON'S PATIENTS -->
+    <div class="screen active home-screen" id="homeScreen">
+        <div class="home-container">
+            
+            <!-- Header Section with Clear Explanation -->
+            <div class="header-section">
+                <div class="exercise-icon">🎯</div>
+                <h1>Guided Path Exercise</h1>
+                <p class="subtitle">
+                    Follow a gentle path with smooth, controlled hand movements. 
+                    This exercise helps build steadiness and coordination at your own pace.
+                </p>
+            </div>
+
+            <!-- Main Start Button -->
+            <div class="main-action-section">
+                <button class="btn-start-improved" onclick="showLevelSelection()">
+                    <span class="btn-icon">▶</span> Begin Exercise
+                </button>
+                <p class="ready-message">Ready when you are • 2-3 minutes per session</p>
+            </div>
+
+            <!-- Secondary Actions (Grid Layout) -->
+            <div class="secondary-actions">
+                <div class="action-card" onclick="showProgress()">
+                    <span class="action-card-icon">📊</span>
+                    <div class="action-card-title">Your Progress</div>
+                    <div class="action-card-desc">See your consistency and improvements over time</div>
+                </div>
+                
+                <div class="action-card" onclick="showSettings()">
+                    <span class="action-card-icon">⚙️</span>
+                    <div class="action-card-title">Settings</div>
+                    <div class="action-card-desc">Adjust movement speed and sensitivity</div>
+                </div>
+            </div>
+
+            <!-- Advanced Mode Option (Visually Separated) -->
+            <div class="advanced-option" onclick="window.location.href='index.html'">
+                <div class="advanced-option-content">
+                    <div class="advanced-option-label">🧩 Maze Mode (Advanced)</div>
+                    <div class="advanced-option-desc">Try the traditional narrow-path challenge</div>
+                </div>
+                <span class="advanced-badge">OPTIONAL</span>
+            </div>
+
+            <!-- Supportive Tip Section -->
+            <div class="tip-section">
+                <span class="tip-section-icon">�</span>
+                <span class="tip-section-text">
+                    <strong>Remember:</strong> Moving smoothly is more important than moving quickly. 
+                    Take breaks whenever you need them.
+                </span>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- LEVEL SELECTION SCREEN -->
+    <div class="screen" id="levelScreen">
+        <h1 style="font-size: 28px; margin-bottom: 32px;">Choose Your Starting Level</h1>
+        
+        <div class="level-card selected" data-level="1" onclick="selectLevel(1)">
+            <h3>Level 1: Getting Started</h3>
+            <p>Very wide path, slow speed, straight lines</p>
+            <div class="difficulty-bar">
+                <div class="difficulty-fill" style="width: 20%;"></div>
+            </div>
+            <p style="margin-top: 8px; font-size: 16px; color: #95A5A6;">Easiest • Recommended for first time</p>
+        </div>
+        
+        <div class="level-card" data-level="2" onclick="selectLevel(2)">
+            <h3>Level 2: Building Control</h3>
+            <p>Wide path, gentle curves, slow speed</p>
+            <div class="difficulty-bar">
+                <div class="difficulty-fill" style="width: 40%;"></div>
+            </div>
+            <p style="margin-top: 8px; font-size: 16px; color: #95A5A6;">Easy • For building confidence</p>
+        </div>
+        
+        <div class="level-card" data-level="3" onclick="selectLevel(3)">
+            <h3>Level 3: Steady Movement</h3>
+            <p>Medium path, mixed curves and straights</p>
+            <div class="difficulty-bar">
+                <div class="difficulty-fill" style="width: 60%;"></div>
+            </div>
+            <p style="margin-top: 8px; font-size: 16px; color: #95A5A6;">Medium • More variety</p>
+        </div>
+        
+        <p class="level-hint">💭 Not sure? Start with Level 1. You can change this anytime.</p>
+        
+        <button class="btn-primary" onclick="startExercise()">CONTINUE</button>
+        <button class="btn-secondary" onclick="showHome()">BACK</button>
+    </div>
+
+    <!-- GAMEPLAY SCREEN -->
+    <div class="screen" id="gameplayScreen">
+        <div class="game-header">
+            <button class="btn-pause" onclick="pauseExercise()">⏸</button>
+            <div class="time-display" id="timeDisplay">0:00</div>
+            <div style="width: 80px;"></div>
+        </div>
+        
+        <canvas id="gameCanvas" class="game-canvas" width="700" height="500"></canvas>
+        
+        <div class="guidance-text" id="guidanceText"></div>
+    </div>
+
+    <!-- PAUSE OVERLAY -->
+    <div class="pause-overlay" id="pauseOverlay">
+        <div class="pause-content">
+            <h2>Exercise Paused</h2>
+            <p>Take a moment to rest.</p>
+            
+            <button class="btn-primary" onclick="resumeExercise()">CONTINUE</button>
+            <button class="btn-secondary" onclick="endExercise()">END SESSION</button>
+            
+            <p style="margin-top: 32px; font-size: 16px; color: #95A5A6;">
+                Your progress is automatically saved.
+            </p>
+        </div>
+    </div>
+
+    <!-- SESSION COMPLETE SCREEN -->
+    <div class="screen complete-screen" id="completeScreen">
+        <h2>Well Done! 👏</h2>
+        <p class="duration-text" id="durationText"></p>
+        
+        <div class="feedback-box">
+            <p id="feedbackText"></p>
+        </div>
+        
+        <div class="quality-grid" id="qualityGrid"></div>
+        
+        <p class="progression-text" id="progressionText"></p>
+        
+        <div style="margin-top: 40px;">
+            <button class="btn-secondary" onclick="tryAgain()">TRY AGAIN</button>
+            <button class="btn-secondary" onclick="showHome()">FINISH</button>
+        </div>
+    </div>
+
+    <script>
+        let currentScreen = 'home';
+        let selectedLevel = 1;
+        let gameActive = false;
+        let gamePaused = false;
+        let startTime = 0;
+        let elapsedTime = 0;
+        let timerInterval = null;
+        
+        let rewardSystem;
+        try {
+            rewardSystem = new RewardSystem('steady-hand');
+        } catch (error) {
+            console.error('Reward system failed to initialize:', error);
+            rewardSystem = {
+                rewardAction: () => ({ points: 10, message: 'Good!' }),
+                endSession: () => ({ duration: 0, actions: 0 })
+            };
+        }
+
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        class KalmanFilter {
+            constructor() {
+                this.Q = 0.01;
+                this.R = 0.5;
+                this.P = 1;
+                this.X = 0;
+                this.K = 0;
+            }
+            
+            filter(measurement) {
+                this.P = this.P + this.Q;
+                this.K = this.P / (this.P + this.R);
+                this.X = this.X + this.K * (measurement - this.X);
+                this.P = (1 - this.K) * this.P;
+                return this.X;
+            }
+        }
+        
+        class TremorFriendlyInputProcessor {
+            constructor(sensitivity = 'medium') {
+                this.deadZone = 0.15;
+                this.smoothingFactor = 0.3;
+                this.maxVelocity = 2.0;
+                this.previousSmoothed = { x: 0, y: 0 };
+                this.kalmanX = new KalmanFilter();
+                this.kalmanY = new KalmanFilter();
+                this.movementHistory = [];
+                this.maxHistoryLength = 60;
+            }
+            
+            process(rawInput) {
+                const afterDeadZone = this.applyDeadZone(rawInput);
+                const afterSmoothing = this.smoothInput(afterDeadZone);
+                const afterKalman = {
+                    x: this.kalmanX.filter(afterSmoothing.x),
+                    y: this.kalmanY.filter(afterSmoothing.y)
+                };
+                const finalPosition = this.limitVelocity(afterKalman);
+                
+                this.movementHistory.push(finalPosition);
+                if (this.movementHistory.length > this.maxHistoryLength) {
+                    this.movementHistory.shift();
+                }
+                
+                this.previousSmoothed = finalPosition;
+                return finalPosition;
+            }
+            
+            applyDeadZone(input) {
+                const magnitude = Math.sqrt(input.x ** 2 + input.y ** 2);
+                if (magnitude < this.deadZone) {
+                    return { x: 0, y: 0 };
+                }
+                return input;
+            }
+            
+            smoothInput(current) {
+                return {
+                    x: this.smoothingFactor * current.x + (1 - this.smoothingFactor) * this.previousSmoothed.x,
+                    y: this.smoothingFactor * current.y + (1 - this.smoothingFactor) * this.previousSmoothed.y
+                };
+            }
+            
+            limitVelocity(newPos) {
+                const dx = newPos.x - this.previousSmoothed.x;
+                const dy = newPos.y - this.previousSmoothed.y;
+                const distance = Math.sqrt(dx ** 2 + dy ** 2);
+                
+                if (distance > this.maxVelocity) {
+                    const scale = this.maxVelocity / distance;
+                    return {
+                        x: this.previousSmoothed.x + dx * scale,
+                        y: this.previousSmoothed.y + dy * scale
+                    };
+                }
+                return newPos;
+            }
+            
+            getSmoothnessScore() {
+                if (this.movementHistory.length < 10) return 0;
+                
+                const velocities = [];
+                for (let i = 1; i < this.movementHistory.length; i++) {
+                    const dx = this.movementHistory[i].x - this.movementHistory[i-1].x;
+                    const dy = this.movementHistory[i].y - this.movementHistory[i-1].y;
+                    velocities.push(Math.sqrt(dx ** 2 + dy ** 2));
+                }
+                
+                const mean = velocities.reduce((a, b) => a + b, 0) / velocities.length;
+                const variance = velocities.reduce((sum, v) => sum + (v - mean) ** 2, 0) / velocities.length;
+                return Math.sqrt(variance);
+            }
+        }
+        
+        const inputProcessor = new TremorFriendlyInputProcessor('medium');
+        
+        const levelConfigs = {
+            1: { pathWidth: 120, speed: 0.8, pathType: 'straight', duration: 90 },
+            2: { pathWidth: 90, speed: 1.0, pathType: 'gentle-curves', duration: 120 },
+            3: { pathWidth: 70, speed: 1.2, pathType: 'mixed', duration: 150 }
+        };
+        
+        let player = { x: 50, y: 250, radius: 12, vx: 0, vy: 0 };
+        let trail = [];
+        const maxTrailLength = 20;
+        let path = null;
+        let goal = null;
+        let keysPressed = {};
+        
+        let sessionMetrics = {
+            pathAdherence: [],
+            smoothnessScores: [],
+            completed: false,
+            pauseCount: 0
+        };
+        
+        function generatePath(level) {
+            const config = levelConfigs[level];
+            const width = config.pathWidth;
+            
+            if (config.pathType === 'straight') {
+                return {
+                    type: 'straight',
+                    points: [{ x: 50, y: 250 }, { x: 650, y: 250 }],
+                    width: width
+                };
+            } else if (config.pathType === 'gentle-curves') {
+                return {
+                    type: 'curve',
+                    points: [
+                        { x: 50, y: 250 },
+                        { x: 200, y: 150 },
+                        { x: 400, y: 350 },
+                        { x: 650, y: 250 }
+                    ],
+                    width: width
+                };
+            } else {
+                return {
+                    type: 'mixed',
+                    points: [
+                        { x: 50, y: 250 },
+                        { x: 200, y: 150 },
+                        { x: 350, y: 150 },
+                        { x: 500, y: 350 },
+                        { x: 650, y: 250 }
+                    ],
+                    width: width
+                };
+            }
+        }
+        
+        function showScreen(screenName) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenName + 'Screen').classList.add('active');
+            currentScreen = screenName;
+        }
+        
+        function showHome() {
+            showScreen('home');
+            resetGame();
+        }
+        
+        function showLevelSelection() {
+            showScreen('level');
+            document.querySelectorAll('.level-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            const selectedCard = document.querySelector(`[data-level="${selectedLevel}"]`);
+            if (selectedCard) selectedCard.classList.add('selected');
+        }
+        
+        function selectLevel(level) {
+            selectedLevel = level;
+            document.querySelectorAll('.level-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            const selectedCard = document.querySelector(`[data-level="${level}"]`);
+            if (selectedCard) selectedCard.classList.add('selected');
+        }
+        
+        function showProgress() {
+            alert('📊 Your Progress Tracking\n\n' +
+                  'This feature will show you:\n\n' +
+                  '✓ How many sessions you\'ve completed\n' +
+                  '✓ Your consistency over days and weeks\n' +
+                  '✓ Movement smoothness improvements\n' +
+                  '✓ Encouraging milestones and achievements\n\n' +
+                  'Coming soon!');
+        }
+        
+        function showSettings() {
+            alert('⚙️ Exercise Settings\n\n' +
+                  'Customize your experience:\n\n' +
+                  '• Movement Speed: Slower / Normal / Faster\n' +
+                  '• Input Sensitivity: Lower / Standard / Higher\n' +
+                  '• Visual Options: Reduce motion, larger text\n' +
+                  '• Sound Effects: On / Off\n\n' +
+                  'Coming soon!');
+        }
+        
+        function startExercise() {
+            showScreen('gameplay');
+            initializeGame();
+            startTimer();
+            gameActive = true;
+            gamePaused = false;
+            gameLoop();
+        }
+        
+        function initializeGame() {
+            path = generatePath(selectedLevel);
+            goal = {
+                x: path.points[path.points.length - 1].x,
+                y: path.points[path.points.length - 1].y,
+                radius: 30
+            };
+            
+            player = {
+                x: path.points[0].x,
+                y: path.points[0].y,
+                radius: 12,
+                vx: 0,
+                vy: 0
+            };
+            
+            trail = [];
+            sessionMetrics = {
+                pathAdherence: [],
+                smoothnessScores: [],
+                completed: false,
+                pauseCount: 0
+            };
+            
+            draw();
+        }
+        
+        function startTimer() {
+            startTime = Date.now();
+            elapsedTime = 0;
+            timerInterval = setInterval(() => {
+                if (!gamePaused && gameActive) {
+                    elapsedTime = Math.floor((Date.now() - startTime) / 1000);
+                    updateTimeDisplay();
+                }
+            }, 1000);
+        }
+        
+        function updateTimeDisplay() {
+            const minutes = Math.floor(elapsedTime / 60);
+            const seconds = elapsedTime % 60;
+            document.getElementById('timeDisplay').textContent = 
+                `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        }
+        
+        function pauseExercise() {
+            gamePaused = true;
+            document.getElementById('pauseOverlay').classList.add('show');
+            sessionMetrics.pauseCount++;
+        }
+        
+        function resumeExercise() {
+            gamePaused = false;
+            document.getElementById('pauseOverlay').classList.remove('show');
+            startTime = Date.now() - (elapsedTime * 1000);
+        }
+        
+        function endExercise() {
+            gameActive = false;
+            gamePaused = false;
+            clearInterval(timerInterval);
+            document.getElementById('pauseOverlay').classList.remove('show');
+            showSessionComplete();
+        }
+        
+        function tryAgain() {
+            startExercise();
+        }
+        
+        function resetGame() {
+            gameActive = false;
+            gamePaused = false;
+            if (timerInterval) clearInterval(timerInterval);
+            elapsedTime = 0;
+        }
+        
+        function gameLoop() {
+            if (!gameActive) return;
+            if (gamePaused) {
+                requestAnimationFrame(gameLoop);
+                return;
+            }
+            
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+        
+        function update() {
+            const config = levelConfigs[selectedLevel];
+            const speed = config.speed;
+            
+            let rawInput = { x: 0, y: 0 };
+            if (keysPressed['ArrowLeft'] || keysPressed['a']) rawInput.x = -speed;
+            if (keysPressed['ArrowRight'] || keysPressed['d']) rawInput.x = speed;
+            if (keysPressed['ArrowUp'] || keysPressed['w']) rawInput.y = -speed;
+            if (keysPressed['ArrowDown'] || keysPressed['s']) rawInput.y = speed;
+            
+            const processedInput = inputProcessor.process(rawInput);
+            
+            player.vx = processedInput.x;
+            player.vy = processedInput.y;
+            player.x += player.vx;
+            player.y += player.vy;
+            
+            player.x = Math.max(player.radius, Math.min(canvas.width - player.radius, player.x));
+            player.y = Math.max(player.radius, Math.min(canvas.height - player.radius, player.y));
+            
+            const isMoving = Math.abs(player.vx) > 0.1 || Math.abs(player.vy) > 0.1;
+            if (isMoving && gameActive) {
+                trail.push({ x: player.x, y: player.y });
+                if (trail.length > maxTrailLength) {
+                    trail.shift();
+                }
+            }
+            
+            const adherence = checkPathAdherence();
+            sessionMetrics.pathAdherence.push(adherence);
+            
+            const smoothness = inputProcessor.getSmoothnessScore();
+            sessionMetrics.smoothnessScores.push(smoothness);
+            
+            updateGuidance(adherence, isMoving);
+            
+            const distToGoal = Math.sqrt((player.x - goal.x) ** 2 + (player.y - goal.y) ** 2);
+            
+            if (distToGoal < goal.radius) {
+                sessionMetrics.completed = true;
+                gameActive = false;
+                clearInterval(timerInterval);
+                setTimeout(() => showSessionComplete(), 1000);
+            }
+        }
+        
+        function checkPathAdherence() {
+            let minDist = Infinity;
+            
+            for (let i = 0; i < path.points.length - 1; i++) {
+                const p1 = path.points[i];
+                const p2 = path.points[i + 1];
+                const dist = distanceToSegment(player.x, player.y, p1.x, p1.y, p2.x, p2.y);
+                minDist = Math.min(minDist, dist);
+            }
+            
+            const pathHalfWidth = path.width / 2;
+            
+            if (minDist < pathHalfWidth * 0.7) {
+                return 'optimal';
+            } else if (minDist < pathHalfWidth) {
+                return 'boundary';
+            } else if (minDist < pathHalfWidth * 1.3) {
+                return 'grace';
+            } else {
+                return 'outside';
+            }
+        }
+        
+        function distanceToSegment(px, py, x1, y1, x2, y2) {
+            const A = px - x1;
+            const B = py - y1;
+            const C = x2 - x1;
+            const D = y2 - y1;
+            
+            const dot = A * C + B * D;
+            const lenSq = C * C + D * D;
+            let param = -1;
+            
+            if (lenSq !== 0) param = dot / lenSq;
+            
+            let xx, yy;
+            
+            if (param < 0) {
+                xx = x1;
+                yy = y1;
+            } else if (param > 1) {
+                xx = x2;
+                yy = y2;
+            } else {
+                xx = x1 + param * C;
+                yy = y1 + param * D;
+            }
+            
+            const dx = px - xx;
+            const dy = py - yy;
+            return Math.sqrt(dx * dx + dy * dy);
+        }
+        
+        let guidanceTimeout = null;
+        
+        function updateGuidance(adherence, isMoving) {
+            const guidanceEl = document.getElementById('guidanceText');
+            
+            if (guidanceTimeout) {
+                clearTimeout(guidanceTimeout);
+            }
+            
+            let message = '';
+            
+            if (isMoving && adherence === 'optimal') {
+                message = 'Nice smooth movement';
+            } else if (!isMoving) {
+                message = 'Take your time';
+            } else if (adherence === 'outside') {
+                message = 'Guide back to the path';
+            }
+            
+            if (message) {
+                guidanceEl.textContent = message;
+                guidanceEl.classList.add('show');
+                
+                guidanceTimeout = setTimeout(() => {
+                    guidanceEl.classList.remove('show');
+                }, 2000);
+            }
+        }
+        
+        function draw() {
+            ctx.fillStyle = '#FEFEFE';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            if (!path) return;
+            
+            ctx.strokeStyle = '#D0D0D0';
+            ctx.lineWidth = path.width;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            
+            ctx.beginPath();
+            ctx.moveTo(path.points[0].x, path.points[0].y);
+            for (let i = 1; i < path.points.length; i++) {
+                ctx.lineTo(path.points[i].x, path.points[i].y);
+            }
+            ctx.stroke();
+            
+            ctx.strokeStyle = '#E0E0E0';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([10, 10]);
+            ctx.beginPath();
+            ctx.moveTo(path.points[0].x, path.points[0].y);
+            for (let i = 1; i < path.points.length; i++) {
+                ctx.lineTo(path.points[i].x, path.points[i].y);
+            }
+            ctx.stroke();
+            ctx.setLineDash([]);
+            
+            ctx.strokeStyle = '#77DD77';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.arc(path.points[0].x, path.points[0].y, 20, 0, Math.PI * 2);
+            ctx.stroke();
+            
+            ctx.fillStyle = '#77DD77';
+            ctx.beginPath();
+            ctx.arc(goal.x, goal.y, goal.radius, 0, Math.PI * 2);
+            ctx.fill();
+            
+            const pulseSize = Math.sin(Date.now() / 500) * 3;
+            ctx.strokeStyle = 'rgba(119, 221, 119, 0.5)';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(goal.x, goal.y, goal.radius + 5 + pulseSize, 0, Math.PI * 2);
+            ctx.stroke();
+            
+            if (trail.length > 1) {
+                trail.forEach((point, index) => {
+                    const alpha = (index / trail.length) * 0.6;
+                    const size = (index / trail.length) * player.radius * 1.5;
+                    
+                    ctx.fillStyle = `rgba(168, 230, 207, ${alpha * 0.3})`;
+                    ctx.beginPath();
+                    ctx.arc(point.x, point.y, size + 8, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    ctx.fillStyle = `rgba(168, 230, 207, ${alpha * 0.6})`;
+                    ctx.beginPath();
+                    ctx.arc(point.x, point.y, size + 4, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    ctx.fillStyle = `rgba(52, 211, 153, ${alpha})`;
+                    ctx.beginPath();
+                    ctx.arc(point.x, point.y, size, 0, Math.PI * 2);
+                    ctx.fill();
+                });
+            }
+            
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = '#A8E6CF';
+            ctx.fillStyle = '#FF9A56';
+            ctx.beginPath();
+            ctx.arc(player.x, player.y, player.radius, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+        }
+        
+        function showSessionComplete() {
+            showScreen('complete');
+            
+            const avgAdherence = sessionMetrics.pathAdherence.filter(a => a === 'optimal' || a === 'boundary').length / 
+                                Math.max(1, sessionMetrics.pathAdherence.length);
+            
+            const avgSmoothness = sessionMetrics.smoothnessScores.length > 0 ?
+                sessionMetrics.smoothnessScores.reduce((a, b) => a + b, 0) / sessionMetrics.smoothnessScores.length : 0;
+            
+            const minutes = Math.floor(elapsedTime / 60);
+            const seconds = elapsedTime % 60;
+            const durationText = minutes > 0 ? 
+                `You practiced controlled movement for ${minutes} minute${minutes !== 1 ? 's' : ''} today.` :
+                `You practiced controlled movement for ${seconds} seconds today.`;
+            
+            document.getElementById('durationText').textContent = durationText;
+            
+            let feedback = '';
+            if (sessionMetrics.completed) {
+                feedback = 'You reached the goal with steady, controlled movement. Excellent work!';
+            } else if (elapsedTime > 60) {
+                feedback = 'You stayed focused and kept practicing. That\'s what builds lasting skills.';
+            } else {
+                feedback = 'You started today\'s exercise. Every session counts!';
+            }
+            
+            document.getElementById('feedbackText').textContent = feedback;
+            
+            const qualities = [];
+            
+            if (avgAdherence > 0.7) {
+                qualities.push({ emoji: '🎯', label: 'Excellent path control' });
+            } else if (avgAdherence > 0.5) {
+                qualities.push({ emoji: '✓', label: 'Good path control' });
+            }
+            
+            if (avgSmoothness < 0.4) {
+                qualities.push({ emoji: '✨', label: 'Very smooth movement' });
+            } else if (avgSmoothness < 0.7) {
+                qualities.push({ emoji: '📊', label: 'Steady movement' });
+            }
+            
+            if (sessionMetrics.completed) {
+                qualities.push({ emoji: '🏆', label: 'Reached the goal' });
+            }
+            
+            if (elapsedTime > 90) {
+                qualities.push({ emoji: '💪', label: 'Great persistence' });
+            }
+            
+            if (qualities.length === 0) {
+                qualities.push({ emoji: '👍', label: 'You showed up' });
+                qualities.push({ emoji: '🌱', label: 'Building consistency' });
+            } else if (qualities.length === 1) {
+                qualities.push({ emoji: '⭐', label: 'Keep up the good work' });
+            }
+            
+            // Get badges from reward system and add to qualities
+            let sessionSummary = null;
+            try {
+                sessionSummary = rewardSystem.endSession({
+                    duration: elapsedTime,
+                    actions: Math.floor(sessionMetrics.pathAdherence.length / 10),
+                    sets: Math.floor(sessionMetrics.pathAdherence.length / 50),
+                    quality: avgAdherence > 0.7 ? 'excellent' : avgAdherence > 0.5 ? 'good' : 'okay'
+                });
+                
+                // Add badges earned during this session to the quality grid
+                if (sessionSummary && sessionSummary.badges && sessionSummary.badges.length > 0) {
+                    sessionSummary.badges.forEach(badge => {
+                        qualities.push({ 
+                            emoji: badge.icon, 
+                            label: `${badge.name} - ${badge.desc}` 
+                        });
+                    });
+                }
+            } catch (error) {
+                console.error('Reward system error:', error);
+            }
+            
+            const qualityGrid = document.getElementById('qualityGrid');
+            qualityGrid.innerHTML = qualities.map(q => `
+                <div class="quality-item">
+                    <div class="emoji">${q.emoji}</div>
+                    <div class="label">${q.label}</div>
+                </div>
+            `).join('');
+            
+            let progression = '';
+            if (avgAdherence > 0.75 && sessionMetrics.completed && selectedLevel < 3) {
+                progression = `You might enjoy trying Level ${selectedLevel + 1} next time.`;
+            } else {
+                progression = 'Keep practicing at this level.';
+            }
+            
+            progression += ' Every session builds better control.';
+            
+            document.getElementById('progressionText').textContent = progression;
+        }
+        
+        document.addEventListener('keydown', (e) => {
+            keysPressed[e.key] = true;
+            if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+                e.preventDefault();
+            }
+        });
+        
+        document.addEventListener('keyup', (e) => {
+            keysPressed[e.key] = false;
+        });
+        
+        let mouseDown = false;
+        canvas.addEventListener('mousedown', () => {
+            mouseDown = true;
+        });
+        
+        canvas.addEventListener('mouseup', () => {
+            mouseDown = false;
+        });
+        
+        canvas.addEventListener('mousemove', (e) => {
+            if (mouseDown && gameActive && !gamePaused) {
+                const rect = canvas.getBoundingClientRect();
+                const targetX = e.clientX - rect.left;
+                const targetY = e.clientY - rect.top;
+                
+                const dx = targetX - player.x;
+                const dy = targetY - player.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance > 5) {
+                    keysPressed['ArrowRight'] = dx > 0;
+                    keysPressed['ArrowLeft'] = dx < 0;
+                    keysPressed['ArrowDown'] = dy > 0;
+                    keysPressed['ArrowUp'] = dy < 0;
+                }
+            }
+        });
+        
+        setTimeout(() => {
+            initializeGame();
+        }, 100);
+    </script>
+</body>
+</html>

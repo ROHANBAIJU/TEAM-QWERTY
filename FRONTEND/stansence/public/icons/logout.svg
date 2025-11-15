@@ -1,0 +1,10 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Logout/exit icon with arrow -->
+  <path d="M180 80 C180 62 165 47 147 47 L113 47 C95 47 80 62 80 80 L80 432 C80 450 95 465 113 465 L147 465 C165 465 180 450 180 432 L180 80 Z" fill="#e2e8f0"/>
+  
+  <!-- Arrow pointing right (out) -->
+  <rect x="160" y="236" width="220" height="40" rx="20" fill="#e2e8f0"/>
+  
+  <!-- Arrow head -->
+  <path d="M340 176 L432 256 L340 336 L340 276 L340 236 L340 176 Z" fill="#e2e8f0"/>
+</svg>

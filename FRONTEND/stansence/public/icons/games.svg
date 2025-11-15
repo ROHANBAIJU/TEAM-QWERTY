@@ -1,0 +1,18 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Game controller icon -->
+  <path d="M156 180 C100 180 56 224 56 280 L56 340 C56 396 100 440 156 440 L180 440 C195 440 210 435 222 425 L256 395 L290 425 C302 435 317 440 332 440 L356 440 C412 440 456 396 456 340 L456 280 C456 224 412 180 356 180 L156 180 Z" fill="#e2e8f0"/>
+  
+  <!-- D-pad -->
+  <rect x="130" y="260" width="60" height="20" rx="10" fill="#8b5cf6"/>
+  <rect x="150" y="240" width="20" height="60" rx="10" fill="#8b5cf6"/>
+  
+  <!-- Buttons -->
+  <circle cx="330" cy="270" r="18" fill="#8b5cf6"/>
+  <circle cx="380" cy="270" r="18" fill="#8b5cf6"/>
+  <circle cx="355" cy="240" r="18" fill="#8b5cf6"/>
+  <circle cx="355" cy="300" r="18" fill="#8b5cf6"/>
+  
+  <!-- Analog sticks -->
+  <circle cx="160" cy="350" r="25" fill="#8b5cf6"/>
+  <circle cx="352" cy="350" r="25" fill="#8b5cf6"/>
+</svg>

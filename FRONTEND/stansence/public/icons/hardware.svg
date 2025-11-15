@@ -1,0 +1,28 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Chip/Hardware icon -->
+  <rect x="140" y="140" width="232" height="232" rx="20" fill="#e2e8f0"/>
+  
+  <!-- Inner chip detail -->
+  <rect x="190" y="190" width="132" height="132" rx="10" fill="#cbd5e1"/>
+  <rect x="230" y="230" width="52" height="52" rx="6" fill="#8b5cf6"/>
+  
+  <!-- Pins on left -->
+  <rect x="80" y="170" width="60" height="20" rx="10" fill="#e2e8f0"/>
+  <rect x="80" y="230" width="60" height="20" rx="10" fill="#e2e8f0"/>
+  <rect x="80" y="290" width="60" height="20" rx="10" fill="#e2e8f0"/>
+  
+  <!-- Pins on right -->
+  <rect x="372" y="170" width="60" height="20" rx="10" fill="#e2e8f0"/>
+  <rect x="372" y="230" width="60" height="20" rx="10" fill="#e2e8f0"/>
+  <rect x="372" y="290" width="60" height="20" rx="10" fill="#e2e8f0"/>
+  
+  <!-- Pins on top -->
+  <rect x="200" y="80" width="20" height="60" rx="10" fill="#e2e8f0"/>
+  <rect x="250" y="80" width="20" height="60" rx="10" fill="#e2e8f0"/>
+  <rect x="300" y="80" width="20" height="60" rx="10" fill="#e2e8f0"/>
+  
+  <!-- Pins on bottom -->
+  <rect x="200" y="372" width="20" height="60" rx="10" fill="#e2e8f0"/>
+  <rect x="250" y="372" width="20" height="60" rx="10" fill="#e2e8f0"/>
+  <rect x="300" y="372" width="20" height="60" rx="10" fill="#e2e8f0"/>
+</svg>

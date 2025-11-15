@@ -2511,16 +2511,16 @@ body {
 }
 
 .progression-header h3 {
-    font-size: 15px;
+    font-size: 17px;
     font-weight: 700;
     color: rgba(255, 255, 255, 0.95);
     margin: 0;
 }
 
 .progression-badge {
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 700;
-    padding: 4px 10px;
+    padding: 5px 11px;
     border-radius: 999px;
     background: rgba(148, 163, 184, 0.15);
     color: rgba(255, 255, 255, 0.7);
@@ -2529,7 +2529,7 @@ body {
 }
 
 .progression-subtitle {
-    font-size: 11px;
+    font-size: 13px;
     color: rgba(255, 255, 255, 0.6);
     margin: -6px 0 0 0;
 }
@@ -2542,7 +2542,7 @@ body {
 }
 
 .score-number {
-    font-size: 38px;
+    font-size: 42px;
     font-weight: 800;
     color: #fff;
     line-height: 1;
@@ -2550,7 +2550,7 @@ body {
 }
 
 .score-change {
-    font-size: 11px;
+    font-size: 13px;
     font-weight: 600;
     color: #ef4444;
     display: flex;
@@ -2559,7 +2559,7 @@ body {
 }
 
 .progression-stage {
-    font-size: 11px;
+    font-size: 13px;
     color: rgba(255, 255, 255, 0.7);
     margin-bottom: 2px;
 }
@@ -2599,7 +2599,7 @@ body {
 }
 
 .breakdown-title {
-    font-size: 12px;
+    font-size: 14px;
     font-weight: 700;
     color: rgba(255, 255, 255, 0.9);
     margin: 2px 0 1px 0;
@@ -2618,20 +2618,20 @@ body {
 }
 
 .symptom-bar-label {
-    font-size: 11px;
+    font-size: 13px;
     font-weight: 600;
     color: rgba(255, 255, 255, 0.75);
 }
 
 .symptom-bar-value {
-    font-size: 11px;
+    font-size: 13px;
     font-weight: 700;
     color: rgba(255, 255, 255, 0.9);
 }
 
 .symptom-bar-track {
     width: 100%;
-    height: 7px;
+    height: 8px;
     background: rgba(0, 0, 0, 0.4);
     border-radius: 999px;
     overflow: hidden;
@@ -2688,14 +2688,14 @@ body {
 }
 
 .analytics-core-heading-copy h2 {
-    font-size: 22px;
+    font-size: 26px;
     font-weight: 700;
     color: var(--text-primary);
     margin-bottom: 4px;
 }
 
 .analytics-core-heading-copy p {
-    font-size: 13px;
+    font-size: 15px;
     color: rgba(255, 255, 255, 0.65);
     margin: 0;
 }
@@ -2832,15 +2832,15 @@ body {
 }
 
 .gemini-summary-title {
-    font-size: 12px;
+    font-size: 14px;
     font-weight: 700;
     color: rgba(255, 255, 255, 0.85);
     margin-bottom: 6px;
 }
 
 .gemini-summary-card p {
-    font-size: 11px;
-    line-height: 1.4;
+    font-size: 13px;
+    line-height: 1.5;
     color: rgba(255, 255, 255, 0.7);
     margin: 0;
 }
@@ -2858,14 +2858,14 @@ body {
 }
 
 .gemini-game-label {
-    font-size: 10px;
+    font-size: 11px;
     text-transform: uppercase;
     letter-spacing: 0.6px;
     color: rgba(255, 255, 255, 0.6);
 }
 
 .gemini-game-name {
-    font-size: 12px;
+    font-size: 14px;
     font-weight: 700;
     color: #a855f7;
 }
@@ -2896,22 +2896,22 @@ body {
 }
 
 .fall-alert-header h3 {
-    font-size: 14px;
+    font-size: 16px;
     font-weight: 700;
     color: rgba(255, 255, 255, 0.9);
     margin: 0;
 }
 
 .fall-alert-overview {
-    font-size: 12px;
+    font-size: 14px;
     color: rgba(255, 255, 255, 0.65);
     margin-bottom: 10px;
 }
 
 .fall-risk-badge {
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 700;
-    padding: 5px 10px;
+    padding: 6px 11px;
     border-radius: 999px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -2954,7 +2954,7 @@ body {
 }
 
 .fall-bar-fill {
-    width: 12px;
+    width: 14px;
     border-radius: 10px 10px 4px 4px;
     background: linear-gradient(180deg, rgba(99, 102, 241, 0.8), rgba(59, 130, 246, 0.4));
     box-shadow: 0 6px 16px rgba(99, 102, 241, 0.35);
@@ -2963,12 +2963,12 @@ body {
 }
 
 .fall-bar-label {
-    font-size: 10px;
+    font-size: 11px;
     color: rgba(255, 255, 255, 0.55);
 }
 
 .fall-alert-footnote {
-    font-size: 10px;
+    font-size: 11px;
     color: rgba(255, 255, 255, 0.55);
     margin-top: 6px;
 }
@@ -2994,14 +2994,14 @@ body {
 }
 
 .fall-insight-label {
-    font-size: 10px;
+    font-size: 11px;
     letter-spacing: 0.4px;
     text-transform: uppercase;
     color: rgba(255, 255, 255, 0.55);
 }
 
 .fall-insight-value {
-    font-size: 12px;
+    font-size: 14px;
     font-weight: 700;
     color: rgba(255, 255, 255, 0.85);
 }

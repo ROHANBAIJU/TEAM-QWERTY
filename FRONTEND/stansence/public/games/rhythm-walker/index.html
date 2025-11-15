@@ -18,11 +18,10 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: flex-start;
-            min-height: 100vh;
-            padding: 20px;
-            overflow-y: auto;
-            overflow-x: hidden;
+            justify-content: center;
+            height: 100vh;
+            padding: 10px;
+            overflow: hidden;
         }
 
         .game-container {
@@ -32,29 +31,29 @@
         }
 
         h1 {
-            font-size: 24px;
-            margin-bottom: 10px;
+            font-size: 20px;
+            margin-bottom: 5px;
             color: #8b5cf6;
         }
 
         .instructions {
-            font-size: 14px;
+            font-size: 12px;
             color: rgba(255,255,255,0.7);
-            margin-bottom: 20px;
-            line-height: 1.6;
+            margin-bottom: 10px;
+            line-height: 1.4;
         }
 
         .metronome-display {
-            width: 200px;
-            height: 200px;
-            margin: 0 auto 30px;
+            width: 160px;
+            height: 160px;
+            margin: 0 auto 15px;
             border: 4px solid #8b5cf6;
             border-radius: 50%;
             background: radial-gradient(circle, rgba(139, 92, 246, 0.2), rgba(139, 92, 246, 0.05));
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 48px;
+            font-size: 40px;
             position: relative;
             box-shadow: 0 8px 32px rgba(139, 92, 246, 0.4);
         }
@@ -80,20 +79,20 @@
         .step-indicator {
             display: flex;
             justify-content: center;
-            gap: 15px;
-            margin-bottom: 30px;
+            gap: 12px;
+            margin-bottom: 15px;
         }
 
         .step {
-            width: 60px;
-            height: 80px;
+            width: 50px;
+            height: 65px;
             background: rgba(255,255,255,0.1);
             border: 3px solid rgba(139, 92, 246, 0.5);
             border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 32px;
+            font-size: 28px;
             transition: all 0.2s ease;
         }
 
@@ -116,22 +115,22 @@
         .stats {
             display: flex;
             justify-content: space-around;
-            margin-top: 30px;
-            gap: 20px;
+            margin-top: 15px;
+            gap: 10px;
         }
 
         .stat-box {
             background: rgba(255,255,255,0.1);
             border: 2px solid rgba(255,255,255,0.2);
             border-radius: 8px;
-            padding: 12px 20px;
+            padding: 8px 12px;
             flex: 1;
         }
 
         .stat-label {
-            font-size: 12px;
+            font-size: 11px;
             color: rgba(255,255,255,0.6);
-            margin-bottom: 4px;
+            margin-bottom: 2px;
         }
 
         .stat-value {
@@ -145,8 +144,8 @@
         }
 
         button {
-            padding: 12px 24px;
-            font-size: 14px;
+            padding: 8px 16px;
+            font-size: 13px;
             font-weight: 600;
             color: #fff;
             background: linear-gradient(135deg, #8b5cf6, #7c3aed);
@@ -168,12 +167,12 @@
         }
 
         .demo-hint {
-            margin-top: 20px;
-            padding: 15px;
+            margin-top: 10px;
+            padding: 10px;
             background: rgba(59, 130, 246, 0.1);
             border: 2px solid rgba(59, 130, 246, 0.3);
             border-radius: 8px;
-            font-size: 13px;
+            font-size: 12px;
             color: rgba(255,255,255,0.8);
         }
 
@@ -211,6 +210,7 @@
     </style>
 </head>
 <body>
+    <script src="../reward-system.js"></script>
     <div class="game-container">
         <h1>🚶 Rhythm Walker</h1>
         <p class="instructions">
@@ -264,6 +264,24 @@
     </div>
 
     <script>
+        // Initialize Reward System with error handling
+        let rewardSystem;
+        try {
+            rewardSystem = new RewardSystem('rhythm-walker');
+            console.log('Rhythm Walker reward system initialized successfully');
+        } catch (error) {
+            console.error('Failed to initialize reward system:', error);
+            // Fallback mock reward system
+            rewardSystem = {
+                rewardAction: (type, quality) => ({ points: 0 }),
+                rewardSet: (set) => {},
+                endSession: (stats) => {}
+            };
+        }
+        let consecutiveOnBeatSteps = 0;
+        let currentSet = 0;
+        const STEPS_PER_SET = 6;
+        
         const metronome = document.getElementById('metronome');
         const metronomeArm = document.getElementById('metronomeArm');
         const bpmDisplay = document.getElementById('bpmDisplay');
@@ -395,6 +413,25 @@
 
             if (onBeat) {
                 stepsOnBeat++;
+                consecutiveOnBeatSteps++;
+                
+                // Calculate timing quality based on how close to beat
+                const quality = timeSinceLastBeat < 100 || timeSinceLastBeat > (beatDuration - 100) 
+                    ? 'perfect' 
+                    : 'good';
+                
+                // Reward consistent rhythm with quality
+                const reward = rewardSystem.rewardAction('timing', quality);
+                
+                // Reward set completion
+                if (consecutiveOnBeatSteps >= STEPS_PER_SET) {
+                    currentSet++;
+                    rewardSystem.rewardSet(currentSet);
+                    consecutiveOnBeatSteps = 0;
+                }
+            } else {
+                // Don't heavily punish off-beat steps (clinical design)
+                consecutiveOnBeatSteps = Math.max(0, consecutiveOnBeatSteps - 1);
             }
 
             // Record step interval
@@ -446,6 +483,10 @@
         function endGame() {
             gameActive = false;
             stopMetronome();
+
+            // End session with reward system
+            const summary = rewardSystem.endSession();
+            rewardSystem.showSessionSummary(summary);
 
             const accuracy = totalSteps > 0 ? Math.round((stepsOnBeat / totalSteps) * 100) : 0;
             
