@@ -1,0 +1,15 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Analytics chart icon with bars -->
+  <rect x="80" y="280" width="80" height="180" rx="15" fill="#e2e8f0"/>
+  <rect x="216" y="200" width="80" height="260" rx="15" fill="#e2e8f0"/>
+  <rect x="352" y="120" width="80" height="340" rx="15" fill="#e2e8f0"/>
+  
+  <!-- Trend line -->
+  <path d="M60 240 L150 180 L260 140 L420 80" stroke="#a78bfa" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  
+  <!-- Data points -->
+  <circle cx="60" cy="240" r="16" fill="#a78bfa"/>
+  <circle cx="150" cy="180" r="16" fill="#a78bfa"/>
+  <circle cx="260" cy="140" r="16" fill="#a78bfa"/>
+  <circle cx="420" cy="80" r="16" fill="#a78bfa"/>
+</svg>

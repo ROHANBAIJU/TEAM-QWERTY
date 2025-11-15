@@ -1,0 +1,10 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- User profile icon -->
+  <circle cx="256" cy="140" r="90" fill="#e2e8f0"/>
+  
+  <!-- Body/shoulders -->
+  <path d="M100 400 C100 300 160 240 256 240 C352 240 412 300 412 400 L412 456 C412 468 402 478 390 478 L122 478 C110 478 100 468 100 456 L100 400 Z" fill="#e2e8f0"/>
+  
+  <!-- Detail line -->
+  <circle cx="256" cy="140" r="70" fill="#cbd5e1"/>
+</svg>

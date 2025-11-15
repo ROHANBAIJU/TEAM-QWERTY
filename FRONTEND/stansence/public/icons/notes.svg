@@ -1,0 +1,13 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Document/Notes icon -->
+  <path d="M120 56 C98 56 80 74 80 96 L80 416 C80 438 98 456 120 456 L340 456 L432 364 L432 96 C432 74 414 56 392 56 L120 56 Z" fill="#e2e8f0"/>
+  
+  <!-- Folded corner -->
+  <path d="M340 456 L340 396 C340 374 358 356 380 356 L432 356 L340 456 Z" fill="#cbd5e1"/>
+  
+  <!-- Lines representing text -->
+  <rect x="140" y="140" width="232" height="16" rx="8" fill="#8b5cf6"/>
+  <rect x="140" y="190" width="232" height="16" rx="8" fill="#8b5cf6"/>
+  <rect x="140" y="240" width="180" height="16" rx="8" fill="#8b5cf6"/>
+  <rect x="140" y="290" width="232" height="16" rx="8" fill="#8b5cf6"/>
+</svg>

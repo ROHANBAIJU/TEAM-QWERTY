@@ -1,0 +1,19 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Settings gear icon -->
+  <path d="M256 156 C198 156 151 203 151 261 C151 319 198 366 256 366 C314 366 361 319 361 261 C361 203 314 156 256 156 Z" fill="#e2e8f0"/>
+  
+  <!-- Inner circle -->
+  <circle cx="256" cy="261" r="60" fill="#8b5cf6"/>
+  
+  <!-- Gear teeth -->
+  <rect x="236" y="60" width="40" height="80" rx="8" fill="#e2e8f0"/>
+  <rect x="236" y="372" width="40" height="80" rx="8" fill="#e2e8f0"/>
+  <rect x="60" y="241" width="80" height="40" rx="8" fill="#e2e8f0"/>
+  <rect x="372" y="241" width="80" height="40" rx="8" fill="#e2e8f0"/>
+  
+  <!-- Diagonal teeth -->
+  <rect x="130" y="115" width="40" height="80" rx="8" fill="#e2e8f0" transform="rotate(-45 150 155)"/>
+  <rect x="342" y="115" width="40" height="80" rx="8" fill="#e2e8f0" transform="rotate(45 362 155)"/>
+  <rect x="130" y="327" width="40" height="80" rx="8" fill="#e2e8f0" transform="rotate(45 150 367)"/>
+  <rect x="342" y="327" width="40" height="80" rx="8" fill="#e2e8f0" transform="rotate(-45 362 367)"/>
+</svg>
