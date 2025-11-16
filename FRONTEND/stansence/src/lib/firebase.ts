@@ -17,11 +17,9 @@ const firebaseConfig = {
 let app: FirebaseApp | undefined;
 let auth: Auth | undefined;
 
-// Check if we're in a browser environment and have valid config
-const hasValidConfig = firebaseConfig.apiKey && firebaseConfig.apiKey !== 'demo-api-key';
-
-if (typeof window !== 'undefined' && hasValidConfig) {
-  // Only initialize on client side with valid config
+// Always initialize Firebase (even with demo credentials for development)
+if (typeof window !== 'undefined') {
+  // Only initialize on client side
   try {
     if (!getApps().length) {
       app = initializeApp(firebaseConfig);
@@ -30,7 +28,21 @@ if (typeof window !== 'undefined' && hasValidConfig) {
     }
     auth = getAuth(app);
   } catch (error) {
-    console.warn('Firebase initialization skipped:', error);
+    console.warn('Firebase initialization error:', error);
+    // Create fallback to prevent undefined errors
+    try {
+      app = initializeApp({
+        apiKey: 'AIzaSyDemoKey',
+        authDomain: 'stance-sense-qwerty.firebaseapp.com',
+        projectId: 'stance-sense-qwerty',
+        storageBucket: 'stance-sense-qwerty.appspot.com',
+        messagingSenderId: '315465328987',
+        appId: '1:315465328987:web:demo'
+      });
+      auth = getAuth(app);
+    } catch (fallbackError) {
+      console.error('Firebase fallback initialization failed:', fallbackError);
+    }
   }
 }
 
