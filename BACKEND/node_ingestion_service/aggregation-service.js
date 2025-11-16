@@ -8,7 +8,7 @@ const redisCache = require('./redis-cache');
 
 class AggregationService {
   constructor() {
-    this.intervalMs = 10 * 60 * 1000; // 10 minutes
+    this.intervalMs = 1 * 60 * 1000; // 1 minute (changed from 10 min)
     this.intervalHandle = null;
     this.fastApiUrl = process.env.FASTAPI_INGEST_URL || 'http://127.0.0.1:8000';
   }
@@ -17,12 +17,12 @@ class AggregationService {
    * Start the aggregation service
    */
   start() {
-    console.log('[Aggregation] Service started - will aggregate every 10 minutes');
+    console.log('[Aggregation] Service started - will aggregate every 1 minute');
     
     // Run immediately on start
     this.runAggregation();
     
-    // Then run every 10 minutes
+    // Then run every 1 minute
     this.intervalHandle = setInterval(() => {
       this.runAggregation();
     }, this.intervalMs);
@@ -272,10 +272,41 @@ class AggregationService {
       );
 
       console.log(`[Aggregation] ✓ Sent to FastAPI - Status: ${response.status}`);
+      
+      // Trigger RAG analysis after successful Firestore write
+      await this.triggerRAGAnalysis(userId);
+      
       return response.data;
     } catch (error) {
       console.error('[Aggregation] Failed to send to FastAPI:', error.response?.data || error.message);
       throw error;
+    }
+  }
+
+  /**
+   * Trigger RAG analysis after Firestore write
+   */
+  async triggerRAGAnalysis(userId) {
+    try {
+      console.log(`[Aggregation] Triggering RAG analysis for ${userId}...`);
+      
+      const response = await axios.post(
+        `${this.fastApiUrl}/analyze-patient-data`,
+        {
+          user_id: userId,
+          trigger_source: 'aggregation_service',
+          timestamp: new Date().toISOString(),
+        },
+        {
+          timeout: 30000, // 30 second timeout for RAG analysis
+        }
+      );
+
+      console.log(`[Aggregation] ✓ RAG analysis triggered - Status: ${response.status}`);
+      return response.data;
+    } catch (error) {
+      // Don't throw - RAG analysis failure shouldn't break aggregation
+      console.warn('[Aggregation] RAG analysis failed (non-critical):', error.response?.data || error.message);
     }
   }
 }
