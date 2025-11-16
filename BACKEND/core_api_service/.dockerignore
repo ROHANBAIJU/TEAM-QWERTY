@@ -1,0 +1,26 @@
+# .dockerignore for FastAPI Service
+
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.env
+.env.*
+!.env.example
+*.log
+.git/
+.gitignore
+README.md
+*.md
+test/
+tests/
+.vscode/
+.idea/
+.DS_Store
+.pytest_cache/
+htmlcov/
+.coverage

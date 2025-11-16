@@ -1,0 +1,18 @@
+# .dockerignore for Node.js Service
+
+node_modules/
+npm-debug.log
+.env
+.env.*
+!.env.example
+*.log
+.git/
+.gitignore
+README.md
+*.md
+test/
+tests/
+.vscode/
+.idea/
+.DS_Store
+coverage/
