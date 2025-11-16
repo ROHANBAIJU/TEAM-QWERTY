@@ -36,7 +36,7 @@ type SymptomKey = 'tremor' | 'rigidity' | 'slowness' | 'gait';
 
 export default function Analytics() {
   const { user } = useAuth();
-  const { latestData, alerts, ragAnalysis, isConnected, connectionStatus } = useSensorData();
+  const { latestData, alerts, ragAnalysis, isConnected, connectionStatus, hasPermanentError } = useSensorData();
   const [lastUpdateTime, setLastUpdateTime] = useState<number>(0);
   const [symptomData, setSymptomData] = useState<SymptomData>({
     tremor: 0,
@@ -664,8 +664,8 @@ export default function Analytics() {
       )}
 
       {/* Live Real-time Sensor Cards Grid */}
-      {/* Backend Disconnected Warning - Show when no data after connection attempt */}
-      {!latestData && !isConnected && (
+      {/* Backend Disconnected Warning - Show only when permanently failed */}
+      {!latestData && hasPermanentError && (
         <div style={{
           background: 'rgba(239, 68, 68, 0.1)',
           backdropFilter: 'blur(10px)',
@@ -718,8 +718,8 @@ export default function Analytics() {
         </div>
       )}
       
-      {/* Loading skeleton - Only show briefly when connecting */}
-      {!latestData && isConnected && connectionStatus === 'connecting' && (
+      {/* Loading skeleton - Show during initial connection only, not during reconnection */}
+      {!latestData && !hasPermanentError && connectionStatus === 'connecting' && (
         <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',

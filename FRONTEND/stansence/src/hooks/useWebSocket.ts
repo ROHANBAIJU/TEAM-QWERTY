@@ -78,6 +78,7 @@ interface UseWebSocketReturn {
   ragAnalysis: RAGAnalysis | null;
   isConnected: boolean;
   connectionStatus: 'connecting' | 'connected' | 'disconnected' | 'error';
+  hasPermanentError: boolean;
   reconnect: () => void;
 }
 
@@ -94,11 +95,12 @@ export function useWebSocket(url?: string): UseWebSocketReturn {
   const [ragAnalysis, setRagAnalysis] = useState<RAGAnalysis | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'disconnected' | 'error'>('disconnected');
+  const [hasPermanentError, setHasPermanentError] = useState(false);
   
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const reconnectAttemptsRef = useRef(0);
-  const maxReconnectAttempts = 10;
+  const maxReconnectAttempts = 3;
   const baseReconnectDelay = 1000; // Start with 1 second
   const lastUpdateRef = useRef<number>(0);
   const updateThrottleMs = 500; // Reduced from 2000ms to 500ms for more responsive updates
@@ -121,6 +123,7 @@ export function useWebSocket(url?: string): UseWebSocketReturn {
           console.log('WebSocket connected to backend');
           setIsConnected(true);
           setConnectionStatus('connected');
+          setHasPermanentError(false);
           reconnectAttemptsRef.current = 0;
         };
 
@@ -162,12 +165,12 @@ export function useWebSocket(url?: string): UseWebSocketReturn {
 
         ws.onclose = () => {
           console.log('WebSocket disconnected');
-          setIsConnected(false);
-          setConnectionStatus('disconnected');
           wsRef.current = null;
 
           // Auto-reconnect with exponential backoff
           if (reconnectAttemptsRef.current < maxReconnectAttempts) {
+            // Don't update UI state during reconnection attempts to prevent flashing
+            setConnectionStatus('connecting');
             const delay = Math.min(baseReconnectDelay * Math.pow(2, reconnectAttemptsRef.current), 30000);
             console.log(`Reconnecting in ${delay}ms... (attempt ${reconnectAttemptsRef.current + 1}/${maxReconnectAttempts})`);
             
@@ -176,8 +179,10 @@ export function useWebSocket(url?: string): UseWebSocketReturn {
               connect();
             }, delay);
           } else {
-            console.error('Max reconnection attempts reached');
+            console.error('Max reconnection attempts reached - giving up');
+            setIsConnected(false);
             setConnectionStatus('error');
+            setHasPermanentError(true);
           }
         };
 
@@ -231,6 +236,7 @@ export function useWebSocket(url?: string): UseWebSocketReturn {
     ragAnalysis,
     isConnected,
     connectionStatus,
+    hasPermanentError,
     reconnect,
   };
 }
