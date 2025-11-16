@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>EMG Strength Dial (Serial)</title>
+  <style>
+    body { background:#111; color:#fff; text-align:center; font-family:sans-serif; }
+    canvas { display:block; margin:40px auto; background:#222; border-radius:50%; }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      margin-top: 20px;
+      border-radius: 6px;
+      border: none;
+      background: #00f260;
+      color: #000;
+      cursor: pointer;
+    }
+    #status { margin-top: 10px; font-size: 14px; color: #0f0; }
+  </style>
+</head>
+<body>
+
+<h2>Measure Your Muscle Strength</h2>
+<button onclick="connectSerial()">Connect to Arduino</button>
+<div id="status">Not connected</div>
+<canvas id="dialCanvas" width="400" height="300"></canvas>
+<div id="label">Envelope: 0</div>
+
+<script>
+const canvas = document.getElementById("dialCanvas");
+const ctx = canvas.getContext("2d");
+const label = document.getElementById("label");
+const status = document.getElementById("status");
+
+const centerX = canvas.width / 2;
+const centerY = canvas.height - 20;
+const radius = 120;
+
+const levels = ["Starlord", "Antman", "Hulk", "Thor", "IronMan", "Thanos"];
+const angleStep = Math.PI / (levels.length - 1);
+
+function drawDial(envelope) {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Draw semicircle arc
+  ctx.beginPath();
+  ctx.arc(centerX, centerY, radius, Math.PI, 0);
+  ctx.strokeStyle = "#888";
+  ctx.lineWidth = 4;
+  ctx.stroke();
+
+  // Draw labels
+  for (let i = 0; i < levels.length; i++) {
+    const angle = Math.PI - i * angleStep;
+    const x = centerX + Math.cos(angle) * (radius + 20);
+    const y = centerY - Math.sin(angle) * (radius + 20);
+    ctx.fillStyle = "#fff";
+    ctx.font = "14px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText(levels[i], x, y);
+  }
+
+  // Pointer
+  const maxEnvelope = 7; // adjust if your envelope range is higher
+  const clamped = Math.min(maxEnvelope, envelope);
+  const pointerAngle = Math.PI - (clamped / maxEnvelope) * Math.PI;
+  const px = centerX + Math.cos(pointerAngle) * radius;
+  const py = centerY - Math.sin(pointerAngle) * radius;
+
+  ctx.beginPath();
+  ctx.moveTo(centerX, centerY);
+  ctx.lineTo(px, py);
+  ctx.strokeStyle = "red";
+  ctx.lineWidth = 6;
+  ctx.stroke();
+
+  label.textContent = "Envelope: " + envelope;
+}
+
+async function connectSerial() {
+  try {
+    const port = await navigator.serial.requestPort();
+    await port.open({ baudRate: 115200 });
+    status.textContent = "Connected via Serial";
+
+    const decoder = new TextDecoderStream();
+    port.readable.pipeTo(decoder.writable);
+    const inputStream = decoder.readable;
+    const lineReader = inputStream.getReader();
+
+    let buffer = "";
+
+    while (true) {
+      const { value, done } = await lineReader.read();
+      if (done) break;
+      buffer += value;
+      let lines = buffer.split("\n");
+      buffer = lines.pop();
+      for (let line of lines) {
+        console.log("Line:", line); // Debug: see Arduino output
+        const envelope = parseInt(line.trim().split(",").pop());
+        if (!isNaN(envelope)) drawDial(envelope);
+      }
+    }
+  } catch (err) {
+    status.textContent = "Serial connection failed";
+    console.error(err);
+  }
+}
+</script>
+
+</body>
+</html>

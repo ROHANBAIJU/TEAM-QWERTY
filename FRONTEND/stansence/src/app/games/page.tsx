@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 
-type SymptomKey = "tremor" | "rigidity" | "slowness" | "gait";
+type SymptomKey = "tremor" | "rigidity" | "gait";
 
 const gameDirectory: Record<SymptomKey, { name: string; description: string; benefit: string; url: string }> = {
   tremor: {
@@ -12,16 +12,10 @@ const gameDirectory: Record<SymptomKey, { name: string; description: string; ben
     url: "/games/steady-hand/index.html",
   },
   rigidity: {
-    name: "Strength Meter",
-    description: "Grip and release exercises with progressive resistance cues.",
-    benefit: "loosen muscle stiffness with rhythmic isometric reps",
-    url: "/games/strength-meter/index.html",
-  },
-  slowness: {
-    name: "Rhythm Tap",
-    description: "Tempo-matched tap patterns to quicken initiation speed.",
-    benefit: "boost movement timing and reaction speed",
-    url: "/games/rhythm-tap/index.html",
+    name: "EMG Strength Dial",
+    description: "Marvel-themed muscle strength gauge with real-time EMG monitoring.",
+    benefit: "measure and improve grip strength from Starlord to Thanos level",
+    url: "/games/emg-strength-dial/index.html",
   },
   gait: {
     name: "Rhythm Walker",
@@ -34,7 +28,7 @@ const gameDirectory: Record<SymptomKey, { name: string; description: string; ben
 export default function GamesPage() {
   const [demoMode, setDemoMode] = useState(true);
   const [selectedGame, setSelectedGame] = useState<{ name: string; url: string } | null>(null);
-  const measurementKeys: SymptomKey[] = ["tremor", "rigidity", "slowness", "gait"];
+  const measurementKeys: SymptomKey[] = ["tremor", "rigidity", "gait"];
 
   const launchGame = (name: string, url: string) => {
     setSelectedGame({ name, url });
@@ -109,15 +103,13 @@ export default function GamesPage() {
 
   const gameIcons: Record<SymptomKey, string> = {
     tremor: "🎯",
-    rigidity: "💪",
-    slowness: "⚡",
+    rigidity: "⚡",
     gait: "👣"
   };
 
   const gameColors: Record<SymptomKey, { primary: string; hover: string; shadow: string }> = {
     tremor: { primary: 'rgba(16, 185, 129, 0.15)', hover: 'rgba(16, 185, 129, 0.25)', shadow: 'rgba(16, 185, 129, 0.4)' },
-    rigidity: { primary: 'rgba(251, 146, 60, 0.15)', hover: 'rgba(251, 146, 60, 0.25)', shadow: 'rgba(251, 146, 60, 0.4)' },
-    slowness: { primary: 'rgba(59, 130, 246, 0.15)', hover: 'rgba(59, 130, 246, 0.25)', shadow: 'rgba(59, 130, 246, 0.4)' },
+    rigidity: { primary: 'rgba(220, 38, 38, 0.15)', hover: 'rgba(220, 38, 38, 0.25)', shadow: 'rgba(220, 38, 38, 0.4)' },
     gait: { primary: 'rgba(139, 92, 246, 0.15)', hover: 'rgba(139, 92, 246, 0.25)', shadow: 'rgba(139, 92, 246, 0.4)' }
   };
 

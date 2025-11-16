@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EMG Strength Dial - Marvel Edition</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: linear-gradient(135deg, #0a0a0a 0%, #1a0a0a 50%, #0a0a1a 100%);
+      color: #fff;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Animated background particles */
+    .particles {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .particle {
+      position: absolute;
+      width: 2px;
+      height: 2px;
+      background: rgba(220, 38, 38, 0.5);
+      border-radius: 50%;
+      animation: float 20s infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0) translateX(0); opacity: 0; }
+      10% { opacity: 1; }
+      90% { opacity: 1; }
+      100% { transform: translateY(-100vh) translateX(50px); opacity: 0; }
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+      animation: fadeInDown 1s ease-out;
+    }
+
+    @keyframes fadeInDown {
+      from {
+        opacity: 0;
+        transform: translateY(-30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .header h1 {
+      font-size: 3.5rem;
+      font-weight: 900;
+      background: linear-gradient(135deg, #dc2626 0%, #ef4444 50%, #f87171 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-shadow: 0 0 30px rgba(220, 38, 38, 0.3);
+      letter-spacing: -0.02em;
+      margin-bottom: 10px;
+    }
+
+    .header p {
+      font-size: 1.2rem;
+      color: #cbd5e1;
+      font-weight: 500;
+    }
+
+    .game-container {
+      position: relative;
+      background: rgba(255, 255, 255, 0.03);
+      backdrop-filter: blur(20px);
+      border-radius: 30px;
+      padding: 50px;
+      border: 2px solid rgba(220, 38, 38, 0.3);
+      box-shadow: 0 20px 60px rgba(220, 38, 38, 0.3),
+                  inset 0 0 60px rgba(220, 38, 38, 0.1);
+      animation: fadeInUp 1s ease-out 0.3s both;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    canvas {
+      display: block;
+      filter: drop-shadow(0 10px 30px rgba(220, 38, 38, 0.4));
+    }
+
+    .stats {
+      display: flex;
+      justify-content: space-around;
+      margin-top: 30px;
+      gap: 20px;
+    }
+
+    .stat-box {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(220, 38, 38, 0.3);
+      border-radius: 15px;
+      padding: 20px 30px;
+      text-align: center;
+      min-width: 150px;
+      transition: all 0.3s;
+    }
+
+    .stat-box:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 30px rgba(220, 38, 38, 0.4);
+      border-color: rgba(220, 38, 38, 0.6);
+    }
+
+    .stat-label {
+      font-size: 0.9rem;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #dc2626 0%, #f87171 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .connection-status {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      padding: 12px 24px;
+      background: rgba(16, 185, 129, 0.2);
+      border: 2px solid rgba(16, 185, 129, 0.5);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      animation: fadeIn 1s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .status-indicator {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #10b981;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+      50% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+    }
+
+    .instructions {
+      margin-top: 30px;
+      text-align: center;
+      padding: 20px;
+      background: rgba(59, 130, 246, 0.1);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      border-radius: 15px;
+      animation: fadeIn 1s ease-out 0.6s both;
+    }
+
+    .instructions p {
+      font-size: 1rem;
+      color: #cbd5e1;
+      line-height: 1.6;
+    }
+
+    .instructions strong {
+      color: #60a5fa;
+      font-weight: 700;
+    }
+
+    /* Glow effect on high values */
+    .glow {
+      animation: glow 1s ease-in-out infinite;
+    }
+
+    @keyframes glow {
+      0%, 100% { filter: drop-shadow(0 0 5px rgba(220, 38, 38, 0.5)); }
+      50% { filter: drop-shadow(0 0 20px rgba(220, 38, 38, 1)); }
+    }
+
+    /* Level achievement animation */
+    @keyframes levelUp {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.2); }
+      100% { transform: scale(1); }
+    }
+
+    .level-notification {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0);
+      background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+      padding: 40px 60px;
+      border-radius: 20px;
+      border: 3px solid #fca5a5;
+      font-size: 2.5rem;
+      font-weight: 900;
+      text-align: center;
+      z-index: 1000;
+      box-shadow: 0 20px 60px rgba(220, 38, 38, 0.6);
+      animation: levelUp 0.5s ease-out;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <!-- Animated particles background -->
+  <div class="particles" id="particles"></div>
+
+  <!-- Connection Status -->
+  <div class="connection-status">
+    <div class="status-indicator"></div>
+    <span>Real-time EMG Data</span>
+  </div>
+
+  <div class="container">
+    <div class="header">
+      <h1>⚡ EMG STRENGTH DIAL ⚡</h1>
+      <p>Measure Your Superhero Power Level</p>
+    </div>
+
+    <div class="game-container">
+      <canvas id="dialCanvas" width="500" height="350"></canvas>
+      
+      <div class="stats">
+        <div class="stat-box">
+          <div class="stat-label">Current Level</div>
+          <div class="stat-value" id="currentLevel">Starlord</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">EMG Value</div>
+          <div class="stat-value" id="emgValue">0</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Peak Strength</div>
+          <div class="stat-value" id="peakValue">0</div>
+        </div>
+      </div>
+
+      <div class="instructions">
+        <p>
+          <strong>💪 Grip and flex your muscles!</strong><br>
+          Your EMG sensor measures muscle activity in real-time.<br>
+          Reach <strong>Thanos level</strong> for maximum strength! 🏆
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("dialCanvas");
+    const ctx = canvas.getContext("2d");
+    const currentLevelEl = document.getElementById("currentLevel");
+    const emgValueEl = document.getElementById("emgValue");
+    const peakValueEl = document.getElementById("peakValue");
+
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height - 30;
+    const radius = 140;
+
+    const levels = ["Starlord", "Antman", "Hulk", "Thor", "IronMan", "Thanos"];
+    const angleStep = Math.PI / (levels.length - 1);
+    
+    let currentEnvelope = 0;
+    let targetEnvelope = 0;
+    let peakEnvelope = 0;
+    let previousLevel = 0;
+
+    // Create background particles
+    function createParticles() {
+      const particlesContainer = document.getElementById('particles');
+      for (let i = 0; i < 50; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        particle.style.left = Math.random() * 100 + '%';
+        particle.style.animationDelay = Math.random() * 20 + 's';
+        particle.style.animationDuration = (15 + Math.random() * 10) + 's';
+        particlesContainer.appendChild(particle);
+      }
+    }
+
+    function drawDial(envelope) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Draw outer glow
+      const gradient = ctx.createRadialGradient(centerX, centerY, radius - 20, centerX, centerY, radius + 30);
+      gradient.addColorStop(0, 'rgba(220, 38, 38, 0)');
+      gradient.addColorStop(0.7, 'rgba(220, 38, 38, 0.1)');
+      gradient.addColorStop(1, 'rgba(220, 38, 38, 0.3)');
+      ctx.fillStyle = gradient;
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, radius + 30, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Draw background arc
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, radius, Math.PI, 0);
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
+      ctx.lineWidth = 20;
+      ctx.lineCap = "round";
+      ctx.stroke();
+
+      // Draw progress arc
+      const maxEnvelope = 500; // Adjust based on your EMG sensor range
+      const clamped = Math.min(maxEnvelope, envelope);
+      const progressAngle = (clamped / maxEnvelope) * Math.PI;
+      
+      // Create gradient for progress arc
+      const arcGradient = ctx.createLinearGradient(centerX - radius, centerY, centerX + radius, centerY);
+      arcGradient.addColorStop(0, '#dc2626');
+      arcGradient.addColorStop(0.5, '#ef4444');
+      arcGradient.addColorStop(1, '#f87171');
+      
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, radius, Math.PI, Math.PI + progressAngle);
+      ctx.strokeStyle = arcGradient;
+      ctx.lineWidth = 22;
+      ctx.lineCap = "round";
+      ctx.stroke();
+
+      // Draw level markers and labels
+      for (let i = 0; i < levels.length; i++) {
+        const angle = Math.PI - i * angleStep;
+        const markerX = centerX + Math.cos(angle) * (radius - 15);
+        const markerY = centerY - Math.sin(angle) * (radius - 15);
+        
+        // Marker dot
+        ctx.beginPath();
+        ctx.arc(markerX, markerY, 6, 0, Math.PI * 2);
+        ctx.fillStyle = envelope >= (i / (levels.length - 1)) * maxEnvelope ? '#f87171' : 'rgba(255, 255, 255, 0.3)';
+        ctx.fill();
+
+        // Level text
+        const labelX = centerX + Math.cos(angle) * (radius + 45);
+        const labelY = centerY - Math.sin(angle) * (radius + 45);
+        ctx.fillStyle = envelope >= (i / (levels.length - 1)) * maxEnvelope ? '#fff' : 'rgba(255, 255, 255, 0.5)';
+        ctx.font = "bold 16px 'Segoe UI'";
+        ctx.textAlign = "center";
+        ctx.fillText(levels[i], labelX, labelY);
+      }
+
+      // Center circle
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, 35, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(220, 38, 38, 0.3)';
+      ctx.fill();
+      ctx.strokeStyle = '#dc2626';
+      ctx.lineWidth = 3;
+      ctx.stroke();
+
+      // Pointer
+      const pointerAngle = Math.PI - progressAngle;
+      const px = centerX + Math.cos(pointerAngle) * (radius - 10);
+      const py = centerY - Math.sin(pointerAngle) * (radius - 10);
+
+      ctx.beginPath();
+      ctx.moveTo(centerX, centerY);
+      ctx.lineTo(px, py);
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 8;
+      ctx.lineCap = "round";
+      ctx.stroke();
+
+      // Pointer glow
+      ctx.shadowBlur = 15;
+      ctx.shadowColor = '#dc2626';
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      // Update current level
+      const levelIndex = Math.floor((envelope / maxEnvelope) * (levels.length - 1));
+      const currentLevelName = levels[Math.min(levelIndex, levels.length - 1)];
+      currentLevelEl.textContent = currentLevelName;
+
+      // Check for level up
+      if (levelIndex > previousLevel) {
+        showLevelUpNotification(currentLevelName);
+        previousLevel = levelIndex;
+      }
+
+      // Update stats
+      emgValueEl.textContent = Math.round(envelope);
+      if (envelope > peakEnvelope) {
+        peakEnvelope = envelope;
+        peakValueEl.textContent = Math.round(peakEnvelope);
+      }
+    }
+
+    function showLevelUpNotification(level) {
+      const notification = document.createElement('div');
+      notification.className = 'level-notification';
+      notification.textContent = `🎉 ${level} Level! 🎉`;
+      document.body.appendChild(notification);
+      
+      setTimeout(() => {
+        notification.style.animation = 'levelUp 0.5s ease-out';
+        notification.style.transform = 'translate(-50%, -50%) scale(1)';
+      }, 10);
+
+      setTimeout(() => {
+        notification.remove();
+      }, 2000);
+    }
+
+    // Smooth animation
+    function animate() {
+      currentEnvelope += (targetEnvelope - currentEnvelope) * 0.15;
+      drawDial(currentEnvelope);
+      requestAnimationFrame(animate);
+    }
+
+    // Connect to WebSocket for real-time data
+    function connectWebSocket() {
+      // Get WebSocket URL from environment or use default
+      const wsUrl = window.location.hostname === 'localhost' 
+        ? 'ws://localhost:8080/ws/frontend-data'
+        : 'wss://node-ingestion-service-5chvuuiaeq-uc.a.run.app/ws/frontend-data';
+      
+      const ws = new WebSocket(wsUrl);
+      
+      ws.onopen = () => {
+        console.log('✅ Connected to EMG data stream');
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          
+          // Extract EMG rigidity value (wrist EMG in millivolts)
+          if (data.type === 'processed_data' && data.data?.rigidity?.emg_wrist_mv) {
+            targetEnvelope = data.data.rigidity.emg_wrist_mv;
+          }
+        } catch (error) {
+          console.error('Error parsing WebSocket data:', error);
+        }
+      };
+
+      ws.onerror = (error) => {
+        console.error('WebSocket error:', error);
+      };
+
+      ws.onclose = () => {
+        console.log('WebSocket disconnected, reconnecting...');
+        setTimeout(connectWebSocket, 3000);
+      };
+    }
+
+    // Initialize
+    createParticles();
+    animate();
+    connectWebSocket();
+
+    // Demo mode: simulate EMG data if no real data
+    let demoValue = 0;
+    let demoDirection = 1;
+    setInterval(() => {
+      if (targetEnvelope === currentEnvelope && currentEnvelope === 0) {
+        // No real data, use demo
+        demoValue += demoDirection * Math.random() * 20;
+        if (demoValue >= 450) demoDirection = -1;
+        if (demoValue <= 50) demoDirection = 1;
+        targetEnvelope = demoValue;
+      }
+    }, 100);
+  </script>
+</body>
+</html>
