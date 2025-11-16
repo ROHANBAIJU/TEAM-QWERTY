@@ -1,63 +1,27 @@
 // File: BACKEND/node_ingestion_service/redis-cache.js
 //
-// Redis caching layer for real-time sensor data
-// Prevents Firestore overload by caching recent data in-memory
+// In-memory caching layer for real-time sensor data
+// Optimized for hackathon demo - no external Redis needed (saves $45/month)
+// Uses JavaScript Map for fast in-memory caching
 
-const Redis = require('ioredis');
+// Redis removed to minimize costs - using pure in-memory cache
+// const Redis = require('ioredis'); // REMOVED
 
 class RedisCache {
   constructor() {
     this.redis = null;
     this.connected = false;
-    this.inMemoryFallback = new Map(); // Fallback if Redis unavailable
+    this.inMemoryCache = new Map(); // Primary cache (was fallback, now main)
   }
 
   /**
-   * Initialize Redis connection
-   * Falls back to in-memory Map if Redis is unavailable (for local dev)
+   * Initialize cache (always uses in-memory Map)
+   * No external Redis connection - cost optimization
    */
   async initialize() {
-    try {
-      // Try to connect to Redis
-      // For GCP: Use Memorystore IP
-      // For local: Use localhost:6379
-      const redisHost = process.env.REDIS_HOST || 'localhost';
-      const redisPort = process.env.REDIS_PORT || 6379;
-      
-      this.redis = new Redis({
-        host: redisHost,
-        port: redisPort,
-        retryStrategy: (times) => {
-          if (times > 3) {
-            console.log('[Redis] Max retries reached. Using in-memory fallback.');
-            return null; // Stop retrying
-          }
-          return Math.min(times * 100, 2000);
-        },
-        maxRetriesPerRequest: 3,
-      });
-
-      this.redis.on('connect', () => {
-        this.connected = true;
-        console.log('[Redis] ✓ Connected successfully');
-      });
-
-      this.redis.on('error', (err) => {
-        console.warn('[Redis] Connection error, using in-memory fallback:', err.message);
-        this.connected = false;
-      });
-
-      // Wait a bit to see if connection succeeds
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      if (!this.connected) {
-        console.log('[Redis] Using in-memory fallback (Map)');
-      }
-
-    } catch (error) {
-      console.warn('[Redis] Initialization failed, using in-memory fallback:', error.message);
-      this.connected = false;
-    }
+    console.log('[Cache] ✓ In-memory cache initialized (Map-based, no Redis)');
+    console.log('[Cache] Cost optimization: Saving $45/month by not using Redis Memorystore');
+    this.connected = false; // Never connects to Redis
   }
 
   /**
@@ -69,27 +33,18 @@ class RedisCache {
     const value = JSON.stringify(dataPacket);
 
     try {
-      if (this.connected && this.redis) {
-        // Add to list (newest first)
-        await this.redis.lpush(key, value);
-        // Keep only last 100 entries (5 minutes at 3s interval)
-        await this.redis.ltrim(key, 0, 99);
-        // Set expiration to 10 minutes
-        await this.redis.expire(key, 600);
-      } else {
-        // In-memory fallback
-        if (!this.inMemoryFallback.has(key)) {
-          this.inMemoryFallback.set(key, []);
-        }
-        const list = this.inMemoryFallback.get(key);
-        list.unshift(value);
-        // Keep only last 100
-        if (list.length > 100) {
-          list.length = 100;
-        }
+      // Always use in-memory cache
+      if (!this.inMemoryCache.has(key)) {
+        this.inMemoryCache.set(key, []);
+      }
+      const list = this.inMemoryCache.get(key);
+      list.unshift(value);
+      // Keep only last 100
+      if (list.length > 100) {
+        list.length = 100;
       }
     } catch (error) {
-      console.error('[Redis] Error storing recent data:', error.message);
+      console.error('[Cache] Error storing recent data:', error.message);
     }
   }
 
@@ -101,16 +56,11 @@ class RedisCache {
     const key = `patient:${userId}:recent`;
 
     try {
-      if (this.connected && this.redis) {
-        const data = await this.redis.lrange(key, 0, count - 1);
-        return data.map(item => JSON.parse(item));
-      } else {
-        // In-memory fallback
-        const list = this.inMemoryFallback.get(key) || [];
-        return list.slice(0, count).map(item => JSON.parse(item));
-      }
+      // Always use in-memory cache
+      const list = this.inMemoryCache.get(key) || [];
+      return list.slice(0, count).map(item => JSON.parse(item));
     } catch (error) {
-      console.error('[Redis] Error getting recent data:', error.message);
+      console.error('[Cache] Error getting recent data:', error.message);
       return [];
     }
   }
@@ -124,19 +74,13 @@ class RedisCache {
     const value = JSON.stringify(dataPacket);
 
     try {
-      if (this.connected && this.redis) {
-        await this.redis.rpush(key, value);
-        // Set expiration to 15 minutes (in case aggregation service fails)
-        await this.redis.expire(key, 900);
-      } else {
-        // In-memory fallback
-        if (!this.inMemoryFallback.has(key)) {
-          this.inMemoryFallback.set(key, []);
-        }
-        this.inMemoryFallback.get(key).push(value);
+      // Always use in-memory cache
+      if (!this.inMemoryCache.has(key)) {
+        this.inMemoryCache.set(key, []);
       }
+      this.inMemoryCache.get(key).push(value);
     } catch (error) {
-      console.error('[Redis] Error adding to aggregate buffer:', error.message);
+      console.error('[Cache] Error adding to aggregate buffer:', error.message);
     }
   }
 
@@ -148,20 +92,12 @@ class RedisCache {
     const key = `patient:${userId}:aggregate_buffer`;
 
     try {
-      if (this.connected && this.redis) {
-        // Get all data
-        const data = await this.redis.lrange(key, 0, -1);
-        // Clear the buffer
-        await this.redis.del(key);
-        return data.map(item => JSON.parse(item));
-      } else {
-        // In-memory fallback
-        const list = this.inMemoryFallback.get(key) || [];
-        this.inMemoryFallback.delete(key);
-        return list.map(item => JSON.parse(item));
-      }
+      // Always use in-memory cache
+      const list = this.inMemoryCache.get(key) || [];
+      this.inMemoryCache.delete(key);
+      return list.map(item => JSON.parse(item));
     } catch (error) {
-      console.error('[Redis] Error getting aggregate buffer:', error.message);
+      console.error('[Cache] Error getting aggregate buffer:', error.message);
       return [];
     }
   }
@@ -175,15 +111,10 @@ class RedisCache {
     const value = JSON.stringify(dataPacket);
 
     try {
-      if (this.connected && this.redis) {
-        await this.redis.set(key, value);
-        await this.redis.expire(key, 60); // Expire after 1 minute
-      } else {
-        // In-memory fallback
-        this.inMemoryFallback.set(key, value);
-      }
+      // Always use in-memory cache
+      this.inMemoryCache.set(key, value);
     } catch (error) {
-      console.error('[Redis] Error storing latest reading:', error.message);
+      console.error('[Cache] Error storing latest reading:', error.message);
     }
   }
 
@@ -194,16 +125,11 @@ class RedisCache {
     const key = `patient:${userId}:latest`;
 
     try {
-      if (this.connected && this.redis) {
-        const data = await this.redis.get(key);
-        return data ? JSON.parse(data) : null;
-      } else {
-        // In-memory fallback
-        const data = this.inMemoryFallback.get(key);
-        return data ? JSON.parse(data) : null;
-      }
+      // Always use in-memory cache
+      const data = this.inMemoryCache.get(key);
+      return data ? JSON.parse(data) : null;
     } catch (error) {
-      console.error('[Redis] Error getting latest reading:', error.message);
+      console.error('[Cache] Error getting latest reading:', error.message);
       return null;
     }
   }
@@ -216,26 +142,17 @@ class RedisCache {
       const recentKey = `patient:${userId}:recent`;
       const bufferKey = `patient:${userId}:aggregate_buffer`;
 
-      if (this.connected && this.redis) {
-        const recentCount = await this.redis.llen(recentKey);
-        const bufferCount = await this.redis.llen(bufferKey);
-        return {
-          connected: true,
-          recentDataPoints: recentCount,
-          bufferDataPoints: bufferCount,
-        };
-      } else {
-        const recentCount = (this.inMemoryFallback.get(recentKey) || []).length;
-        const bufferCount = (this.inMemoryFallback.get(bufferKey) || []).length;
-        return {
-          connected: false,
-          mode: 'in-memory',
-          recentDataPoints: recentCount,
-          bufferDataPoints: bufferCount,
-        };
-      }
+      const recentCount = (this.inMemoryCache.get(recentKey) || []).length;
+      const bufferCount = (this.inMemoryCache.get(bufferKey) || []).length;
+      return {
+        connected: false,
+        mode: 'in-memory (optimized for hackathon)',
+        recentDataPoints: recentCount,
+        bufferDataPoints: bufferCount,
+        totalKeys: this.inMemoryCache.size
+      };
     } catch (error) {
-      console.error('[Redis] Error getting stats:', error.message);
+      console.error('[Cache] Error getting stats:', error.message);
       return { connected: false, error: error.message };
     }
   }
@@ -244,10 +161,8 @@ class RedisCache {
    * Cleanup and close connection
    */
   async close() {
-    if (this.redis && this.connected) {
-      await this.redis.quit();
-      console.log('[Redis] Connection closed');
-    }
+    console.log('[Cache] In-memory cache cleared');
+    this.inMemoryCache.clear();
   }
 }
 

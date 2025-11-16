@@ -1,7 +1,7 @@
 {
   "name": "stancesense-ingestion-service",
-  "version": "2.0.0",
-  "description": "Handles raw WebSocket connections from Arduino devices with Redis caching.",
+  "version": "2.1.0",
+  "description": "Handles raw WebSocket connections from Arduino devices with in-memory caching (no Redis).",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
@@ -10,8 +10,7 @@
   "dependencies": {
     "axios": "^1.6.0",
     "dotenv": "^17.2.3",
-    "ws": "^8.13.0",
-    "ioredis": "^5.3.2"
+    "ws": "^8.13.0"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"
