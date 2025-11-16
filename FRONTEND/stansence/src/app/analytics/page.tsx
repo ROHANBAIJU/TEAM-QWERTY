@@ -367,6 +367,91 @@ export default function Analytics() {
         </div>
       </div>
 
+      {/* AI Clinical Summary - MOVED TO TOP */}
+      <div style={{
+        background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(6, 95, 70, 0.1) 100%)',
+        backdropFilter: 'blur(10px)',
+        borderRadius: '20px',
+        padding: '32px',
+        border: '1px solid rgba(16, 185, 129, 0.2)',
+        boxShadow: '0 8px 32px rgba(16, 185, 129, 0.2)',
+        marginBottom: '24px'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
+          <div style={{
+            width: '40px',
+            height: '40px',
+            borderRadius: '10px',
+            background: 'rgba(16, 185, 129, 0.2)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '20px'
+          }}>
+            🤖
+          </div>
+          <div>
+            <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#10b981', marginBottom: '4px' }}>
+              AI Clinical Summary
+            </h3>
+            <p style={{ fontSize: '12px', color: '#94a3b8' }}>
+              Powered by StanceSense AI Engine
+            </p>
+          </div>
+        </div>
+
+        <div style={{ fontSize: '15px', color: '#cbd5e1', lineHeight: '1.8', marginBottom: '20px' }}>
+          Patient is currently in <strong style={{ color: progressionStage.color }}>{progressionStage.label.toLowerCase()} stage</strong> with an overall symptom severity of <strong style={{ color: '#10b981' }}>{overallScore}%</strong>. 
+          {symptomData.tremor > 60 && ' Tremor levels are elevated, indicating increased involuntary movement patterns.'}
+          {symptomData.rigidity > 60 && ' Significant muscle rigidity detected, suggesting enhanced muscle tone resistance.'}
+          {symptomData.slowness > 60 && ' Bradykinesia assessment shows notable movement slowness.'}
+          {symptomData.gait > 60 && ' Gait instability is concerning - recommend fall prevention strategies.'}
+          {overallScore < 40 && ' Symptoms are well-controlled. Continue current therapy regimen.'}
+        </div>
+
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+          gap: '16px'
+        }}>
+          <div style={{
+            padding: '16px',
+            background: 'rgba(255, 255, 255, 0.05)',
+            borderRadius: '12px',
+            borderLeft: '4px solid #10b981'
+          }}>
+            <div style={{ fontSize: '12px', color: '#94a3b8', marginBottom: '8px', fontWeight: '600' }}>Dominant Symptom</div>
+            <div style={{ fontSize: '18px', fontWeight: '700', color: '#ffffff' }}>
+              {Object.entries(symptomData).reduce((a, b) => a[1] > b[1] ? a : b)[0].charAt(0).toUpperCase() + Object.entries(symptomData).reduce((a, b) => a[1] > b[1] ? a : b)[0].slice(1)}
+            </div>
+          </div>
+
+          <div style={{
+            padding: '16px',
+            background: 'rgba(255, 255, 255, 0.05)',
+            borderRadius: '12px',
+            borderLeft: '4px solid #3b82f6'
+          }}>
+            <div style={{ fontSize: '12px', color: '#94a3b8', marginBottom: '8px', fontWeight: '600' }}>Fall Risk Level</div>
+            <div style={{ fontSize: '18px', fontWeight: '700', color: getSeverityColor(symptomData.gait) }}>
+              {symptomData.gait < 30 ? 'Low' : symptomData.gait < 60 ? 'Moderate' : 'High'}
+            </div>
+          </div>
+
+          <div style={{
+            padding: '16px',
+            background: 'rgba(255, 255, 255, 0.05)',
+            borderRadius: '12px',
+            borderLeft: '4px solid #8b5cf6'
+          }}>
+            <div style={{ fontSize: '12px', color: '#94a3b8', marginBottom: '8px', fontWeight: '600' }}>Last Update</div>
+            <div style={{ fontSize: '18px', fontWeight: '700', color: '#ffffff' }}>
+              {lastUpdateTime ? new Date(lastUpdateTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : '--:--'}
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Live Real-time Sensor Cards Grid */}
       {latestData && (
         <div style={{
@@ -524,95 +609,105 @@ export default function Analytics() {
         </div>
       )}
 
-      {/* Live Chart Section */}
+      {/* Side by Side: Live Chart + Overall Score */}
       <div style={{
-        background: 'rgba(255, 255, 255, 0.05)',
-        backdropFilter: 'blur(10px)',
-        borderRadius: '20px',
-        padding: '32px',
-        border: '1px solid rgba(255, 255, 255, 0.1)',
-        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(450px, 1fr))',
+        gap: '24px',
         marginBottom: '24px'
       }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-          <h2 style={{ fontSize: '20px', fontWeight: '700', color: '#ffffff' }}>
-            Live Symptom Monitoring
-          </h2>
-          <div style={{
-            padding: '6px 12px',
-            background: 'rgba(239, 68, 68, 0.15)',
-            borderRadius: '8px',
-            fontSize: '12px',
-            fontWeight: '700',
-            color: '#ef4444',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px'
-          }}>
+        {/* Live Chart Section - SMALLER */}
+        <div style={{
+          background: 'rgba(255, 255, 255, 0.05)',
+          backdropFilter: 'blur(10px)',
+          borderRadius: '20px',
+          padding: '24px',
+          border: '1px solid rgba(255, 255, 255, 0.1)',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+            <h2 style={{ fontSize: '18px', fontWeight: '700', color: '#ffffff' }}>
+              Live Symptom Monitoring
+            </h2>
             <div style={{
-              width: '6px',
-              height: '6px',
-              borderRadius: '50%',
-              background: '#ef4444',
-              animation: 'pulse 1.5s infinite'
-            }} />
-            LIVE
+              padding: '6px 12px',
+              background: 'rgba(239, 68, 68, 0.15)',
+              borderRadius: '8px',
+              fontSize: '11px',
+              fontWeight: '700',
+              color: '#ef4444',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}>
+              <div style={{
+                width: '6px',
+                height: '6px',
+                borderRadius: '50%',
+                background: '#ef4444',
+                animation: 'pulse 1.5s infinite'
+              }} />
+              LIVE
+            </div>
+          </div>
+          <div style={{ height: '300px', position: 'relative' }}>
+            <canvas id="liveChart"></canvas>
+          </div>
+          <div style={{ marginTop: '12px', fontSize: '11px', color: '#94a3b8', textAlign: 'center' }}>
+            Last 20 data points • Updates every 3s
           </div>
         </div>
-        <div style={{ height: '400px', position: 'relative' }}>
-          <canvas id="liveChart"></canvas>
-        </div>
-        <div style={{ marginTop: '16px', fontSize: '12px', color: '#94a3b8', textAlign: 'center' }}>
-          Displaying last 20 data points • Updates every 3 seconds
-        </div>
-      </div>
 
-      {/* Overall Score Card */}
-      <div style={{
-        background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(59, 130, 246, 0.1) 100%)',
-        backdropFilter: 'blur(10px)',
-        borderRadius: '24px',
-        padding: '40px',
-        border: '1px solid rgba(139, 92, 246, 0.2)',
-        boxShadow: '0 8px 32px rgba(139, 92, 246, 0.2)',
-        marginBottom: '32px',
-        textAlign: 'center'
-      }}>
-        <div style={{ fontSize: '14px', color: '#94a3b8', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '16px' }}>
-          Overall Symptom Severity
-        </div>
+        {/* Overall Score Card - SAME SIZE */}
         <div style={{
-          fontSize: 'clamp(64px, 10vw, 96px)',
-          fontWeight: '900',
-          background: `linear-gradient(135deg, ${progressionStage.color} 0%, ${progressionStage.color}dd 100%)`,
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent',
-          marginBottom: '16px'
+          background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(59, 130, 246, 0.1) 100%)',
+          backdropFilter: 'blur(10px)',
+          borderRadius: '20px',
+          padding: '24px',
+          border: '1px solid rgba(139, 92, 246, 0.2)',
+          boxShadow: '0 8px 32px rgba(139, 92, 246, 0.2)',
+          textAlign: 'center',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center'
         }}>
-          {overallScore}%
-        </div>
-        <div style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: '12px',
-          padding: '12px 24px',
-          background: `${progressionStage.color}20`,
-          borderRadius: '16px',
-          border: `2px solid ${progressionStage.color}40`
-        }}>
+          <div style={{ fontSize: '13px', color: '#94a3b8', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '16px' }}>
+            Overall Symptom Severity
+          </div>
           <div style={{
-            width: '12px',
-            height: '12px',
-            borderRadius: '50%',
-            background: progressionStage.color,
-            animation: 'pulse 1.5s infinite'
-          }} />
-          <span style={{ fontSize: '16px', fontWeight: '700', color: progressionStage.color }}>
-            {progressionStage.label} Stage
-          </span>
-        </div>
-        <div style={{ marginTop: '20px', fontSize: '13px', color: '#94a3b8' }}>
-          Based on UPDRS-III clinical assessment
+            fontSize: 'clamp(56px, 8vw, 80px)',
+            fontWeight: '900',
+            background: `linear-gradient(135deg, ${progressionStage.color} 0%, ${progressionStage.color}dd 100%)`,
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            marginBottom: '16px'
+          }}>
+            {overallScore}%
+          </div>
+          <div style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '12px',
+            padding: '12px 24px',
+            background: `${progressionStage.color}20`,
+            borderRadius: '16px',
+            border: `2px solid ${progressionStage.color}40`,
+            margin: '0 auto'
+          }}>
+            <div style={{
+              width: '12px',
+              height: '12px',
+              borderRadius: '50%',
+              background: progressionStage.color,
+              animation: 'pulse 1.5s infinite'
+            }} />
+            <span style={{ fontSize: '16px', fontWeight: '700', color: progressionStage.color }}>
+              {progressionStage.label} Stage
+            </span>
+          </div>
+          <div style={{ marginTop: '20px', fontSize: '12px', color: '#94a3b8' }}>
+            Based on UPDRS-III clinical assessment
+          </div>
         </div>
       </div>
 
@@ -877,90 +972,6 @@ export default function Analytics() {
 
           <div style={{ fontSize: '13px', color: '#94a3b8', lineHeight: '1.6' }}>
             Walking stability, balance, and fall risk evaluation
-          </div>
-        </div>
-      </div>
-
-      {/* AI Summary Card */}
-      <div style={{
-        background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(6, 95, 70, 0.1) 100%)',
-        backdropFilter: 'blur(10px)',
-        borderRadius: '20px',
-        padding: '32px',
-        border: '1px solid rgba(16, 185, 129, 0.2)',
-        boxShadow: '0 8px 32px rgba(16, 185, 129, 0.2)'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
-          <div style={{
-            width: '40px',
-            height: '40px',
-            borderRadius: '10px',
-            background: 'rgba(16, 185, 129, 0.2)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '20px'
-          }}>
-            🤖
-          </div>
-          <div>
-            <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#10b981', marginBottom: '4px' }}>
-              AI Clinical Summary
-            </h3>
-            <p style={{ fontSize: '12px', color: '#94a3b8' }}>
-              Powered by StanceSense AI Engine
-            </p>
-          </div>
-        </div>
-
-        <div style={{ fontSize: '15px', color: '#cbd5e1', lineHeight: '1.8', marginBottom: '20px' }}>
-          Patient is currently in <strong style={{ color: progressionStage.color }}>{progressionStage.label.toLowerCase()} stage</strong> with an overall symptom severity of <strong style={{ color: '#10b981' }}>{overallScore}%</strong>. 
-          {symptomData.tremor > 60 && ' Tremor levels are elevated, indicating increased involuntary movement patterns.'}
-          {symptomData.rigidity > 60 && ' Significant muscle rigidity detected, suggesting enhanced muscle tone resistance.'}
-          {symptomData.slowness > 60 && ' Bradykinesia assessment shows notable movement slowness.'}
-          {symptomData.gait > 60 && ' Gait instability is concerning - recommend fall prevention strategies.'}
-          {overallScore < 40 && ' Symptoms are well-controlled. Continue current therapy regimen.'}
-        </div>
-
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-          gap: '16px'
-        }}>
-          <div style={{
-            padding: '16px',
-            background: 'rgba(255, 255, 255, 0.05)',
-            borderRadius: '12px',
-            borderLeft: '4px solid #10b981'
-          }}>
-            <div style={{ fontSize: '12px', color: '#94a3b8', marginBottom: '8px', fontWeight: '600' }}>Dominant Symptom</div>
-            <div style={{ fontSize: '18px', fontWeight: '700', color: '#ffffff' }}>
-              {Object.entries(symptomData).reduce((a, b) => a[1] > b[1] ? a : b)[0].charAt(0).toUpperCase() + Object.entries(symptomData).reduce((a, b) => a[1] > b[1] ? a : b)[0].slice(1)}
-            </div>
-          </div>
-
-          <div style={{
-            padding: '16px',
-            background: 'rgba(255, 255, 255, 0.05)',
-            borderRadius: '12px',
-            borderLeft: '4px solid #3b82f6'
-          }}>
-            <div style={{ fontSize: '12px', color: '#94a3b8', marginBottom: '8px', fontWeight: '600' }}>Fall Risk Level</div>
-            <div style={{ fontSize: '18px', fontWeight: '700', color: getSeverityColor(symptomData.gait) }}>
-              {symptomData.gait < 30 ? 'Low' : symptomData.gait < 60 ? 'Moderate' : 'High'}
-            </div>
-          </div>
-
-          <div style={{
-            padding: '16px',
-            background: 'rgba(255, 255, 255, 0.05)',
-            borderRadius: '12px',
-            borderLeft: '4px solid #8b5cf6'
-          }}>
-            <div style={{ fontSize: '12px', color: '#94a3b8', marginBottom: '8px', fontWeight: '600' }}>Last Update</div>
-            <div style={{ fontSize: '18px', fontWeight: '700', color: '#ffffff' }}>
-              {lastUpdateTime ? new Date(lastUpdateTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : '--:--'}
-            </div>
           </div>
         </div>
       </div>
