@@ -178,9 +178,9 @@ export default function Dashboard() {
 
     setChartData(prev => {
       const newLabels = [...prev.labels, timeLabel].slice(-20);
-      const newTremor = [...prev.tremor, latestData.scores.tremor * 100].slice(-20);
-      const newRigidity = [...prev.rigidity, latestData.scores.rigidity * 100].slice(-20);
-      const newGait = [...prev.gait, latestData.scores.gait * 100].slice(-20);
+      const newTremor = [...prev.tremor, (latestData.scores?.tremor || 0) * 100].slice(-20);
+      const newRigidity = [...prev.rigidity, (latestData.scores?.rigidity || 0) * 100].slice(-20);
+      const newGait = [...prev.gait, (latestData.scores?.gait || 0) * 100].slice(-20);
 
       chartInstance.data.labels = newLabels;
       chartInstance.data.datasets[0].data = newTremor;
