@@ -55,7 +55,14 @@ interface UseWebSocketReturn {
   reconnect: () => void;
 }
 
-export function useWebSocket(url: string = 'ws://localhost:8000/ws/frontend-data'): UseWebSocketReturn {
+export function useWebSocket(url?: string): UseWebSocketReturn {
+  // Use environment variable or fallback to localhost for development
+  const defaultUrl = process.env.NEXT_PUBLIC_WEBSOCKET_URL 
+    ? `${process.env.NEXT_PUBLIC_WEBSOCKET_URL}/ws/frontend-data`
+    : 'ws://localhost:8080/ws/frontend-data';
+  
+  const wsUrl = url || defaultUrl;
+  
   const [latestData, setLatestData] = useState<ProcessedData | null>(null);
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [isConnected, setIsConnected] = useState(false);
@@ -78,7 +85,7 @@ export function useWebSocket(url: string = 'ws://localhost:8000/ws/frontend-data
       setConnectionStatus('connecting');
       
       try {
-        const ws = new WebSocket(url);
+        const ws = new WebSocket(wsUrl);
         
         ws.onopen = () => {
           console.log('WebSocket connected to backend');
@@ -155,7 +162,7 @@ export function useWebSocket(url: string = 'ws://localhost:8000/ws/frontend-data
         wsRef.current.close();
       }
     };
-  }, [url]);
+  }, [wsUrl]);
 
   const reconnect = useCallback(() => {
     if (wsRef.current) {
