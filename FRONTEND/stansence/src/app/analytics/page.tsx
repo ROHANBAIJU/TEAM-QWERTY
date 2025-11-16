@@ -5,6 +5,7 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSensorData } from '@/contexts/SensorDataContext';
 import { logMedication } from '@/services/medicationService';
+import jsPDF from 'jspdf';
 
 interface SymptomData {
   tremor: number;
@@ -256,6 +257,324 @@ export default function Analytics() {
     setShowMedicationModal(true);
   };
 
+  const generatePDFReport = () => {
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const leftMargin = 20;
+    const rightMargin = pageWidth - 20;
+    const contentWidth = rightMargin - leftMargin;
+    let yPos = 20;
+
+    // ========== PROFESSIONAL HEADER ==========
+    // Dark header bar
+    doc.setFillColor(30, 41, 59);
+    doc.rect(0, 0, pageWidth, 45, 'F');
+    
+    // Title with subtle line
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(26);
+    doc.setFont('helvetica', 'bold');
+    doc.text('STANCESENSE', pageWidth / 2, 20, { align: 'center' });
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Clinical Monitoring Report', pageWidth / 2, 30, { align: 'center' });
+    
+    // Subtle accent line
+    doc.setDrawColor(100, 116, 139);
+    doc.setLineWidth(0.5);
+    doc.line(pageWidth / 2 - 40, 35, pageWidth / 2 + 40, 35);
+    
+    yPos = 55;
+
+    // ========== PATIENT INFORMATION SECTION ==========
+    doc.setFillColor(248, 250, 252);
+    doc.rect(leftMargin, yPos, contentWidth, 30, 'F');
+    doc.setDrawColor(203, 213, 225);
+    doc.setLineWidth(0.3);
+    doc.rect(leftMargin, yPos, contentWidth, 30, 'S');
+    
+    yPos += 10;
+    doc.setTextColor(30, 41, 59);
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.text('PATIENT INFORMATION', leftMargin + 5, yPos);
+    
+    yPos += 8;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.text(`Patient ID: ${user?.email || 'Anonymous'}`, leftMargin + 5, yPos);
+    yPos += 6;
+    doc.text(`Report Date: ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}`, leftMargin + 5, yPos);
+    yPos += 6;
+    doc.text(`Generated: ${new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`, leftMargin + 5, yPos);
+    
+    yPos += 18;
+
+    // ========== EXECUTIVE SUMMARY ==========
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(30, 41, 59);
+    doc.text('EXECUTIVE SUMMARY', leftMargin, yPos);
+    
+    // Underline
+    doc.setDrawColor(59, 130, 246);
+    doc.setLineWidth(1);
+    doc.line(leftMargin, yPos + 2, leftMargin + 60, yPos + 2);
+    yPos += 12;
+
+    const overallScore = Math.round(
+      (symptomData.tremor + symptomData.rigidity + symptomData.slowness + symptomData.gait) / 4
+    );
+
+    const getProgressionStage = (score: number) => {
+      if (score < 25) return { label: 'MILD', color: [16, 185, 129], desc: 'Symptoms are minimal and well-controlled' };
+      if (score < 50) return { label: 'MODERATE', color: [245, 158, 11], desc: 'Noticeable symptoms requiring monitoring' };
+      if (score < 75) return { label: 'SIGNIFICANT', color: [249, 115, 22], desc: 'Substantial symptoms affecting daily activities' };
+      return { label: 'SEVERE', color: [239, 68, 68], desc: 'Advanced symptoms requiring immediate attention' };
+    };
+
+    const stage = getProgressionStage(overallScore);
+    
+    // Overall severity box
+    doc.setFillColor(stage.color[0], stage.color[1], stage.color[2], 0.1);
+    doc.rect(leftMargin, yPos - 5, contentWidth, 25, 'F');
+    doc.setDrawColor(stage.color[0], stage.color[1], stage.color[2]);
+    doc.setLineWidth(0.5);
+    doc.rect(leftMargin, yPos - 5, contentWidth, 25, 'S');
+    
+    doc.setFontSize(24);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(stage.color[0], stage.color[1], stage.color[2]);
+    doc.text(`${overallScore}%`, leftMargin + 10, yPos + 8);
+    
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text(stage.label, leftMargin + 40, yPos + 4);
+    
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(50, 50, 50);
+    doc.text(stage.desc, leftMargin + 40, yPos + 12);
+    
+    yPos += 35;
+
+    // ========== SYMPTOM ANALYSIS WITH PROFESSIONAL GRAPHS ==========
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(30, 41, 59);
+    doc.text('SYMPTOM ANALYSIS', leftMargin, yPos);
+    doc.setDrawColor(59, 130, 246);
+    doc.setLineWidth(1);
+    doc.line(leftMargin, yPos + 2, leftMargin + 50, yPos + 2);
+    yPos += 15;
+
+    const symptoms = [
+      { name: 'Tremor', score: symptomData.tremor, color: [71, 85, 105], abbr: 'TRM' },
+      { name: 'Rigidity', score: symptomData.rigidity, color: [71, 85, 105], abbr: 'RGD' },
+      { name: 'Slowness', score: symptomData.slowness, color: [71, 85, 105], abbr: 'SLW' },
+      { name: 'Gait Issues', score: symptomData.gait, color: [71, 85, 105], abbr: 'GAT' }
+    ];
+
+    // Professional bar chart
+    const chartHeight = 60;
+    const barWidth = 25;
+    const spacing = (contentWidth - (barWidth * 4)) / 5;
+    
+    // Draw chart background
+    doc.setFillColor(248, 250, 252);
+    doc.rect(leftMargin, yPos, contentWidth, chartHeight + 15, 'F');
+    doc.setDrawColor(226, 232, 240);
+    doc.setLineWidth(0.3);
+    doc.rect(leftMargin, yPos, contentWidth, chartHeight + 15, 'S');
+    
+    // Y-axis reference lines
+    doc.setDrawColor(226, 232, 240);
+    doc.setLineWidth(0.2);
+    [25, 50, 75].forEach(val => {
+      const lineY = yPos + chartHeight - (chartHeight * val / 100);
+      doc.line(leftMargin + 5, lineY, rightMargin - 5, lineY);
+      doc.setFontSize(7);
+      doc.setTextColor(148, 163, 184);
+      doc.text(`${val}%`, leftMargin + 2, lineY + 1);
+    });
+    
+    yPos += 5;
+    
+    symptoms.forEach((symptom, idx) => {
+      const xPos = leftMargin + spacing + (idx * (barWidth + spacing));
+      const barHeight = (chartHeight - 10) * (symptom.score / 100);
+      
+      // Bar shadow
+      doc.setFillColor(203, 213, 225);
+      doc.rect(xPos + 1, yPos + (chartHeight - 10) - barHeight + 1, barWidth, barHeight, 'F');
+      
+      // Main bar with gradient effect
+      doc.setFillColor(symptom.color[0], symptom.color[1], symptom.color[2]);
+      doc.rect(xPos, yPos + (chartHeight - 10) - barHeight, barWidth, barHeight, 'F');
+      
+      // Bar outline
+      doc.setDrawColor(51, 65, 85);
+      doc.setLineWidth(0.5);
+      doc.rect(xPos, yPos + (chartHeight - 10) - barHeight, barWidth, barHeight, 'S');
+      
+      // Value on top
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(30, 41, 59);
+      doc.text(`${symptom.score}%`, xPos + barWidth / 2, yPos + (chartHeight - 10) - barHeight - 3, { align: 'center' });
+      
+      // Label below
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'normal');
+      doc.text(symptom.abbr, xPos + barWidth / 2, yPos + chartHeight + 5, { align: 'center' });
+    });
+    
+    yPos += chartHeight + 20;
+
+    // Detailed symptom table
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(30, 41, 59);
+    doc.text('Detailed Metrics', leftMargin, yPos);
+    yPos += 8;
+    
+    // Table header
+    doc.setFillColor(241, 245, 249);
+    doc.rect(leftMargin, yPos - 5, contentWidth, 8, 'F');
+    doc.setDrawColor(203, 213, 225);
+    doc.rect(leftMargin, yPos - 5, contentWidth, 8, 'S');
+    
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(71, 85, 105);
+    doc.text('SYMPTOM', leftMargin + 3, yPos);
+    doc.text('SCORE', leftMargin + 60, yPos);
+    doc.text('STATUS', leftMargin + 90, yPos);
+    doc.text('TREND', leftMargin + 130, yPos);
+    
+    yPos += 8;
+    
+    // Table rows
+    symptoms.forEach((symptom, idx) => {
+      const rowY = yPos + (idx * 10);
+      
+      // Alternating row colors
+      if (idx % 2 === 0) {
+        doc.setFillColor(250, 250, 250);
+        doc.rect(leftMargin, rowY - 5, contentWidth, 10, 'F');
+      }
+      
+      doc.setDrawColor(226, 232, 240);
+      doc.setLineWidth(0.2);
+      doc.line(leftMargin, rowY + 5, rightMargin, rowY + 5);
+      
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(30, 41, 59);
+      doc.text(symptom.name, leftMargin + 3, rowY + 2);
+      
+      doc.setFont('helvetica', 'bold');
+      doc.text(`${symptom.score}%`, leftMargin + 60, rowY + 2);
+      
+      doc.setFont('helvetica', 'normal');
+      const status = symptom.score < 40 ? 'Good' : symptom.score < 70 ? 'Monitor' : 'Alert';
+      doc.setTextColor(symptom.score < 40 ? 16 : symptom.score < 70 ? 245 : 239, 
+                       symptom.score < 40 ? 185 : symptom.score < 70 ? 158 : 68, 
+                       symptom.score < 40 ? 129 : symptom.score < 70 ? 11 : 68);
+      doc.text(status, leftMargin + 90, rowY + 2);
+      
+      doc.setTextColor(100, 116, 139);
+      doc.text('→ Stable', leftMargin + 130, rowY + 2);
+    });
+    
+    yPos += 50;
+
+    // Care Recommendations
+    if (latestData?.care_recommendations && latestData.care_recommendations.length > 0) {
+      doc.setFontSize(16);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(59, 130, 246);
+      doc.text('Personalized Care Recommendations', 20, yPos);
+      yPos += 10;
+
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(50, 50, 50);
+
+      latestData.care_recommendations.forEach((rec: string, idx: number) => {
+        const lines = doc.splitTextToSize(`${idx + 1}. ${rec}`, pageWidth - 50);
+        if (yPos + (lines.length * 6) > pageHeight - 20) {
+          doc.addPage();
+          yPos = 20;
+        }
+        doc.text(lines, 25, yPos);
+        yPos += lines.length * 6 + 3;
+      });
+      yPos += 10;
+    }
+
+    // Game Recommendation
+    if (latestData?.recommended_game) {
+      if (yPos > pageHeight - 40) {
+        doc.addPage();
+        yPos = 20;
+      }
+      doc.setFontSize(16);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(59, 130, 246);
+      doc.text('Recommended Therapy Game', 20, yPos);
+      yPos += 10;
+
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(139, 92, 246);
+      doc.text(latestData.recommended_game.name, 25, yPos);
+      yPos += 8;
+
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(50, 50, 50);
+      const reasonLines = doc.splitTextToSize(latestData.recommended_game.reason, pageWidth - 50);
+      doc.text(reasonLines, 25, yPos);
+      yPos += reasonLines.length * 5 + 5;
+
+      doc.setFont('helvetica', 'italic');
+      doc.setTextColor(100, 100, 100);
+      doc.text(`Target: ${latestData.recommended_game.target_symptom}`, 25, yPos);
+      yPos += 10;
+    }
+
+    // AI Analysis
+    if (ragAnalysis) {
+      if (yPos > pageHeight - 40) {
+        doc.addPage();
+        yPos = 20;
+      }
+      doc.setFontSize(16);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(59, 130, 246);
+      doc.text('AI Clinical Analysis', 20, yPos);
+      yPos += 10;
+
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(50, 50, 50);
+      const analysisLines = doc.splitTextToSize(ragAnalysis, pageWidth - 40);
+      doc.text(analysisLines, 20, yPos);
+    }
+
+    // Footer
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'italic');
+    doc.setTextColor(150, 150, 150);
+    doc.text('Generated by StanceSense - AI-Powered Parkinson\'s Monitoring System', pageWidth / 2, pageHeight - 10, { align: 'center' });
+
+    // Save PDF
+    const fileName = `StanceSense_Report_${new Date().toISOString().split('T')[0]}_${Date.now()}.pdf`;
+    doc.save(fileName);
+  };
+
   const handleSubmitMedication = async () => {
     if (!medicationForm.medication_name || !medicationForm.dosage) {
       alert('Please fill in medication name and dosage');
@@ -406,6 +725,36 @@ export default function Analytics() {
             }}
           >
             💊 Log Medication
+          </button>
+
+          {/* Download Report Button */}
+          <button
+            onClick={generatePDFReport}
+            style={{
+              padding: '12px 24px',
+              background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+              color: '#ffffff',
+              border: 'none',
+              borderRadius: '12px',
+              fontSize: '14px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)',
+              transition: 'all 0.2s ease',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-2px)';
+              e.currentTarget.style.boxShadow = '0 6px 20px rgba(16, 185, 129, 0.4)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.3)';
+            }}
+          >
+            📄 Download Report
           </button>
         </div>
       </div>
