@@ -1,98 +1,252 @@
-# 🏥 StanceSense - Parkinson's Disease Monitoring Dashboard
+# 🏥 StanceSense - AI-Powered Parkinson's Disease Monitoring System
 
-**Version 2.0.0 - Accessibility Overhaul**
+**Real-time Symptom Monitoring & Clinical Insights Platform**
 
-> A comprehensive, accessible web dashboard designed specifically for Parkinson's disease patients to monitor symptoms, track medications, and maintain independence with confidence.
+> A comprehensive IoT-enabled web platform with AI-powered analysis for Parkinson's disease patients, caregivers, and healthcare providers featuring real-time tremor detection, rigidity monitoring, gait analysis, and personalized therapy recommendations.
 
-[![WCAG AAA](https://img.shields.io/badge/WCAG-AAA-green)](https://www.w3.org/WAI/WCAG21/quickref/)
-[![Contrast Ratio](https://img.shields.io/badge/Contrast-7%3A1%20to%2021%3A1-blue)](https://webaim.org/resources/contrastchecker/)
-[![Touch Targets](https://img.shields.io/badge/Touch%20Targets-60px%2B-orange)](https://www.w3.org/WAI/WCAG21/Understanding/target-size.html)
+[![Next.js](https://img.shields.io/badge/Next.js-15.0.0-black)](https://nextjs.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-Latest-009688)](https://fastapi.tiangolo.com/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)](https://www.typescriptlang.org/)
+[![Python](https://img.shields.io/badge/Python-3.11-yellow)](https://www.python.org/)
+[![WebSocket](https://img.shields.io/badge/WebSocket-Real--time-green)](https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API)
+
+---
+
+## 📸 System Overview
+
+### 🎨 User Interface
+
+<div align="center">
+
+#### Analytics Dashboard
+![Analytics Dashboard](docs/images/analytics-dashboard.png)
+*Real-time symptom monitoring with live charts, AI clinical summaries, and personalized care recommendations*
+
+#### Sensor Data Visualization
+![Sensor Cards](docs/images/sensor-cards.png)
+*Tremor, Rigidity, and Gait Stability tracking with severity indicators and status detection*
+
+#### Game Therapy Interface
+![Games Interface](docs/images/games-interface.png)
+*Interactive rehabilitation games for motor skill improvement and therapy engagement*
+
+#### Rewards System
+![Rewards System](docs/images/rewards-system.png)
+*Gamification system to encourage patient engagement and adherence to therapy routines*
+
+</div>
+
+### 🔧 Hardware Components
+
+<div align="center">
+
+#### Wearable Sensor Unit
+![Hardware Setup](docs/images/hardware-sensor.png)
+*ESP32-based wearable device with MPU6050 accelerometer and EMG sensors*
+
+#### EMG Sensor Integration
+![EMG Sensors](docs/images/emg-sensors.png)
+*Muscle activity monitoring for rigidity detection on wrist and arm*
+
+#### Complete System Architecture
+![System Architecture](docs/images/system-architecture.png)
+*End-to-end data flow from hardware sensors through Node.js ingestion to FastAPI AI processing*
+
+</div>
+
+### 🎬 Live Demonstrations
+
+<div align="center">
+
+#### Real-Time Data Flow
+![Live Demo](docs/images/live-demo.gif)
+*WebSocket-based real-time sensor data streaming to frontend with sub-second latency*
+
+#### AI Analysis in Action
+![AI Processing](docs/images/ai-analysis.gif)
+*Machine learning models processing sensor data and generating clinical insights*
+
+#### Game Therapy Session
+![Game Demo](docs/images/game-therapy.gif)
+*Patient engaging with EMG-controlled strength dial game for rehabilitation*
+
+</div>
 
 ---
 
 ## 🎯 Project Overview
 
-**TEAM-QWERTY** developed this solution for the **Anveshan IEEE Hackathon** to address the critical need for accessible health technology for Parkinson's patients.
+**TEAM-QWERTY** developed this solution for the **IEEE Anveshan Hackathon** to revolutionize remote Parkinson's disease monitoring through IoT, AI, and real-time analytics.
 
 ### The Challenge
-Parkinson's disease affects millions globally, causing tremors, rigidity, and cognitive challenges. Existing health monitoring tools often have small buttons, low contrast, and complex interfaces that are difficult for Parkinson's patients to use independently.
+Parkinson's disease affects over 10 million people globally, requiring continuous symptom monitoring and frequent clinical assessments. Traditional methods rely on periodic in-person visits, making it difficult to track symptom progression and adjust treatments in real-time.
 
 ### Our Solution
-A **fully accessible dashboard** that exceeds WCAG AAA standards, featuring:
-- ✅ High-contrast dual themes (dark/light mode)
-- ✅ Large touch targets (60px+ buttons)
-- ✅ Thicker graph lines (6px) for visibility
-- ✅ Keyboard shortcuts for all actions
-- ✅ Voice input for hands-free logging
-- ✅ Plain language, not medical jargon
-- ✅ Real-time symptom tracking with visual summaries
+A **complete IoT-AI platform** featuring:
+- ✅ **Real-time Sensor Monitoring**: ESP32-based wearable with accelerometer & EMG sensors
+- ✅ **AI-Powered Analysis**: Machine learning models for tremor, rigidity, and gait assessment
+- ✅ **WebSocket Streaming**: Sub-second latency data transmission to web dashboard
+- ✅ **Clinical RAG System**: Contextual alerts with personalized care recommendations
+- ✅ **Game Therapy**: Interactive rehabilitation exercises with biofeedback
+- ✅ **Rewards System**: Gamification to boost patient engagement and adherence
+- ✅ **Modern UI**: Beautiful, responsive interface built with Next.js and TypeScript
+
+---
+
+## 🏗️ System Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        HARDWARE LAYER                           │
+│  ESP32 + MPU6050 (Accelerometer) + EMG Sensors (Wrist/Arm)    │
+│  📡 WiFi Transmission → JSON Packets every 500ms               │
+└────────────────────┬────────────────────────────────────────────┘
+                     │
+                     ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                     INGESTION LAYER                             │
+│  Node.js Service (Port 8080) - Data Validation & Forwarding    │
+│  • Receives hardware JSON packets                               │
+│  • Validates sensor data format                                 │
+│  • Forwards to FastAPI for AI processing                        │
+└────────────────────┬────────────────────────────────────────────┘
+                     │
+                     ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                    AI PROCESSING LAYER                          │
+│  FastAPI + Python (Port 8000) - Core Intelligence Engine       │
+│  • ML Models: Tremor, Rigidity, Gait, PADS, sEMG               │
+│  • RAG System: Contextual alerts & care recommendations         │
+│  • Game Recommendations: Personalized therapy suggestions       │
+│  • WebSocket Broadcasting: Real-time frontend updates           │
+└────────────────────┬────────────────────────────────────────────┘
+                     │
+                     ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                     PRESENTATION LAYER                          │
+│  Next.js + TypeScript (Port 3000) - User Interface             │
+│  • Analytics Dashboard: Live symptom monitoring                 │
+│  • Chart.js Visualizations: 20-point rolling charts            │
+│  • Care Recommendations: Personalized tips display              │
+│  • Game Integration: Therapy game launcher                      │
+│  • Rewards System: Achievement tracking & progress             │
+└─────────────────────────────────────────────────────────────────┘
+```
 
 ---
 
 ## 🚀 Quick Start
 
-### Installation
+### Prerequisites
 ```bash
-# Clone the repository
-git clone https://github.com/ROHANBAIJU/TEAM-QWERTY.git
-cd TEAM-QWERTY
-
-# Install dependencies
-npm install
-
-# Run development server
-npm run dev
+# Required software
+- Node.js 18+ and npm
+- Python 3.11+
+- ESP32 Development Board
+- MPU6050 Accelerometer
+- EMG Sensors (optional but recommended)
 ```
 
-### Usage
-1. Open `index.html` in your browser
-2. Click **LOG DOSE** (Alt+D) to track medication
-3. Click **LOG SYMPTOM** (Alt+S) to record symptoms
-4. Click 🌙 (Alt+T) to toggle light/dark mode
-5. Click 🎤 in notes to use voice input
+### Installation
+
+#### 1. Clone Repository
+```bash
+git clone https://github.com/ROHANBAIJU/TEAM-QWERTY.git
+cd TEAM-QWERTY
+```
+
+#### 2. Frontend Setup (Next.js)
+```bash
+cd FRONTEND/stansence
+npm install
+npm run dev
+# Opens at http://localhost:3000
+```
+
+#### 3. Backend Setup (FastAPI)
+```bash
+cd BACKEND/core_api_service
+python -m venv .venv
+.venv\Scripts\activate  # Windows
+source .venv/bin/activate  # Mac/Linux
+pip install -r requirements.txt
+uvicorn app.main:app --reload --port 8000
+# API at http://localhost:8000
+```
+
+#### 4. Ingestion Service (Node.js)
+```bash
+cd BACKEND/node_ingestion_service
+npm install
+node index.js
+# Listening on http://localhost:8080
+```
+
+#### 5. Hardware Setup (ESP32)
+```bash
+# Flash ESP32 with Arduino IDE
+# Upload code from /EMBEDDED_SYSTEMS/
+# Configure WiFi credentials
+# Connect sensors: MPU6050 (I2C), EMG (Analog pins)
+```
+
+### Quick Test
+```bash
+# Test simulator (no hardware needed)
+cd BACKEND
+python test_interactive.py
+# Choose scenario to simulate sensor data
+```
 
 ---
 
 ## ✨ Key Features
 
-### 🎨 Accessibility First
-- **WCAG AAA Compliant**: Exceeds highest accessibility standards
-- **High Contrast**: 7:1 to 21:1 contrast ratios
-- **Large Text**: 18px base font, 24px+ headings
-- **Thick Lines**: 6px graph lines, 10px data points
-- **Touch Friendly**: All buttons 60px+ (exceeds 44px minimum)
+## ✨ Key Features
 
-### 🌗 Dual Visual Modes
-- **Dark Mode** (default): Deep black background, pure white text
-- **Light Mode**: Off-white background, dark gray text
-- **Instant Toggle**: Click 🌙/☀️ or press Alt+T
-- **Persistent**: Remembers your preference
+### 🤖 AI-Powered Analysis
+- **Machine Learning Models**: Pre-trained models for tremor frequency, rigidity detection, and gait assessment
+- **Real-Time Processing**: Sub-second analysis of incoming sensor data
+- **PADS Dataset Integration**: Parkinson's Activity of Daily Living Smartwatch dataset validation
+- **sEMG Analysis**: Surface electromyography for muscle rigidity quantification
+- **Synthetic RAG System**: Contextual clinical alerts without external API dependencies
 
-### 📊 Enhanced Graph Readability
-- **Thicker Lines**: 6px symptom trends (100% thicker)
-- **Larger Dots**: 10px medication markers
-- **Bigger Labels**: 16px axis text (45% larger)
-- **Text Summaries**: "Your symptoms were stable today"
-- **High Contrast**: Blue (#60a5fa) and yellow (#fbbf24)
+### 📊 Real-Time Dashboard
+- **Live Symptom Monitoring**: Chart.js visualizations with 20-point rolling window
+- **WebSocket Streaming**: Sub-500ms latency from hardware to frontend
+- **Severity Indicators**: Color-coded cards (green/yellow/red) for tremor/rigidity/gait
+- **Connection Status**: Visual indicators for backend connectivity
+- **Responsive Design**: Optimized for desktop, tablet, and mobile devices
 
-### ⌨️ Keyboard Shortcuts
-- **Alt+D**: Log medication dose
-- **Alt+S**: Log symptoms
-- **Alt+T**: Toggle theme
-- **Tab**: Navigate all elements
-- **Enter/Space**: Activate buttons
+### 💡 Personalized Care Recommendations
+- **Smart Recommendations**: AI-generated care tips based on current symptom patterns
+  - Heat therapy suggestions for rigidity
+  - Assistive device reminders for gait instability
+  - Medication timing optimization
+  - Environmental safety recommendations
+- **Game Therapy Suggestions**: Personalized rehabilitation game recommendations
+  - **Tremor Focus**: EMG Strength Dial for muscle control training
+  - **Rigidity Focus**: Range of Motion Challenge for flexibility
+  - **Gait Focus**: Balance Training Game for fall prevention
+  - **General Wellness**: Memory & Coordination exercises
 
-### 🎤 Voice Input
-- **Hands-Free**: Click microphone icon in notes
-- **Real-Time**: See transcription as you speak
-- **Visual Feedback**: Red pulse animation while recording
-- **Error Handling**: Clear permission requests
+### 🎮 Interactive Rehabilitation Games
+- **EMG Strength Dial**: Real-time muscle control feedback using EMG sensors
+- **Biofeedback Training**: Visual representation of muscle activity (Starlord → Thanos levels)
+- **Serial Communication**: Direct Arduino/ESP32 integration via Web Serial API
+- **Progress Tracking**: Achievement system for therapy adherence
 
-### 🧠 Cognitive Simplicity
-- **Plain Language**: "Feeling Good" not "Status: Normal"
-- **Icons Everywhere**: 💊📝✓🎤 for quick recognition
-- **Chart Summaries**: Text explanations of trends
-- **Positive Messaging**: Encouraging, not clinical
+### 🏆 Rewards & Gamification
+- **Points System**: Earn points for consistent therapy engagement
+- **Achievement Badges**: Milestone recognition for progress
+- **Leaderboards**: (Planned) Community motivation and benchmarking
+- **Streak Tracking**: (Planned) Daily engagement monitoring
+
+### 🔒 Privacy & Security
+- **Demo Mode**: Full functionality without requiring authentication
+- **Firebase Integration**: Optional cloud storage for multi-device access
+- **Local First**: All processing happens on-device when possible
+- **No External AI APIs**: Synthetic RAG system ensures data privacy
 
 ---
 
@@ -100,144 +254,278 @@ npm run dev
 
 ```
 TEAM-QWERTY/
-├── index.html                       # Main dashboard HTML
-├── styles.css                       # Accessibility-enhanced CSS
-├── script.ts                        # TypeScript with keyboard shortcuts
-├── tsconfig.json                    # TypeScript configuration
-├── package.json                     # Dependencies and scripts
-├── README.md                        # This file
-├── ACCESSIBILITY_FEATURES.md        # Complete accessibility documentation
-├── DESIGN_ANNOTATIONS.md            # Component-by-component design guide
-├── REDESIGN_SUMMARY.md              # Executive summary of improvements
-├── VISUAL_MOCKUP_ANNOTATIONS.md     # Visual mockup with annotations
-└── IMPORTANT NOTES.txt              # Development notes
+├── FRONTEND/
+│   └── stansence/                   # Next.js + TypeScript frontend
+│       ├── src/
+│       │   ├── app/
+│       │   │   ├── analytics/       # Real-time dashboard
+│       │   │   ├── games/           # Game therapy interface
+│       │   │   └── rewards/         # Rewards system
+│       │   ├── components/          # Reusable UI components
+│       │   ├── contexts/            # React contexts (Auth, SensorData)
+│       │   ├── hooks/               # Custom hooks (useWebSocket)
+│       │   └── services/            # API services
+│       ├── public/                  # Static assets
+│       └── package.json
+│
+├── BACKEND/
+│   ├── core_api_service/            # FastAPI AI processing engine
+│   │   ├── app/
+│   │   │   ├── routes/              # API endpoints
+│   │   │   │   ├── ingest.py        # Data ingestion & AI processing
+│   │   │   │   └── rag_analysis.py  # RAG system endpoints
+│   │   │   ├── services/            # Business logic
+│   │   │   │   ├── ai_processor.py  # ML model inference
+│   │   │   │   ├── rag_agent.py     # Synthetic RAG alerts
+│   │   │   │   └── care_recommendations.py  # Personalized tips
+│   │   │   ├── models/              # Data models (Pydantic)
+│   │   │   └── comms/               # WebSocket manager
+│   │   ├── models/                  # Pre-trained ML models (.joblib)
+│   │   │   ├── acoustic_model.joblib
+│   │   │   ├── pads_model.joblib
+│   │   │   └── rigidity_model_v0.joblib
+│   │   └── requirements.txt
+│   │
+│   ├── node_ingestion_service/      # Node.js data ingestion
+│   │   ├── index.js                 # Main server
+│   │   ├── aggregation-service.js   # Data aggregation
+│   │   └── simulator.js             # Hardware simulator
+│   │
+│   └── test_interactive.py          # Interactive testing tool
+│
+├── EMBEDDED_SYSTEMS/                # ESP32 Arduino code
+│   └── sensor_firmware/             # Hardware firmware
+│
+├── datasets/                        # Training datasets
+│   ├── Parkinsson disease.csv
+│   └── pads-parkinsons-disease-smartwatch-dataset-1.0.0/
+│
+├── games.html                       # Standalone game interface
+├── package.json
+└── README.md                        # This file
 ```
 
 ---
 
-## 📚 Documentation
+## 🧪 Technical Stack
 
-### For Users
-- **[ACCESSIBILITY_FEATURES.md](ACCESSIBILITY_FEATURES.md)** - Complete guide to all accessibility features
-- **[VISUAL_MOCKUP_ANNOTATIONS.md](VISUAL_MOCKUP_ANNOTATIONS.md)** - Visual guide with annotations
+### Frontend
+- **Framework**: Next.js 16.0.0 (React 19, Turbopack)
+- **Language**: TypeScript 5.0
+- **Styling**: Tailwind CSS + Custom CSS
+- **Charts**: Chart.js 4.0
+- **WebSocket**: Native WebSocket API
+- **State Management**: React Context API
 
-### For Developers
-- **[DESIGN_ANNOTATIONS.md](DESIGN_ANNOTATIONS.md)** - Component breakdown and rationale
-- **[REDESIGN_SUMMARY.md](REDESIGN_SUMMARY.md)** - Executive overview of changes
+### Backend
+- **API Framework**: FastAPI (Python 3.11)
+- **ML Libraries**: scikit-learn, joblib, NumPy, pandas
+- **Async**: asyncio, uvicorn
+- **WebSocket**: FastAPI WebSocket support
+- **Data Validation**: Pydantic v2
+
+### Ingestion Layer
+- **Runtime**: Node.js 18+
+- **HTTP Client**: Axios
+- **WebSocket**: ws library
+
+### Hardware
+- **Microcontroller**: ESP32 DevKit
+- **Sensors**: 
+  - MPU6050 (Accelerometer + Gyroscope)
+  - EMG Sensors (Analog, wrist/arm)
+- **Communication**: WiFi (HTTP POST to Node.js)
+
+### Datasets
+- **PADS**: Parkinson's Activity of Daily Living Smartwatch dataset
+- **sEMG**: Surface electromyography for basic hand movements
+- **Acoustic**: Voice tremor analysis (optional)
+
+---
+
+## 📊 Data Flow
+
+### Hardware → Cloud Pipeline
+
+```mermaid
+graph LR
+    A[ESP32 Sensors] -->|WiFi POST| B[Node.js:8080]
+    B -->|HTTP POST| C[FastAPI:8000]
+    C -->|ML Processing| D[AI Models]
+    D -->|WebSocket| E[Frontend:3000]
+    C -->|RAG Analysis| F[Care Tips]
+    C -->|Game Rec| G[Therapy Games]
+    E -->|User Action| H[Games HTML]
+```
+
+### 1. **Sensor Data Capture** (ESP32)
+```json
+{
+  "device_id": "esp32_001",
+  "timestamp": "2025-11-16T14:30:00Z",
+  "tremor": {
+    "frequency_hz": 4.5,
+    "amplitude_g": 0.8,
+    "tremor_detected": true
+  },
+  "rigidity": {
+    "emg_wrist": 45.2,
+    "emg_arm": 38.7,
+    "rigid": false
+  },
+  "safety": {
+    "fall_detected": false,
+    "accel_x_g": 0.1,
+    "accel_y_g": -0.05,
+    "accel_z_g": 0.98
+  }
+}
+```
+
+### 2. **AI Processing** (FastAPI)
+- Tremor score calculation (0-1 scale)
+- Rigidity assessment via EMG thresholds
+- Gait stability from acceleration patterns
+- Overall severity aggregation
+
+### 3. **Frontend Display** (Next.js)
+- Real-time chart updates (Chart.js)
+- Severity color coding (green/yellow/red)
+- Care recommendation cards
+- Game therapy suggestions
 
 ---
 
 ## 🎨 Design System
 
-### Color Palette
-
-#### Dark Mode (Default)
+### Color Palette (Dark Mode)
 ```css
-Background:  #0a0c10  /* Deep black */
-Cards:       #252932  /* Dark slate */
-Text:        #ffffff  /* Pure white */
-Success:     #10b981  /* Green */
-Info:        #60a5fa  /* Blue */
-Warning:     #fbbf24  /* Yellow */
-Danger:      #ef4444  /* Red */
-```
-
-#### Light Mode
-```css
-Background:  #f5f5f0  /* Off-white */
-Cards:       #fafafa  /* Paper white */
-Text:        #1a1a1a  /* Charcoal */
-Success:     #059669  /* Dark green */
-Info:        #2563eb  /* Dark blue */
-Warning:     #d97706  /* Dark amber */
-Danger:      #dc2626  /* Dark red */
+Primary:       #3b82f6  /* Blue for info */
+Success:       #10b981  /* Green for stable */
+Warning:       #f59e0b  /* Amber for moderate */
+Danger:        #ef4444  /* Red for critical */
+Background:    #0f172a  /* Deep navy */
+Cards:         #1e293b  /* Slate */
+Text:          #f1f5f9  /* Off-white */
 ```
 
 ### Typography
-- **Font Family**: Open Sans (screen-optimized)
-- **Base Size**: 18px (exceeds 16px minimum)
-- **Headers**: 24px - 64px
-- **Line Height**: 1.6 (comfortable reading)
-- **Weights**: 600-900 for important text
+- **Font**: Inter (system font with fallback)
+- **Sizes**: 11px - 64px (responsive scaling)
+- **Weights**: 400 (regular), 600 (semibold), 700 (bold), 900 (black)
 
-### Spacing
-- **Micro**: 4px - Fine adjustments
-- **Small**: 8px - Related items
-- **Medium**: 16px - Card padding
-- **Large**: 24px - Section gaps
-- **X-Large**: 32px - Page margins
+### Components
+- **Sensor Cards**: Glass morphism with backdrop blur
+- **Charts**: 280px height, 6px line width, smooth animations
+- **Buttons**: 12px padding, rounded corners, hover effects
+- **Loading States**: Shimmer animation skeleton loaders
 
 ---
 
-## 🧪 Testing
+## 🧪 Testing & Simulation
 
-### Browser Compatibility
-- ✅ Chrome 90+ (Full support including voice)
-- ✅ Firefox 88+ (Full support including voice)
-- ✅ Safari 14+ (Full support, no voice input)
-- ✅ Edge 90+ (Full support including voice)
-
-### Accessibility Testing
+### Interactive Test Scenarios
 ```bash
-# Run WCAG checker
-npm run test:a11y
-
-# Check contrast ratios
-npm run test:contrast
-
-# Validate keyboard navigation
-npm run test:keyboard
+python test_interactive.py
 ```
 
-### Screen Sizes Tested
-- ✅ Desktop: 1920×1080, 1440×900, 1366×768
-- ✅ Tablet: 1024×768, 768×1024
-- ✅ Mobile: 375×667, 414×896, 360×640
+**Available Scenarios:**
+1. **Steady State**: Normal movement, no symptoms
+2. **Tremor Episode**: Elevated tremor frequency (5Hz)
+3. **Rigidity Spike**: High EMG readings (80+ µV)
+4. **Fall Detection**: Sudden acceleration spike
+5. **Mixed Symptoms**: Combined tremor + rigidity
+
+### Hardware Simulator
+```bash
+cd BACKEND/node_ingestion_service
+node simulator.js
+```
+Generates realistic sensor data without physical hardware.
 
 ---
 
-## 📊 Performance Metrics
+## 📚 API Documentation
 
-### Load Speed
-```
-HTML:    ~8KB  (gzipped)
-CSS:     ~25KB (gzipped)
-JS:      ~15KB (gzipped)
-Total:   ~48KB ⚡ Ultra fast!
+### FastAPI Endpoints
+
+#### POST `/ingest/data`
+Receive sensor data from hardware
+```json
+{
+  "device_id": "string",
+  "timestamp": "ISO8601",
+  "tremor": {...},
+  "rigidity": {...},
+  "safety": {...}
+}
 ```
 
-### Accessibility Scores
-- **WCAG Level**: AAA ✓
-- **Contrast Ratios**: 7:1 to 21:1 ✓
-- **Touch Targets**: 60px+ ✓
-- **Keyboard Nav**: Full support ✓
+#### WebSocket `/ws/frontend-data`
+Real-time data streaming to frontend
+```json
+{
+  "type": "processed_data",
+  "data": {
+    "scores": {
+      "tremor": 0.45,
+      "rigidity": 0.32,
+      "slowness": 0.28,
+      "gait": 0.15
+    },
+    "care_recommendations": ["..."],
+    "recommended_game": {...}
+  }
+}
+```
+
+#### GET `/docs`
+Interactive API documentation (Swagger UI)
+**URL**: http://localhost:8000/docs
+
+---
+
+## 🏆 Achievements & Recognition
+
+### IEEE Anveshan Hackathon
+- **Challenge**: Healthcare Technology Innovation
+- **Focus**: IoT-enabled remote patient monitoring
+- **Innovation**: Real-time AI analysis with game therapy integration
+
+### Technical Highlights
+- ✅ Sub-second latency sensor-to-dashboard pipeline
+- ✅ 3 pre-trained ML models for symptom detection
+- ✅ Synthetic RAG system with zero external API calls
+- ✅ Responsive design across all device types
+- ✅ Modular architecture for easy extensibility
 
 ---
 
 ## 🤝 Contributing
 
-We welcome contributions! Please read our [Contributing Guidelines](CONTRIBUTING.md) first.
+We welcome contributions! Please follow these guidelines:
 
 ### Development Setup
 ```bash
-# Install dependencies
-npm install
+# Fork the repository
+# Clone your fork
+git clone https://github.com/YOUR_USERNAME/TEAM-QWERTY.git
 
-# Start development server
-npm run dev
+# Create feature branch
+git checkout -b feature/amazing-feature
 
-# Watch mode (auto-compile TypeScript)
-npm run watch
+# Make changes and commit
+git commit -m "Add amazing feature"
 
-# Build for production
-npm run build
+# Push and create pull request
+git push origin feature/amazing-feature
 ```
 
 ### Code Standards
-- **TypeScript**: Strict mode enabled
-- **CSS**: BEM naming convention
+- **TypeScript**: Strict mode, ESLint rules
+- **Python**: Black formatting, type hints
 - **Commits**: Conventional commits format
-- **Testing**: All features must pass a11y tests
+- **Testing**: Unit tests for new features
 
 ---
 
@@ -250,116 +538,123 @@ MIT License - see [LICENSE](LICENSE) file for details.
 ## 👥 Team QWERTY
 
 ### Core Team
-- **Development Lead**: [ROHANBAIJU](https://github.com/ROHANBAIJU)
-- **UX/UI Design**: StanceSense UX Team
-- **Accessibility Consultant**: WCAG AAA Specialist
-- **Medical Advisor**: Parkinson's Foundation
+- **Lead Developer**: [ROHANBAIJU](https://github.com/ROHANBAIJU)
+- **Full-Stack Engineering**: AI/ML integration, frontend, backend
+- **Hardware Integration**: ESP32 firmware, sensor calibration
+- **UI/UX Design**: Modern, responsive dashboard
 
 ### Contact
-- **Email**: accessibility@stancesense.com
-- **Issues**: [GitHub Issues](https://github.com/ROHANBAIJU/TEAM-QWERTY/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/ROHANBAIJU/TEAM-QWERTY/discussions)
-
----
-
-## 🏆 Achievements
-
-### Hackathon
-- **Event**: Anveshan IEEE Hackathon
-- **Challenge**: Accessible Health Technology
-- **Solution**: Parkinson's Dashboard with WCAG AAA compliance
-
-### Recognition
-- ✅ WCAG 2.1 Level AAA Compliant
-- ✅ Section 508 Compliant
-- ✅ ADA Compliant
-- ✅ EN 301 549 Compliant
+- **GitHub**: [ROHANBAIJU/TEAM-QWERTY](https://github.com/ROHANBAIJU/TEAM-QWERTY)
+- **Issues**: [Report Bugs](https://github.com/ROHANBAIJU/TEAM-QWERTY/issues)
+- **Discussions**: [Feature Requests](https://github.com/ROHANBAIJU/TEAM-QWERTY/discussions)
 
 ---
 
 ## 🙏 Acknowledgments
 
-- **Parkinson's Foundation** for research and resources
-- **W3C** for WCAG guidelines
-- **Chart.js** for beautiful, accessible charts
-- **Open Sans** by Steve Matteson
-- **Beta Testers** with Parkinson's disease
+- **IEEE Anveshan Hackathon** for the opportunity
+- **PADS Dataset** contributors for Parkinson's research data
+- **Chart.js** community for beautiful visualizations
+- **FastAPI** team for excellent Python framework
+- **Next.js** team for modern React development
+- **Open Source Community** for libraries and tools
 
 ---
 
 ## 📖 Additional Resources
 
-### Learn About Parkinson's
+### Parkinson's Disease Research
 - [Parkinson's Foundation](https://www.parkinson.org)
 - [Michael J. Fox Foundation](https://www.michaeljfox.org)
-- [American Parkinson Disease Association](https://www.apdaparkinson.org)
+- [PADS Dataset](https://physionet.org/content/pads/1.0.0/)
 
-### Web Accessibility
-- [WCAG 2.1 Guidelines](https://www.w3.org/WAI/WCAG21/quickref/)
-- [WebAIM Resources](https://webaim.org/)
-- [A11y Project](https://www.a11yproject.com/)
-
-### Technologies Used
-- [TypeScript](https://www.typescriptlang.org/)
-- [Chart.js](https://www.chartjs.org/)
-- [Web Speech API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Speech_API)
+### Technologies & Frameworks
+- [Next.js Documentation](https://nextjs.org/docs)
+- [FastAPI Documentation](https://fastapi.tiangolo.com/)
+- [Chart.js Documentation](https://www.chartjs.org/docs/)
+- [ESP32 Documentation](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/)
 
 ---
 
 ## 🔮 Future Roadmap
 
-### Phase 2 (Planned)
-- [ ] Voice commands for all actions
-- [ ] Font size slider (16-24px)
-- [ ] Pure black/white high-contrast mode
-- [ ] Reading mode (text-only)
-- [ ] Multi-language support
-- [ ] Caregiver view with larger elements
-- [ ] Mobile app (iOS/Android)
+### Phase 2: Enhanced Intelligence
+- [ ] LSTM models for symptom prediction
+- [ ] Federated learning for privacy-preserving training
+- [ ] Multi-patient caregiver dashboard
+- [ ] Mobile app (React Native)
 
-### Research
-- [ ] User testing with patients
-- [ ] A/B testing on button sizes
-- [ ] Eyetracking studies
-- [ ] Tremor pattern analysis
+### Phase 3: Clinical Integration
+- [ ] HL7 FHIR integration for EHR systems
+- [ ] Telemedicine video consultation
+- [ ] PDF report generation for physicians
+- [ ] Medication interaction warnings
+
+### Phase 4: Advanced Features
+- [ ] Voice-controlled interface
+- [ ] AR/VR rehabilitation exercises
+- [ ] Social network for patient support
+- [ ] Clinical trial recruitment matching
 
 ---
 
 ## 📢 Support
 
-If you find this project helpful, please:
+If you find this project helpful:
 - ⭐ Star the repository
 - 🐛 Report bugs via GitHub Issues
-- 💡 Suggest features via GitHub Discussions
-- 📣 Share with others who might benefit
+- 💡 Suggest features via Discussions
 - 🤝 Contribute code or documentation
+- 📣 Share with the community
 
 ---
 
-## 📜 Changelog
+## 📜 Version History
 
-### Version 2.0.0 (October 2025) - Accessibility Overhaul
-- ✨ Added dual theme system (dark/light mode)
-- ✨ Implemented WCAG AAA contrast ratios (7:1 to 21:1)
-- ✨ Increased base font size to 18px (+28%)
-- ✨ Enlarged buttons to 80px height (+82%)
-- ✨ Thickened graph lines to 6px (+100%)
-- ✨ Added keyboard shortcuts (Alt+D, Alt+S, Alt+T)
-- ✨ Enhanced voice input with visual feedback
-- ✨ Added chart text summaries
-- ✨ Implemented plain language throughout
-- ✨ Added icons to all status indicators
-- 🐛 Fixed TypeScript compilation errors
-- 📝 Added comprehensive documentation
+### v3.0.0 (November 2025) - AI & Game Therapy Integration
+- ✨ Added AI-powered symptom analysis with ML models
+- ✨ Implemented personalized care recommendations
+- ✨ Integrated game therapy with biofeedback
+- ✨ Added rewards system for patient engagement
+- ✨ Deployed WebSocket real-time streaming
+- ✨ Enhanced UI with modern glass morphism design
+- 🐛 Fixed rigidity/slowness calculation accuracy
+- 🐛 Resolved WebSocket reconnection loop
+- 📝 Complete documentation overhaul
 
-### Version 1.0.0 (Initial Release)
-- ✨ Basic dashboard layout
-- ✨ Symptom tracking chart
+### v2.0.0 (October 2025) - Accessibility Overhaul
+- ✨ WCAG AAA compliance
+- ✨ Dual theme system (dark/light)
+- ✨ Keyboard shortcuts and voice input
+- ✨ Enhanced contrast ratios
+
+### v1.0.0 (Initial Release)
+- ✨ Basic dashboard with symptom tracking
 - ✨ Medication logging
-- ✨ Notes section with voice input
+- ✨ Chart visualizations
 
 ---
 
 **Built with ❤️ for the Parkinson's community by TEAM-QWERTY**
 
-*Making health technology accessible to everyone, one pixel at a time.* 
+*Empowering patients, caregivers, and clinicians with real-time AI-powered insights.*
+
+---
+
+## 🖼️ Image Credits
+
+> **Note**: Replace placeholder paths with actual screenshots
+
+```bash
+# Recommended screenshot locations:
+docs/images/analytics-dashboard.png     # Main dashboard view
+docs/images/sensor-cards.png            # Tremor/Rigidity/Gait cards
+docs/images/games-interface.png         # Game therapy screen
+docs/images/rewards-system.png          # Rewards/achievements page
+docs/images/hardware-sensor.png         # ESP32 + sensors photo
+docs/images/emg-sensors.png             # EMG sensor closeup
+docs/images/system-architecture.png     # Architecture diagram
+docs/images/live-demo.gif               # Screen recording
+docs/images/ai-analysis.gif             # AI processing animation
+docs/images/game-therapy.gif            # Game interaction recording
+``` 
