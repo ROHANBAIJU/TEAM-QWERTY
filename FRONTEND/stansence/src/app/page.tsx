@@ -14,6 +14,10 @@ interface ChartConfig {
 }
 
 interface ChartInstance {
+  data: {
+    labels: string[];
+    datasets: Array<{ data: number[] }>;
+  };
   destroy(): void;
   update(mode?: string): void;
 }
@@ -349,19 +353,19 @@ export default function Dashboard() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
                   <div>
                     <div style={{ fontSize: '13px', color: '#94a3b8', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Tremor</div>
-                    <div style={{ fontSize: '40px', fontWeight: '800', color: getSeverityColor(latestData.scores?.tremor * 100 || 0), marginTop: '8px' }}>
-                      {Math.round(latestData.scores?.tremor * 100 || 0)}%
+                    <div style={{ fontSize: '40px', fontWeight: '800', color: getSeverityColor((latestData.scores?.tremor || 0) * 100), marginTop: '8px' }}>
+                      {Math.round((latestData.scores?.tremor || 0) * 100)}%
                     </div>
                   </div>
                   <div style={{
                     padding: '8px 14px',
-                    background: `${getSeverityColor(latestData.scores?.tremor * 100 || 0)}20`,
+                    background: `${getSeverityColor((latestData.scores?.tremor || 0) * 100)}20`,
                     borderRadius: '12px',
                     fontSize: '12px',
                     fontWeight: '700',
-                    color: getSeverityColor(latestData.scores?.tremor * 100 || 0)
+                    color: getSeverityColor((latestData.scores?.tremor || 0) * 100)
                   }}>
-                    {getSeverityLabel(latestData.scores?.tremor * 100 || 0)}
+                    {getSeverityLabel((latestData.scores?.tremor || 0) * 100)}
                   </div>
                 </div>
                 <div style={{ fontSize: '13px', color: '#94a3b8', marginBottom: '12px' }}>
@@ -398,19 +402,19 @@ export default function Dashboard() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
                   <div>
                     <div style={{ fontSize: '13px', color: '#94a3b8', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Rigidity</div>
-                    <div style={{ fontSize: '40px', fontWeight: '800', color: getSeverityColor(latestData.scores?.rigidity * 100 || 0), marginTop: '8px' }}>
-                      {Math.round(latestData.scores?.rigidity * 100 || 0)}%
+                    <div style={{ fontSize: '40px', fontWeight: '800', color: getSeverityColor((latestData.scores?.rigidity || 0) * 100), marginTop: '8px' }}>
+                      {Math.round((latestData.scores?.rigidity || 0) * 100)}%
                     </div>
                   </div>
                   <div style={{
                     padding: '8px 14px',
-                    background: `${getSeverityColor(latestData.scores?.rigidity * 100 || 0)}20`,
+                    background: `${getSeverityColor((latestData.scores?.rigidity || 0) * 100)}20`,
                     borderRadius: '12px',
                     fontSize: '12px',
                     fontWeight: '700',
-                    color: getSeverityColor(latestData.scores?.rigidity * 100 || 0)
+                    color: getSeverityColor((latestData.scores?.rigidity || 0) * 100)
                   }}>
-                    {getSeverityLabel(latestData.scores?.rigidity * 100 || 0)}
+                    {getSeverityLabel((latestData.scores?.rigidity || 0) * 100)}
                   </div>
                 </div>
                 <div style={{ fontSize: '13px', color: '#94a3b8', marginBottom: '12px' }}>
@@ -548,7 +552,7 @@ export default function Dashboard() {
                   borderLeft: '4px solid #ef4444'
                 }}>
                   <div style={{ fontSize: '14px', fontWeight: '600', color: '#ffffff', marginBottom: '8px' }}>
-                    {alert.event_type.replace('_', ' ').toUpperCase()}
+                    {alert.type.replace('_', ' ').toUpperCase()}
                   </div>
                   <div style={{ fontSize: '13px', color: '#cbd5e1', lineHeight: '1.6' }}>
                     {alert.message.split('\n')[0]}
