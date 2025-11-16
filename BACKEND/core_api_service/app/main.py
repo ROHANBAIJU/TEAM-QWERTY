@@ -25,6 +25,7 @@ from .routes import ingest as ingest_router_module
 from .routes import consent as consent_router_module
 from .routes import frontend as frontend_router_module
 from .routes import aggregated as aggregated_router_module
+from .routes import rag_analysis as rag_analysis_router_module
 
 # --- Globals & Setup ---
 logging.basicConfig(level=logging.INFO)
@@ -42,6 +43,7 @@ app.include_router(ingest_router_module.router, prefix="/ingest", tags=["ingest"
 app.include_router(consent_router_module.router, prefix="/user", tags=["consent"])
 app.include_router(frontend_router_module.router, prefix="/api", tags=["analytics"])
 app.include_router(aggregated_router_module.router)  # Already has /ingest prefix
+app.include_router(rag_analysis_router_module.router)  # /analyze prefix
 
 # --- CORS Middleware ---
 # Allow all origins for the hackathon

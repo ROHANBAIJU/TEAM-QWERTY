@@ -42,14 +42,34 @@ export interface Alert {
   type: 'fall' | 'tremor' | 'rigidity' | 'medication';
 }
 
+export interface GameRecommendation {
+  name: string;
+  description: string;
+  symptom_target: string;
+  difficulty: string;
+  duration_minutes: number;
+  benefits: string[];
+}
+
+export interface RAGAnalysis {
+  user_id: string;
+  timestamp: string;
+  insights: string;
+  recommendations: string;
+  game_recommendations: GameRecommendation[];
+  critical_alerts_count: number;
+  alerts: Alert[];
+}
+
 interface WebSocketMessage {
-  type: 'processed_data' | 'alert';
-  data: ProcessedData | Alert;
+  type: 'processed_data' | 'alert' | 'rag_analysis';
+  data: ProcessedData | Alert | RAGAnalysis;
 }
 
 interface UseWebSocketReturn {
   latestData: ProcessedData | null;
   alerts: Alert[];
+  ragAnalysis: RAGAnalysis | null;
   isConnected: boolean;
   connectionStatus: 'connecting' | 'connected' | 'disconnected' | 'error';
   reconnect: () => void;
@@ -65,6 +85,7 @@ export function useWebSocket(url?: string): UseWebSocketReturn {
   
   const [latestData, setLatestData] = useState<ProcessedData | null>(null);
   const [alerts, setAlerts] = useState<Alert[]>([]);
+  const [ragAnalysis, setRagAnalysis] = useState<RAGAnalysis | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'disconnected' | 'error'>('disconnected');
   
@@ -113,6 +134,10 @@ export function useWebSocket(url?: string): UseWebSocketReturn {
               const alert = message.data as Alert;
               setAlerts(prev => [alert, ...prev].slice(0, 50)); // Keep last 50 alerts
               console.log('Received alert:', alert);
+            } else if (message.type === 'rag_analysis') {
+              const ragData = message.data as RAGAnalysis;
+              setRagAnalysis(ragData);
+              console.log('🎮 RAG Analysis with Games:', ragData);
             }
           } catch (error) {
             console.error('Error parsing WebSocket message:', error, event.data);
@@ -179,6 +204,7 @@ export function useWebSocket(url?: string): UseWebSocketReturn {
   return {
     latestData,
     alerts,
+    ragAnalysis,
     isConnected,
     connectionStatus,
     reconnect,

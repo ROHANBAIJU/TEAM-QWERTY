@@ -1,11 +1,12 @@
 'use client';
 
 import React, { createContext, useContext, ReactNode } from 'react';
-import { useWebSocket, ProcessedData, Alert } from '@/hooks/useWebSocket';
+import { useWebSocket, ProcessedData, Alert, RAGAnalysis } from '@/hooks/useWebSocket';
 
 interface SensorDataContextType {
   latestData: ProcessedData | null;
   alerts: Alert[];
+  ragAnalysis: RAGAnalysis | null;
   isConnected: boolean;
   connectionStatus: 'connecting' | 'connected' | 'disconnected' | 'error';
   reconnect: () => void;

@@ -106,6 +106,8 @@ async def ingest_data(body: dict, background_tasks: BackgroundTasks, authorizati
 	try:
 		data = DeviceData(**packet)
 	except Exception as e:
+		logger.error("❌ VALIDATION ERROR: %s", str(e))
+		logger.error("📦 Received packet: %s", packet)
 		raise HTTPException(status_code=400, detail=f"Invalid payload: {e}")
 
 	# Save raw packet to Firestore

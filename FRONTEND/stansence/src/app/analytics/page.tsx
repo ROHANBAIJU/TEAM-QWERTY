@@ -36,7 +36,7 @@ type SymptomKey = 'tremor' | 'rigidity' | 'slowness' | 'gait';
 
 export default function Analytics() {
   const { user } = useAuth();
-  const { latestData, alerts, isConnected, connectionStatus } = useSensorData();
+  const { latestData, alerts, ragAnalysis, isConnected, connectionStatus } = useSensorData();
   const [lastUpdateTime, setLastUpdateTime] = useState<number>(0);
   const [symptomData, setSymptomData] = useState<SymptomData>({
     tremor: 0,
@@ -451,6 +451,174 @@ export default function Analytics() {
           </div>
         </div>
       </div>
+
+      {/* 🎮 Personalized Therapy Games - RAG Analysis Results */}
+      {ragAnalysis && ragAnalysis.game_recommendations && ragAnalysis.game_recommendations.length > 0 && (
+        <div style={{
+          background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%)',
+          backdropFilter: 'blur(10px)',
+          borderRadius: '20px',
+          padding: '32px',
+          border: '1px solid rgba(139, 92, 246, 0.2)',
+          boxShadow: '0 8px 32px rgba(139, 92, 246, 0.2)',
+          marginBottom: '24px'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
+            <div style={{
+              width: '40px',
+              height: '40px',
+              borderRadius: '10px',
+              background: 'rgba(139, 92, 246, 0.2)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '20px'
+            }}>
+              🎮
+            </div>
+            <div>
+              <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#8b5cf6', marginBottom: '4px' }}>
+                Personalized Therapy Games
+              </h3>
+              <p style={{ fontSize: '12px', color: '#94a3b8' }}>
+                AI-recommended games based on your current symptoms
+              </p>
+            </div>
+          </div>
+
+          <div style={{ fontSize: '15px', color: '#cbd5e1', lineHeight: '1.8', marginBottom: '20px' }}>
+            <strong style={{ color: '#8b5cf6' }}>💡 RAG Insights:</strong> {ragAnalysis.insights}
+          </div>
+
+          <div style={{ fontSize: '15px', color: '#cbd5e1', lineHeight: '1.8', marginBottom: '24px' }}>
+            <strong style={{ color: '#3b82f6' }}>📋 Recommendations:</strong> {ragAnalysis.recommendations}
+          </div>
+
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+            gap: '16px'
+          }}>
+            {ragAnalysis.game_recommendations.map((game, index) => (
+              <div key={index} style={{
+                background: 'rgba(255, 255, 255, 0.05)',
+                backdropFilter: 'blur(10px)',
+                borderRadius: '16px',
+                padding: '20px',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                transition: 'all 0.3s ease',
+                cursor: 'pointer'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-4px)';
+                e.currentTarget.style.boxShadow = '0 12px 32px rgba(139, 92, 246, 0.3)';
+                e.currentTarget.style.borderColor = '#8b5cf6';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = 'none';
+                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+              }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '12px' }}>
+                  <div style={{ fontSize: '18px', fontWeight: '700', color: '#ffffff' }}>
+                    {game.name}
+                  </div>
+                  <div style={{
+                    padding: '4px 10px',
+                    background: game.difficulty === 'easy' ? 'rgba(16, 185, 129, 0.2)' : game.difficulty === 'medium' ? 'rgba(245, 158, 11, 0.2)' : 'rgba(239, 68, 68, 0.2)',
+                    borderRadius: '8px',
+                    fontSize: '11px',
+                    fontWeight: '700',
+                    color: game.difficulty === 'easy' ? '#10b981' : game.difficulty === 'medium' ? '#f59e0b' : '#ef4444',
+                    textTransform: 'uppercase'
+                  }}>
+                    {game.difficulty}
+                  </div>
+                </div>
+
+                <div style={{ fontSize: '13px', color: '#94a3b8', lineHeight: '1.6', marginBottom: '12px' }}>
+                  {game.description}
+                </div>
+
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  marginBottom: '12px',
+                  paddingBottom: '12px',
+                  borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
+                }}>
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    fontSize: '12px',
+                    color: '#94a3b8'
+                  }}>
+                    ⏱️ {game.duration_minutes} min
+                  </div>
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    fontSize: '12px',
+                    color: '#94a3b8'
+                  }}>
+                    🎯 {game.symptom_target}
+                  </div>
+                </div>
+
+                <div style={{ fontSize: '12px', color: '#cbd5e1', fontWeight: '600', marginBottom: '8px' }}>
+                  ✨ Benefits:
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  {game.benefits.map((benefit, bIndex) => (
+                    <div key={bIndex} style={{
+                      fontSize: '11px',
+                      color: '#94a3b8',
+                      paddingLeft: '16px',
+                      position: 'relative'
+                    }}>
+                      <span style={{
+                        position: 'absolute',
+                        left: '0',
+                        color: '#10b981'
+                      }}>✓</span>
+                      {benefit}
+                    </div>
+                  ))}
+                </div>
+
+                <button style={{
+                  width: '100%',
+                  marginTop: '16px',
+                  padding: '12px',
+                  background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '10px',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'scale(1.05)';
+                  e.currentTarget.style.boxShadow = '0 4px 16px rgba(139, 92, 246, 0.4)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'scale(1)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
+                >
+                  🚀 Start Game
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Live Real-time Sensor Cards Grid */}
       {latestData && (
@@ -975,43 +1143,6 @@ export default function Analytics() {
           </div>
         </div>
       </div>
-
-      {/* Alerts Section */}
-      {alerts.length > 0 && (
-        <div style={{
-          background: 'rgba(239, 68, 68, 0.1)',
-          backdropFilter: 'blur(10px)',
-          borderRadius: '20px',
-          padding: '24px',
-          border: '1px solid rgba(239, 68, 68, 0.3)',
-          boxShadow: '0 8px 32px rgba(239, 68, 68, 0.2)',
-          marginBottom: '24px'
-        }}>
-          <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#ef4444', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            🚨 Critical Alerts ({alerts.length})
-          </h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {alerts.slice(0, 3).map((alert, index) => (
-              <div key={index} style={{
-                padding: '16px',
-                background: 'rgba(255, 255, 255, 0.05)',
-                borderRadius: '12px',
-                borderLeft: '4px solid #ef4444'
-              }}>
-                <div style={{ fontSize: '14px', fontWeight: '600', color: '#ffffff', marginBottom: '8px' }}>
-                  {alert.type.replace('_', ' ').toUpperCase()}
-                </div>
-                <div style={{ fontSize: '13px', color: '#cbd5e1', lineHeight: '1.6' }}>
-                  {alert.message.split('\n')[0]}
-                </div>
-                <div style={{ fontSize: '11px', color: '#64748b', marginTop: '8px' }}>
-                  {new Date(alert.timestamp).toLocaleString()}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* Medication Modal */}
       {showMedicationModal && (
