@@ -196,7 +196,7 @@ export default function Analytics() {
     // Reduced from 3000ms to 500ms for more responsive UI
     if (now - lastUpdateTime >= 500) {
       // Extract scores from either scores object or analysis object
-      const scores = latestData.scores || {};
+      const scores: any = latestData.scores || {};
       const tremor = scores.tremor !== undefined ? scores.tremor * 100 : 
                      (latestData.analysis?.is_tremor_confirmed ? 50 : 0);
       const rigidity = scores.rigidity !== undefined ? scores.rigidity * 100 :
@@ -221,7 +221,7 @@ export default function Analytics() {
   useEffect(() => {
     if (!latestData || !chartInstance) return;
 
-    const scores = latestData.scores || {};
+    const scores: any = latestData.scores || {};
     const hasSomeData = scores.tremor !== undefined || scores.rigidity !== undefined || scores.gait !== undefined;
     
     if (!hasSomeData) {
@@ -485,93 +485,371 @@ export default function Analytics() {
       doc.text(status, leftMargin + 90, rowY + 2);
       
       doc.setTextColor(100, 116, 139);
-      doc.text('→ Stable', leftMargin + 130, rowY + 2);
+      doc.text('Stable', leftMargin + 130, rowY + 2);
     });
     
     yPos += 50;
 
-    // Care Recommendations
-    if (latestData?.care_recommendations && latestData.care_recommendations.length > 0) {
-      doc.setFontSize(16);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(59, 130, 246);
-      doc.text('Personalized Care Recommendations', 20, yPos);
-      yPos += 10;
+    // Check if we need a new page
+    if (yPos > pageHeight - 80) {
+      doc.addPage();
+      yPos = 20;
+    }
 
-      doc.setFontSize(10);
+    // ========== PATIENT PERSONAL NOTES ==========
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(30, 41, 59);
+    doc.text('PATIENT NOTES & OBSERVATIONS', leftMargin, yPos);
+    doc.setDrawColor(59, 130, 246);
+    doc.setLineWidth(1);
+    doc.line(leftMargin, yPos + 2, leftMargin + 70, yPos + 2);
+    yPos += 12;
+
+    // Notes box with lines for writing
+    const notesBoxHeight = 50;
+    doc.setFillColor(255, 255, 255);
+    doc.rect(leftMargin, yPos, contentWidth, notesBoxHeight, 'F');
+    doc.setDrawColor(203, 213, 225);
+    doc.setLineWidth(0.5);
+    doc.rect(leftMargin, yPos, contentWidth, notesBoxHeight, 'S');
+    
+    // Horizontal lines for writing
+    doc.setDrawColor(226, 232, 240);
+    doc.setLineWidth(0.2);
+    for (let i = 1; i <= 8; i++) {
+      const lineY = yPos + (i * 6);
+      doc.line(leftMargin + 2, lineY, rightMargin - 2, lineY);
+    }
+    
+    // Placeholder text
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'italic');
+    doc.setTextColor(148, 163, 184);
+    doc.text('Space for patient or caregiver notes, observations, and comments...', leftMargin + 3, yPos + 4);
+    
+    yPos += notesBoxHeight + 15;
+
+    // Check if we need a new page
+    if (yPos > pageHeight - 90) {
+      doc.addPage();
+      yPos = 20;
+    }
+
+    // ========== SYMPTOM TREND GRAPH ==========
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(30, 41, 59);
+    doc.text('SYMPTOM PROGRESSION TREND', leftMargin, yPos);
+    doc.setDrawColor(59, 130, 246);
+    doc.setLineWidth(1);
+    doc.line(leftMargin, yPos + 2, leftMargin + 70, yPos + 2);
+    yPos += 12;
+
+    // Line graph area
+    const graphHeight = 50;
+    const graphWidth = contentWidth;
+    
+    // Graph background
+    doc.setFillColor(248, 250, 252);
+    doc.rect(leftMargin, yPos, graphWidth, graphHeight, 'F');
+    doc.setDrawColor(203, 213, 225);
+    doc.setLineWidth(0.3);
+    doc.rect(leftMargin, yPos, graphWidth, graphHeight, 'S');
+    
+    // Y-axis labels and grid
+    doc.setDrawColor(226, 232, 240);
+    doc.setLineWidth(0.2);
+    doc.setFontSize(7);
+    doc.setTextColor(100, 116, 139);
+    
+    [0, 25, 50, 75, 100].forEach(val => {
+      const lineY = yPos + graphHeight - (graphHeight * val / 100);
+      doc.line(leftMargin, lineY, rightMargin, lineY);
+      doc.text(`${val}`, leftMargin - 8, lineY + 1);
+    });
+    
+    // Simulate trend data (last 7 readings)
+    const trendData = chartData.labels.slice(-7).map((_, idx) => ({
+      tremor: chartData.tremor[chartData.tremor.length - 7 + idx] || 0,
+      rigidity: chartData.rigidity[chartData.rigidity.length - 7 + idx] || 0,
+      gait: chartData.gait[chartData.gait.length - 7 + idx] || 0
+    }));
+    
+    if (trendData.length > 0) {
+      const plotWidth = graphWidth - 10;
+      const pointSpacing = plotWidth / (trendData.length - 1 || 1);
+      
+      // Plot lines for each symptom
+      const symptomLines = [
+        { data: trendData.map(d => d.tremor), color: [71, 85, 105], label: 'Tremor' },
+        { data: trendData.map(d => d.rigidity), color: [100, 116, 139], label: 'Rigidity' },
+        { data: trendData.map(d => d.gait), color: [148, 163, 184], label: 'Gait' }
+      ];
+      
+      symptomLines.forEach((line, lineIdx) => {
+        doc.setDrawColor(line.color[0], line.color[1], line.color[2]);
+        doc.setLineWidth(0.8);
+        
+        for (let i = 0; i < line.data.length - 1; i++) {
+          const x1 = leftMargin + 5 + (i * pointSpacing);
+          const y1 = yPos + graphHeight - (graphHeight * line.data[i] / 100);
+          const x2 = leftMargin + 5 + ((i + 1) * pointSpacing);
+          const y2 = yPos + graphHeight - (graphHeight * line.data[i + 1] / 100);
+          
+          doc.line(x1, y1, x2, y2);
+          
+          // Data points
+          doc.setFillColor(line.color[0], line.color[1], line.color[2]);
+          doc.circle(x1, y1, 1, 'F');
+        }
+        
+        // Last point
+        const lastX = leftMargin + 5 + ((line.data.length - 1) * pointSpacing);
+        const lastY = yPos + graphHeight - (graphHeight * line.data[line.data.length - 1] / 100);
+        doc.circle(lastX, lastY, 1, 'F');
+      });
+    }
+    
+    // X-axis time labels
+    doc.setFontSize(6);
+    doc.setTextColor(100, 116, 139);
+    const timeLabels = ['T-6', 'T-5', 'T-4', 'T-3', 'T-2', 'T-1', 'Now'];
+    timeLabels.forEach((label, idx) => {
+      const xPos = leftMargin + 5 + (idx * (graphWidth - 10) / (timeLabels.length - 1));
+      doc.text(label, xPos, yPos + graphHeight + 5, { align: 'center' });
+    });
+    
+    // Legend
+    yPos += graphHeight + 12;
+    doc.setFontSize(7);
+    doc.setFont('helvetica', 'normal');
+    
+    [
+      { label: '■ Tremor', color: [71, 85, 105] },
+      { label: '■ Rigidity', color: [100, 116, 139] },
+      { label: '■ Gait', color: [148, 163, 184] }
+    ].forEach((item, idx) => {
+      const xPos = leftMargin + (idx * 40);
+      doc.setTextColor(item.color[0], item.color[1], item.color[2]);
+      doc.text(item.label, xPos, yPos);
+    });
+    
+    yPos += 15;
+
+    // Check if we need a new page
+    if (yPos > pageHeight - 60) {
+      doc.addPage();
+      yPos = 20;
+    }
+
+    // ========== CARE RECOMMENDATIONS ==========
+    if (latestData?.care_recommendations && latestData.care_recommendations.length > 0) {
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(30, 41, 59);
+      doc.text('CARE RECOMMENDATIONS', leftMargin, yPos);
+      doc.setDrawColor(59, 130, 246);
+      doc.setLineWidth(1);
+      doc.line(leftMargin, yPos + 2, leftMargin + 60, yPos + 2);
+      yPos += 12;
+
+      doc.setFontSize(9);
       doc.setFont('helvetica', 'normal');
-      doc.setTextColor(50, 50, 50);
+      doc.setTextColor(71, 85, 105);
 
       latestData.care_recommendations.forEach((rec: string, idx: number) => {
-        const lines = doc.splitTextToSize(`${idx + 1}. ${rec}`, pageWidth - 50);
-        if (yPos + (lines.length * 6) > pageHeight - 20) {
+        if (yPos + 15 > pageHeight - 20) {
           doc.addPage();
           yPos = 20;
         }
-        doc.text(lines, 25, yPos);
-        yPos += lines.length * 6 + 3;
+        
+        // Recommendation box
+        doc.setFillColor(248, 250, 252);
+        const recHeight = 12;
+        doc.rect(leftMargin, yPos - 3, contentWidth, recHeight, 'F');
+        doc.setDrawColor(203, 213, 225);
+        doc.setLineWidth(0.3);
+        doc.rect(leftMargin, yPos - 3, contentWidth, recHeight, 'S');
+        
+        // Number badge
+        doc.setFillColor(59, 130, 246);
+        doc.circle(leftMargin + 5, yPos + 3, 3, 'F');
+        doc.setFontSize(7);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(255, 255, 255);
+        doc.text(`${idx + 1}`, leftMargin + 5, yPos + 4, { align: 'center' });
+        
+        // Recommendation text (clean up emojis)
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(30, 41, 59);
+        // Remove emoji prefixes (first 2-3 characters that are typically emojis)
+        const cleanRec = rec.replace(/^[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]\s*/gu, '').trim();
+        const lines = doc.splitTextToSize(cleanRec, contentWidth - 18);
+        doc.text(lines, leftMargin + 10, yPos + 2);
+        
+        yPos += recHeight + 3;
       });
       yPos += 10;
     }
 
-    // Game Recommendation
+    // ========== THERAPY GAME RECOMMENDATION ==========
     if (latestData?.recommended_game) {
-      if (yPos > pageHeight - 40) {
+      if (yPos > pageHeight - 50) {
         doc.addPage();
         yPos = 20;
       }
-      doc.setFontSize(16);
+      
+      doc.setFontSize(14);
       doc.setFont('helvetica', 'bold');
-      doc.setTextColor(59, 130, 246);
-      doc.text('Recommended Therapy Game', 20, yPos);
-      yPos += 10;
+      doc.setTextColor(30, 41, 59);
+      doc.text('RECOMMENDED THERAPY GAME', leftMargin, yPos);
+      doc.setDrawColor(59, 130, 246);
+      doc.setLineWidth(1);
+      doc.line(leftMargin, yPos + 2, leftMargin + 68, yPos + 2);
+      yPos += 12;
 
-      doc.setFontSize(11);
+      // Game info box
+      doc.setFillColor(248, 250, 252);
+      const gameBoxHeight = 30;
+      doc.rect(leftMargin, yPos, contentWidth, gameBoxHeight, 'F');
+      doc.setDrawColor(139, 92, 246);
+      doc.setLineWidth(1);
+      doc.rect(leftMargin, yPos, contentWidth, gameBoxHeight, 'S');
+      
+      yPos += 8;
+      
+      // Game name with icon box
+      doc.setFontSize(9);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(139, 92, 246);
-      doc.text(latestData.recommended_game.name, 25, yPos);
+      doc.text('[GAME]', leftMargin + 5, yPos);
+      
+      doc.setFontSize(11);
+      doc.text(latestData.recommended_game.name, leftMargin + 30, yPos);
       yPos += 8;
 
-      doc.setFontSize(10);
+      // Reason
+      doc.setFontSize(8);
       doc.setFont('helvetica', 'normal');
-      doc.setTextColor(50, 50, 50);
-      const reasonLines = doc.splitTextToSize(latestData.recommended_game.reason, pageWidth - 50);
-      doc.text(reasonLines, 25, yPos);
-      yPos += reasonLines.length * 5 + 5;
+      doc.setTextColor(71, 85, 105);
+      const reasonLines = doc.splitTextToSize(latestData.recommended_game.reason, contentWidth - 12);
+      doc.text(reasonLines, leftMargin + 5, yPos);
+      yPos += reasonLines.length * 4 + 5;
 
+      // Target symptom
       doc.setFont('helvetica', 'italic');
-      doc.setTextColor(100, 100, 100);
-      doc.text(`Target: ${latestData.recommended_game.target_symptom}`, 25, yPos);
-      yPos += 10;
+      doc.setTextColor(100, 116, 139);
+      doc.text(`Target: ${latestData.recommended_game.target_symptom}`, leftMargin + 5, yPos);
+      yPos += 15;
     }
 
-    // AI Analysis
+    // ========== AI CLINICAL ANALYSIS ==========
     if (ragAnalysis) {
-      if (yPos > pageHeight - 40) {
+      if (yPos > pageHeight - 50) {
         doc.addPage();
         yPos = 20;
       }
-      doc.setFontSize(16);
+      
+      doc.setFontSize(14);
       doc.setFont('helvetica', 'bold');
-      doc.setTextColor(59, 130, 246);
-      doc.text('AI Clinical Analysis', 20, yPos);
-      yPos += 10;
+      doc.setTextColor(30, 41, 59);
+      doc.text('AI CLINICAL ANALYSIS', leftMargin, yPos);
+      doc.setDrawColor(59, 130, 246);
+      doc.setLineWidth(1);
+      doc.line(leftMargin, yPos + 2, leftMargin + 55, yPos + 2);
+      yPos += 12;
 
-      doc.setFontSize(10);
+      // Analysis box
+      doc.setFillColor(248, 250, 252);
+      const analysisText = typeof ragAnalysis === 'string' ? ragAnalysis : ragAnalysis.insights || '';
+      const analysisLines = doc.splitTextToSize(analysisText, contentWidth - 8);
+      const analysisBoxHeight = analysisLines.length * 5 + 8;
+      doc.rect(leftMargin, yPos, contentWidth, analysisBoxHeight, 'F');
+      doc.setDrawColor(203, 213, 225);
+      doc.setLineWidth(0.3);
+      doc.rect(leftMargin, yPos, contentWidth, analysisBoxHeight, 'S');
+      
+      yPos += 6;
+      doc.setFontSize(8);
       doc.setFont('helvetica', 'normal');
-      doc.setTextColor(50, 50, 50);
-      const analysisLines = doc.splitTextToSize(ragAnalysis, pageWidth - 40);
-      doc.text(analysisLines, 20, yPos);
+      doc.setTextColor(71, 85, 105);
+      doc.text(analysisLines, leftMargin + 4, yPos);
+      yPos += analysisBoxHeight + 5;
     }
 
-    // Footer
-    doc.setFontSize(8);
+    // ========== MEDICATION LOG SECTION ==========
+    if (yPos > pageHeight - 60) {
+      doc.addPage();
+      yPos = 20;
+    }
+    
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(30, 41, 59);
+    doc.text('MEDICATION LOG', leftMargin, yPos);
+    doc.setDrawColor(59, 130, 246);
+    doc.setLineWidth(1);
+    doc.line(leftMargin, yPos + 2, leftMargin + 45, yPos + 2);
+    yPos += 12;
+
+    // Medication table
+    const medTableHeight = 40;
+    doc.setFillColor(248, 250, 252);
+    doc.rect(leftMargin, yPos, contentWidth, medTableHeight, 'F');
+    doc.setDrawColor(203, 213, 225);
+    doc.setLineWidth(0.3);
+    doc.rect(leftMargin, yPos, contentWidth, medTableHeight, 'S');
+    
+    // Table header
+    yPos += 6;
+    doc.setFillColor(241, 245, 249);
+    doc.rect(leftMargin + 2, yPos - 3, contentWidth - 4, 7, 'F');
+    
+    doc.setFontSize(7);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(71, 85, 105);
+    doc.text('MEDICATION', leftMargin + 4, yPos);
+    doc.text('DOSAGE', leftMargin + 70, yPos);
+    doc.text('TIME', leftMargin + 120, yPos);
+    
+    // Table rows (empty for manual entry)
+    yPos += 7;
+    doc.setDrawColor(226, 232, 240);
+    doc.setLineWidth(0.2);
+    for (let i = 0; i < 4; i++) {
+      doc.line(leftMargin + 2, yPos, rightMargin - 2, yPos);
+      yPos += 7;
+    }
+    
+    yPos += 10;
+
+    // ========== PROFESSIONAL FOOTER ==========
+    // Footer separator line
+    doc.setDrawColor(203, 213, 225);
+    doc.setLineWidth(0.5);
+    doc.line(leftMargin, pageHeight - 25, rightMargin, pageHeight - 25);
+    
+    // Footer content
+    doc.setFontSize(7);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(100, 116, 139);
+    doc.text('StanceSense - AI-Powered Parkinson\'s Monitoring System', leftMargin, pageHeight - 18);
+    doc.text(`Report ID: SS-${Date.now().toString().slice(-8)}`, leftMargin, pageHeight - 12);
+    
+    doc.text('Confidential Medical Document', rightMargin, pageHeight - 18, { align: 'right' });
+    doc.text(`Page 1 of ${doc.getNumberOfPages()}`, rightMargin, pageHeight - 12, { align: 'right' });
+    
+    // Disclaimer
+    doc.setFontSize(6);
     doc.setFont('helvetica', 'italic');
-    doc.setTextColor(150, 150, 150);
-    doc.text('Generated by StanceSense - AI-Powered Parkinson\'s Monitoring System', pageWidth / 2, pageHeight - 10, { align: 'center' });
+    doc.setTextColor(148, 163, 184);
+    const disclaimer = 'This report is generated by AI-assisted monitoring and should be reviewed by a qualified healthcare professional.';
+    doc.text(disclaimer, pageWidth / 2, pageHeight - 6, { align: 'center' });
 
     // Save PDF
-    const fileName = `StanceSense_Report_${new Date().toISOString().split('T')[0]}_${Date.now()}.pdf`;
+    const fileName = `StanceSense_Clinical_Report_${new Date().toISOString().split('T')[0]}_${Date.now().toString().slice(-6)}.pdf`;
     doc.save(fileName);
   };
 

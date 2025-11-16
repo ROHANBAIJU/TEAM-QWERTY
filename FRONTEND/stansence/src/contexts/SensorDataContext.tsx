@@ -9,6 +9,7 @@ interface SensorDataContextType {
   ragAnalysis: RAGAnalysis | null;
   isConnected: boolean;
   connectionStatus: 'connecting' | 'connected' | 'disconnected' | 'error';
+  hasPermanentError: boolean;
   reconnect: () => void;
 }
 
