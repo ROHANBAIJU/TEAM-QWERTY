@@ -32,6 +32,12 @@ export interface ProcessedData {
   };
   critical_event?: string;
   rehab_suggestion?: string;
+  care_recommendations?: string[];
+  recommended_game?: {
+    name: string;
+    reason: string;
+    target_symptom: string;
+  };
 }
 
 export interface Alert {
@@ -96,6 +102,9 @@ export function useWebSocket(url?: string): UseWebSocketReturn {
   const baseReconnectDelay = 1000; // Start with 1 second
   const lastUpdateRef = useRef<number>(0);
   const updateThrottleMs = 500; // Reduced from 2000ms to 500ms for more responsive updates
+  const lastDataReceivedRef = useRef<number>(0);
+  const dataTimeoutMs = 10000; // 10 second timeout
+  const [hasReceivedData, setHasReceivedData] = useState(false);
 
   useEffect(() => {
     const connect = () => {
@@ -119,6 +128,8 @@ export function useWebSocket(url?: string): UseWebSocketReturn {
           try {
             const message: WebSocketMessage = JSON.parse(event.data);
             const now = Date.now();
+            lastDataReceivedRef.current = now;
+            setHasReceivedData(true);
             
             if (message.type === 'processed_data') {
               // Throttle updates to prevent overwhelming React with re-renders
@@ -179,7 +190,20 @@ export function useWebSocket(url?: string): UseWebSocketReturn {
 
     connect();
 
+    // Monitor for data timeout
+    const timeoutInterval = setInterval(() => {
+      if (isConnected && hasReceivedData) {
+        const timeSinceLastData = Date.now() - lastDataReceivedRef.current;
+        if (timeSinceLastData > dataTimeoutMs) {
+          console.warn('⚠️ No data received for 10 seconds - backend may be disconnected');
+          // Don't change status to error if we're still connected to WebSocket
+          // Only warn in console
+        }
+      }
+    }, 2000); // Check every 2 seconds
+
     return () => {
+      clearInterval(timeoutInterval);
       if (reconnectTimeoutRef.current) {
         clearTimeout(reconnectTimeoutRef.current);
       }
@@ -187,7 +211,7 @@ export function useWebSocket(url?: string): UseWebSocketReturn {
         wsRef.current.close();
       }
     };
-  }, [wsUrl]);
+  }, [wsUrl, isConnected, hasReceivedData]);
 
   const reconnect = useCallback(() => {
     if (wsRef.current) {

@@ -17,6 +17,7 @@ import firebase_admin
 from firebase_admin import auth as fb_auth
 from ..services.ai_processor import process_data_with_ai
 from ..services.rag_agent import generate_contextual_alert
+from ..services.care_recommendations import generate_care_recommendations
 from ..comms.manager import frontend_manager
 from ..models.schemas import ProcessedData, Alert as AlertModel, DeviceData
 import logging
@@ -190,11 +191,24 @@ async def ingest_data(body: dict, background_tasks: BackgroundTasks, authorizati
 			elif processed.analysis.is_tremor_confirmed:
 				print("⚠️  [AI] WARNING: Tremor confirmed")
 
+			# Generate care recommendations and game suggestions
+			try:
+				care_data = generate_care_recommendations(processed)
+				# Add to processed data
+				processed_dict = processed.model_dump()
+				processed_dict['care_recommendations'] = care_data['care_recommendations']
+				processed_dict['recommended_game'] = care_data['recommended_game']
+				print(f"💡 [Care] Generated {len(care_data['care_recommendations'])} recommendations")
+				print(f"🎮 [Care] Recommended game: {care_data['recommended_game']['name']}")
+			except Exception as e:
+				print(f"❌ [Care] Error generating recommendations: {e}")
+				processed_dict = processed.model_dump()
+
 			# ALWAYS broadcast processed data first (so frontend gets scores)
 			try:
 				message = {
 					"type": "processed_data",
-					"data": processed.model_dump()
+					"data": processed_dict
 				}
 				import json
 				await frontend_manager.broadcast(json.dumps(message))

@@ -100,11 +100,22 @@ def _process_rigidity(rigidity_data) -> float:
     except Exception as e:
         logger.warning("Rigidity model inference failed: %s", e)
 
-    # Fallback heuristic
-    if wrist > TENSE_THRESHOLD and arm > TENSE_THRESHOLD:
-        score = min(1.0, ((wrist + arm) / 2.0) / 10.0)
-        return float(score)
-    return 0.0
+    # Improved fallback heuristic with proper EMG scaling
+    # Typical resting EMG: 5-20 µV
+    # Moderate tension: 30-60 µV
+    # High tension: 100+ µV
+    avg_emg = (wrist + arm) / 2.0
+    
+    if avg_emg < 30:
+        score = 0.0  # Resting state, no rigidity
+    elif avg_emg < 60:
+        score = (avg_emg - 30) / 30.0 * 0.4  # Mild rigidity (0-40%)
+    elif avg_emg < 100:
+        score = 0.4 + (avg_emg - 60) / 40.0 * 0.3  # Moderate rigidity (40-70%)
+    else:
+        score = min(1.0, 0.7 + (avg_emg - 100) / 100.0 * 0.3)  # Severe rigidity (70-100%)
+    
+    return float(score)
 
 
 def _process_slowness(safety_data) -> float:
@@ -112,10 +123,25 @@ def _process_slowness(safety_data) -> float:
     try:
         ax = float(getattr(safety_data, "accel_x_g", 0.0))
         ay = float(getattr(safety_data, "accel_y_g", 0.0))
+        az = float(getattr(safety_data, "accel_z_g", 0.0))
     except Exception:
         return 0.0
-    mag = math.sqrt(ax * ax + ay * ay)
-    score = 1.0 - min(1.0, mag / 1.5)
+    
+    # Calculate total movement magnitude
+    mag = math.sqrt(ax * ax + ay * ay + az * az)
+    
+    # Normalize: Higher movement = lower slowness
+    # Typical range for active movement: 0.5-3.0g
+    # Scale so that movement > 1.0g results in low slowness
+    if mag > 2.0:
+        score = 0.0  # High movement = no slowness
+    elif mag > 1.0:
+        score = 0.3  # Moderate movement = slight slowness
+    elif mag > 0.5:
+        score = 0.6  # Low movement = moderate slowness
+    else:
+        score = 0.9  # Very low movement = high slowness
+    
     return float(score)
 
 

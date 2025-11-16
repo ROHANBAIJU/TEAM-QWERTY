@@ -314,6 +314,20 @@ export default function Analytics() {
       padding: '24px',
       fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
     }}>
+      <style>{`
+        @keyframes pulse {
+          0%, 100% { opacity: 1; transform: scale(1); }
+          50% { opacity: 0.7; transform: scale(1.1); }
+        }
+        @keyframes shimmer {
+          0% { background-position: -1000px 0; }
+          100% { background-position: 1000px 0; }
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
       {/* Header */}
       <div style={{
         display: 'flex',
@@ -345,19 +359,22 @@ export default function Analytics() {
             alignItems: 'center',
             gap: '8px',
             padding: '10px 16px',
-            background: isConnected ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+            background: isConnected ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)',
             borderRadius: '12px',
             border: `1px solid ${isConnected ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`,
+            boxShadow: isConnected ? '0 0 20px rgba(16, 185, 129, 0.2)' : 'none',
+            transition: 'all 0.3s ease'
           }}>
             <div style={{
-              width: '8px',
-              height: '8px',
+              width: '10px',
+              height: '10px',
               borderRadius: '50%',
               background: isConnected ? '#10b981' : '#ef4444',
-              animation: isConnected ? 'pulse 2s infinite' : 'none'
+              animation: isConnected ? 'pulse 2s infinite' : 'none',
+              boxShadow: isConnected ? '0 0 10px rgba(16, 185, 129, 0.5)' : 'none'
             }} />
             <span style={{ fontSize: '13px', fontWeight: '600', color: isConnected ? '#10b981' : '#ef4444' }}>
-              {isConnected ? 'Live' : 'Offline'}
+              {isConnected ? '● Live' : '○ Offline'}
             </span>
           </div>
 
@@ -647,6 +664,90 @@ export default function Analytics() {
       )}
 
       {/* Live Real-time Sensor Cards Grid */}
+      {/* Backend Disconnected Warning - Show when no data after connection attempt */}
+      {!latestData && !isConnected && (
+        <div style={{
+          background: 'rgba(239, 68, 68, 0.1)',
+          backdropFilter: 'blur(10px)',
+          borderRadius: '20px',
+          padding: '32px',
+          border: '2px solid rgba(239, 68, 68, 0.5)',
+          marginBottom: '24px',
+          textAlign: 'center'
+        }}>
+          <div style={{ fontSize: '48px', marginBottom: '16px' }}>⚠️</div>
+          <h3 style={{
+            fontSize: '24px',
+            fontWeight: '700',
+            color: '#ef4444',
+            marginBottom: '12px'
+          }}>
+            Backend Not Connected
+          </h3>
+          <p style={{
+            fontSize: '14px',
+            color: '#fca5a5',
+            marginBottom: '20px'
+          }}>
+            Unable to receive data from the backend server. Please ensure the FastAPI server is running on port 8000.
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            style={{
+              padding: '12px 24px',
+              background: '#ef4444',
+              border: 'none',
+              borderRadius: '8px',
+              color: 'white',
+              fontSize: '14px',
+              fontWeight: '700',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = '#dc2626';
+              e.currentTarget.style.transform = 'translateY(-2px)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = '#ef4444';
+              e.currentTarget.style.transform = 'translateY(0)';
+            }}
+          >
+            Retry Connection
+          </button>
+        </div>
+      )}
+      
+      {/* Loading skeleton - Only show briefly when connecting */}
+      {!latestData && isConnected && connectionStatus === 'connecting' && (
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+          gap: '24px',
+          marginBottom: '24px',
+          animation: 'fadeIn 0.5s ease'
+        }}>
+          {[1, 2, 3].map((i) => (
+            <div key={i} style={{
+              background: 'rgba(255, 255, 255, 0.05)',
+              backdropFilter: 'blur(10px)',
+              borderRadius: '20px',
+              padding: '24px',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              height: '180px'
+            }}>
+              <div style={{
+                width: '100%',
+                height: '100%',
+                background: 'linear-gradient(90deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.05) 100%)',
+                backgroundSize: '1000px 100%',
+                animation: 'shimmer 2s infinite',
+                borderRadius: '12px'
+              }} />
+            </div>
+          ))}
+        </div>
+      )}
       {latestData && (
         <div style={{
           display: 'grid',
@@ -662,11 +763,32 @@ export default function Analytics() {
             padding: '24px',
             border: '1px solid rgba(255, 255, 255, 0.1)',
             boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
-            transition: 'transform 0.2s ease',
+            transition: 'all 0.3s ease',
+            animation: 'fadeIn 0.5s ease',
+            position: 'relative',
+            overflow: 'hidden'
           }}
-          onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-4px)'}
-          onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'translateY(-8px) scale(1.02)';
+            e.currentTarget.style.boxShadow = '0 12px 40px rgba(0, 0, 0, 0.4)';
+            e.currentTarget.style.borderColor = getSeverityColor((latestData.scores?.tremor || 0) * 100) + '40';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'translateY(0) scale(1)';
+            e.currentTarget.style.boxShadow = '0 8px 32px rgba(0, 0, 0, 0.3)';
+            e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+          }}
           >
+            {/* Glow effect */}
+            <div style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              height: '4px',
+              background: `linear-gradient(90deg, transparent, ${getSeverityColor((latestData.scores?.tremor || 0) * 100)}, transparent)`,
+              opacity: 0.5
+            }} />
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
               <div>
                 <div style={{ fontSize: '13px', color: '#94a3b8', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Tremor</div>
@@ -711,11 +833,31 @@ export default function Analytics() {
             padding: '24px',
             border: '1px solid rgba(255, 255, 255, 0.1)',
             boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
-            transition: 'transform 0.2s ease',
+            transition: 'all 0.3s ease',
+            animation: 'fadeIn 0.6s ease',
+            position: 'relative',
+            overflow: 'hidden'
           }}
-          onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-4px)'}
-          onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'translateY(-8px) scale(1.02)';
+            e.currentTarget.style.boxShadow = '0 12px 40px rgba(0, 0, 0, 0.4)';
+            e.currentTarget.style.borderColor = getSeverityColor((latestData.scores?.rigidity || 0) * 100) + '40';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'translateY(0) scale(1)';
+            e.currentTarget.style.boxShadow = '0 8px 32px rgba(0, 0, 0, 0.3)';
+            e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+          }}
           >
+            <div style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              height: '4px',
+              background: `linear-gradient(90deg, transparent, ${getSeverityColor((latestData.scores?.rigidity || 0) * 100)}, transparent)`,
+              opacity: 0.5
+            }} />
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
               <div>
                 <div style={{ fontSize: '13px', color: '#94a3b8', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Rigidity</div>
@@ -760,11 +902,31 @@ export default function Analytics() {
             padding: '24px',
             border: '1px solid rgba(255, 255, 255, 0.1)',
             boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
-            transition: 'transform 0.2s ease',
+            transition: 'all 0.3s ease',
+            animation: 'fadeIn 0.7s ease',
+            position: 'relative',
+            overflow: 'hidden'
           }}
-          onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-4px)'}
-          onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'translateY(-8px) scale(1.02)';
+            e.currentTarget.style.boxShadow = '0 12px 40px rgba(0, 0, 0, 0.4)';
+            e.currentTarget.style.borderColor = getSeverityColor(100 - (latestData.analysis?.gait_stability_score || 0)) + '40';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'translateY(0) scale(1)';
+            e.currentTarget.style.boxShadow = '0 8px 32px rgba(0, 0, 0, 0.3)';
+            e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+          }}
           >
+            <div style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              height: '4px',
+              background: `linear-gradient(90deg, transparent, ${getSeverityColor(100 - (latestData.analysis?.gait_stability_score || 0))}, transparent)`,
+              opacity: 0.5
+            }} />
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
               <div>
                 <div style={{ fontSize: '13px', color: '#94a3b8', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Gait Stability</div>
@@ -810,7 +972,7 @@ export default function Analytics() {
         gap: '24px',
         marginBottom: '24px'
       }}>
-        {/* Live Chart Section - SMALLER */}
+        {/* Live Chart Section - ENHANCED */}
         <div style={{
           background: 'rgba(255, 255, 255, 0.05)',
           backdropFilter: 'blur(10px)',
@@ -818,10 +980,24 @@ export default function Analytics() {
           padding: '24px',
           border: '1px solid rgba(255, 255, 255, 0.1)',
           boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+          animation: 'fadeIn 0.5s ease',
+          position: 'relative',
+          overflow: 'hidden'
         }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-            <h2 style={{ fontSize: '18px', fontWeight: '700', color: '#ffffff' }}>
-              Live Symptom Monitoring
+          {/* Animated gradient background */}
+          <div style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'radial-gradient(circle at 50% 0%, rgba(59, 130, 246, 0.1) 0%, transparent 50%)',
+            pointerEvents: 'none'
+          }} />
+          
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', position: 'relative', zIndex: 1 }}>
+            <h2 style={{ fontSize: '18px', fontWeight: '700', color: '#ffffff', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              📊 Live Symptom Monitoring
             </h2>
             <div style={{
               padding: '6px 12px',
@@ -830,9 +1006,12 @@ export default function Analytics() {
               fontSize: '11px',
               fontWeight: '700',
               color: '#ef4444',
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em',
               display: 'flex',
               alignItems: 'center',
-              gap: '6px'
+              gap: '6px',
+              border: '1px solid rgba(239, 68, 68, 0.3)'
             }}>
               <div style={{
                 width: '6px',
@@ -844,15 +1023,284 @@ export default function Analytics() {
               LIVE
             </div>
           </div>
-          <div style={{ height: '300px', position: 'relative' }}>
-            <canvas id="liveChart"></canvas>
+          
+          <div style={{ position: 'relative', zIndex: 1, height: '280px' }}>
+            <canvas 
+              id="liveChart"
+              style={{ 
+                width: '100%', 
+                height: '100%',
+                borderRadius: '12px'
+              }}
+            />
+            {!latestData && (
+              <div style={{
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                textAlign: 'center',
+                color: '#64748b'
+              }}>
+                <div style={{ fontSize: '32px', marginBottom: '12px' }}>📡</div>
+                <div style={{ fontSize: '14px', fontWeight: '600' }}>Waiting for live data...</div>
+              </div>
+            )}
           </div>
-          <div style={{ marginTop: '12px', fontSize: '11px', color: '#94a3b8', textAlign: 'center' }}>
-            Last 20 data points • Updates every 3s
+          
+          <div style={{ 
+            fontSize: '11px', 
+            color: '#64748b', 
+            marginTop: '12px', 
+            textAlign: 'center',
+            position: 'relative',
+            zIndex: 1
+          }}>
+            Last 20 data points • Updates every 2s
           </div>
         </div>
 
-        {/* Overall Score Card - SAME SIZE */}
+        {/* Overall Score Card - ENHANCED */}
+        <div style={{
+          background: 'rgba(255, 255, 255, 0.05)',
+          backdropFilter: 'blur(10px)',
+          borderRadius: '20px',
+          padding: '32px',
+          border: '1px solid rgba(255, 255, 255, 0.1)',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+          position: 'relative',
+          overflow: 'hidden',
+          animation: 'fadeIn 0.5s ease'
+        }}>
+          {/* Radial gradient background */}
+          <div style={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: '300px',
+            height: '300px',
+            background: `radial-gradient(circle, ${progressionStage.color}20 0%, transparent 70%)`,
+            pointerEvents: 'none'
+          }} />
+
+          <h2 style={{ 
+            fontSize: '16px', 
+            fontWeight: '700', 
+            color: '#94a3b8', 
+            marginBottom: '32px',
+            textTransform: 'uppercase',
+            letterSpacing: '0.1em',
+            position: 'relative',
+            zIndex: 1
+          }}>
+            OVERALL SYMPTOM SEVERITY
+          </h2>
+
+          <div style={{ 
+            position: 'relative', 
+            width: '220px', 
+            height: '220px',
+            marginBottom: '24px',
+            zIndex: 1
+          }}>
+            {/* Outer ring */}
+            <svg style={{ 
+              position: 'absolute', 
+              top: 0, 
+              left: 0, 
+              transform: 'rotate(-90deg)',
+              filter: 'drop-shadow(0 0 20px ' + progressionStage.color + '40)'
+            }} width="220" height="220">
+              <circle 
+                cx="110" 
+                cy="110" 
+                r="100" 
+                fill="none" 
+                stroke="rgba(255,255,255,0.1)" 
+                strokeWidth="12"
+              />
+              <circle 
+                cx="110" 
+                cy="110" 
+                r="100" 
+                fill="none" 
+                stroke={progressionStage.color} 
+                strokeWidth="12"
+                strokeDasharray={`${overallScore * 6.28} 628`}
+                strokeLinecap="round"
+                style={{ 
+                  transition: 'stroke-dasharray 0.5s ease',
+                  animation: 'fadeIn 1s ease'
+                }}
+              />
+            </svg>
+
+            {/* Center content */}
+            <div style={{
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              textAlign: 'center'
+            }}>
+              <div style={{ 
+                fontSize: '64px', 
+                fontWeight: '900', 
+                color: progressionStage.color,
+                lineHeight: '1',
+                marginBottom: '8px',
+                textShadow: `0 0 30px ${progressionStage.color}40`
+              }}>
+                {overallScore}%
+              </div>
+              <div style={{ 
+                fontSize: '14px', 
+                fontWeight: '700', 
+                color: progressionStage.color,
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em'
+              }}>
+                {progressionStage.label}
+              </div>
+            </div>
+          </div>
+
+          {/* Care Recommendations */}
+          {latestData?.care_recommendations && latestData.care_recommendations.length > 0 && (
+            <div style={{ marginBottom: '24px' }}>
+              <h3 style={{
+                fontSize: '14px',
+                fontWeight: '700',
+                color: '#10b981',
+                marginBottom: '12px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}>
+                <span>💡</span> PERSONALIZED CARE TIPS
+              </h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {latestData.care_recommendations.map((rec: string, idx: number) => (
+                  <div key={idx} style={{
+                    fontSize: '13px',
+                    color: '#e2e8f0',
+                    padding: '10px 12px',
+                    background: 'rgba(16, 185, 129, 0.1)',
+                    borderRadius: '8px',
+                    borderLeft: '3px solid #10b981'
+                  }}>
+                    {rec}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Game Recommendation */}
+          {latestData?.recommended_game && (
+            <div style={{
+              padding: '20px',
+              background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(59, 130, 246, 0.2))',
+              borderRadius: '12px',
+              border: '2px solid rgba(139, 92, 246, 0.5)',
+              position: 'relative',
+              overflow: 'hidden'
+            }}>
+              <div style={{
+                position: 'absolute',
+                top: 0,
+                right: 0,
+                fontSize: '64px',
+                opacity: 0.1
+              }}>🎮</div>
+              
+              <h3 style={{
+                fontSize: '14px',
+                fontWeight: '700',
+                color: '#a78bfa',
+                marginBottom: '8px',
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em'
+              }}>
+                🎯 RECOMMENDED THERAPY GAME
+              </h3>
+              
+              <div style={{
+                fontSize: '18px',
+                fontWeight: '700',
+                color: '#e2e8f0',
+                marginBottom: '8px'
+              }}>
+                {latestData.recommended_game.name}
+              </div>
+              
+              <div style={{
+                fontSize: '13px',
+                color: '#cbd5e1',
+                marginBottom: '12px',
+                lineHeight: '1.5'
+              }}>
+                {latestData.recommended_game.reason}
+              </div>
+              
+              <div style={{
+                display: 'inline-block',
+                padding: '6px 12px',
+                background: 'rgba(139, 92, 246, 0.3)',
+                borderRadius: '6px',
+                fontSize: '11px',
+                fontWeight: '600',
+                color: '#c4b5fd',
+                marginBottom: '12px'
+              }}>
+                Target: {latestData.recommended_game.target_symptom.toUpperCase()}
+              </div>
+              
+              <button
+                onClick={() => window.location.href = '/games.html'}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  background: 'linear-gradient(135deg, #8b5cf6, #3b82f6)',
+                  border: 'none',
+                  borderRadius: '8px',
+                  color: 'white',
+                  fontSize: '14px',
+                  fontWeight: '700',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.05em'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 8px 24px rgba(139, 92, 246, 0.4)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
+              >
+                🎮 Play Now
+              </button>
+            </div>
+          )}
+
+          <div style={{ 
+            fontSize: '13px', 
+            color: '#94a3b8', 
+            textAlign: 'center',
+            marginTop: '20px'
+          }}>
+            Based on current sensor data and AI analysis
+          </div>
+        </div>
+
         <div style={{
           background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(59, 130, 246, 0.1) 100%)',
           backdropFilter: 'blur(10px)',
