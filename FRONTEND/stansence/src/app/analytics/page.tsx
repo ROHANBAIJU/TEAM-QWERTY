@@ -1262,7 +1262,7 @@ export default function Analytics() {
               </div>
               
               <button
-                onClick={() => window.location.href = '/games.html'}
+                onClick={() => window.location.href = '/games'}
                 style={{
                   width: '100%',
                   padding: '12px',

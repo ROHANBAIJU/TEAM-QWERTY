@@ -8,41 +8,41 @@ logger = logging.getLogger(__name__)
 # Game recommendations based on symptoms
 GAME_RECOMMENDATIONS = {
     "tremor_focus": {
-        "name": "EMG Strength Dial",
-        "reason": "Practice steady muscle control to reduce tremor amplitude through biofeedback training",
+        "name": "Steady Hand Game",
+        "reason": "Practice steady muscle control to reduce tremor amplitude through hand coordination training",
         "target_symptom": "tremor",
         "difficulty": "moderate",
         "benefits": [
-            "Real-time muscle control feedback",
-            "Strengthens hand steadiness",
-            "Builds motor control confidence"
+            "Real-time hand steadiness feedback",
+            "Strengthens fine motor control",
+            "Builds tremor management confidence"
         ]
     },
     "rigidity_focus": {
-        "name": "Range of Motion Challenge",
-        "reason": "Gentle exercises to improve muscle flexibility and reduce stiffness",
+        "name": "EMG Strength Dial",
+        "reason": "Use muscle control biofeedback to improve flexibility and reduce stiffness",
         "target_symptom": "rigidity",
-        "difficulty": "easy",
+        "difficulty": "moderate",
         "benefits": [
-            "Reduces muscle tension",
-            "Improves joint mobility",
-            "Prevents contractures"
+            "Real-time EMG muscle control feedback",
+            "Reduces muscle tension through active control",
+            "Prevents contractures and improves mobility"
         ]
     },
     "gait_focus": {
-        "name": "Balance Training Game",
-        "reason": "Interactive balance exercises to improve stability and prevent falls",
+        "name": "Rhythm Walker Game",
+        "reason": "Interactive rhythm-based exercises to improve gait stability and prevent falls",
         "target_symptom": "gait",
         "difficulty": "moderate",
         "benefits": [
-            "Enhances postural control",
-            "Reduces fall risk",
-            "Builds confidence in movement"
+            "Enhances postural control and balance",
+            "Reduces fall risk through rhythm training",
+            "Builds confidence in movement patterns"
         ]
     },
     "general_wellness": {
-        "name": "Memory & Coordination Game",
-        "reason": "Maintain cognitive function and motor coordination through engaging activities",
+        "name": "Steady Hand Game",
+        "reason": "Maintain fine motor coordination and cognitive function through engaging activities",
         "target_symptom": "general",
         "difficulty": "easy",
         "benefits": [
