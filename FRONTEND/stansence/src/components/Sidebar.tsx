@@ -11,7 +11,6 @@ export default function Sidebar() {
   const { logout } = useAuth();
 
   const menuItems = [
-    { href: '/', icon: '/icons/dashboard.svg', text: 'Dashboard', tab: 'dashboard' },
     { href: '/analytics', icon: '/icons/analytics.svg', text: 'Analytics', tab: 'analytics' },
     { href: '/games', icon: '/icons/games.svg', text: 'Games', tab: 'games' },
     { href: '/rewards-hub', icon: '🎁', text: 'Rewards', tab: 'rewards' },
@@ -64,7 +63,7 @@ export default function Sidebar() {
           <Link
             key={item.href}
             href={item.href}
-            className={`menu-item ${pathname === item.href ? 'active' : ''}`}
+            className={`menu-item ${pathname === item.href || (pathname === '/' && item.href === '/analytics') ? 'active' : ''}`}
           >
             <span className="menu-icon">
               {(item.icon.endsWith('.svg') || item.icon.endsWith('.png')) ? (
