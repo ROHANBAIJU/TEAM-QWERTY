@@ -36,21 +36,28 @@ def initialize_firestore():
     try:
         # Initialize firebase_admin if not already
         if not firebase_admin._apps:
-            cred_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS", settings.GOOGLE_APPLICATION_CREDENTIALS)
-            if cred_path and os.path.exists(cred_path):
+            # Use absolute path to the new service account key
+            base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+            cred_path = os.path.join(base_dir, "stance-sense-qwerty-firebase-adminsdk-fbsvc-ec07a3108e.json")
+            
+            logger.info(f"🔑 Looking for Firebase credentials at: {cred_path}")
+            
+            if os.path.exists(cred_path):
                 cred = credentials.Certificate(cred_path)
                 firebase_admin.initialize_app(cred)
-                logger.info("Initialized firebase_admin with certificate.")
+                logger.info("✅ Initialized firebase_admin with certificate.")
             else:
-                # Try default application credentials
-                firebase_admin.initialize_app()
-                logger.info("Initialized firebase_admin with default credentials.")
+                logger.error(f"❌ Firebase credentials file not found at: {cred_path}")
+                logger.warning("🎮 Running in DEMO MODE without Firestore")
+                _db = None
+                return
 
         # Create Firestore client
         _db = firestore.Client()
-        logger.info("Firestore DB client initialized successfully (startup).")
+        logger.info("✅ Firestore DB client initialized successfully (startup).")
     except Exception as e:
-        logger.error(f"Failed to initialize Firestore during startup: {e}")
+        logger.error(f"❌ Failed to initialize Firestore during startup: {e}")
+        logger.warning("🎮 Running in DEMO MODE without Firestore")
         _db = None
 
 def get_firestore_db():

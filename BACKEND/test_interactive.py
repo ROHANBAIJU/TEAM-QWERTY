@@ -17,6 +17,7 @@ except (AttributeError, ImportError):
 # Configuration
 NODE_WS_URL = "ws://localhost:8080"
 
+# HARDWARE SIMULATION - Matches exact format from Arduino/ESP32
 # Test Scenarios
 SCENARIOS = {
     "1": {
@@ -208,14 +209,15 @@ class TestRunner:
         print(f"🚀 STARTING TEST: {scenario['name']}")
         print(f"📝 {scenario['description']}")
         print("="*70)
-        print("\n⏱️  Duration: 60 seconds")
-        print("📦 Frequency: 1 packet every 5 seconds (12 packets total)")
+        print("\n⏱️  Duration: 30 seconds (Demo Mode)")
+        print("📦 Frequency: 1 packet every 2 seconds (15 packets total)")
+        print("🎯 Simulating real hardware behavior")
         print("\nPress Ctrl+C to stop early...\n")
         
         self.packets_sent = 0
         start_time = time.time()
-        duration = 60  # seconds
-        interval = 5   # seconds
+        duration = 30  # seconds - shorter for demo
+        interval = 2   # seconds - matches hardware
         
         try:
             while time.time() - start_time < duration:
@@ -230,7 +232,7 @@ class TestRunner:
                     if not self.connect():
                         break
                 
-                # Wait 5 seconds before next packet
+                # Wait 2 seconds before next packet (hardware timing)
                 time.sleep(interval)
             
             print(f"\n✅ Test completed! Sent {self.packets_sent} packets")
@@ -258,8 +260,13 @@ def show_menu():
 
 def main():
     """Main program loop"""
-    print("\n🏥 StanceSense Interactive Test Script")
-    print("Tests WebSocket connection to Node.js server at localhost:8080\n")
+    print("\n" + "="*70)
+    print("🏥 STANCESENSE HARDWARE SIMULATOR - DEMO MODE")
+    print("="*70)
+    print("\n📡 Simulates Arduino/ESP32 wearable device")
+    print("🔌 Connects to Node.js server at localhost:8080")
+    print("⏱️  Sends data every 2 seconds (real hardware timing)")
+    print("🎯 Shows AI/RAG detection in FastAPI logs\n")
     
     runner = TestRunner()
     

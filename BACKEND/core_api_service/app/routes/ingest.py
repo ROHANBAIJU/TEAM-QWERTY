@@ -74,7 +74,9 @@ def _normalize_packet(raw: dict) -> dict:
 
 @router.post("/data", status_code=202)
 async def ingest_data(body: dict, background_tasks: BackgroundTasks, authorization: str | None = Header(default=None)):
-	logger.info("ENTER POST /ingest/data called")
+	print("\n" + "="*70)
+	print("🔬 [FastAPI] DATA INGESTION STARTED")
+	print("="*70)
 
 	# Authenticate request via Firebase ID token in Authorization header
 	uid = None
@@ -90,12 +92,12 @@ async def ingest_data(body: dict, background_tasks: BackgroundTasks, authorizati
 		# SIMULATOR MODE BYPASS: For testing without real Firebase users
 		if id_token == "simulator_test_token" or id_token == "simulator_mode_bypass":
 			uid = "simulator_user_test_123"  # Test user ID
-			logger.warning("🎮 SIMULATOR MODE: Using test user ID: %s", uid)
+			print(f"🎮 [FastAPI] DEMO MODE - User: {uid}")
 		else:
 			# Normal Firebase authentication
 			decoded = fb_auth.verify_id_token(id_token)
 			uid = decoded.get("uid")
-			logger.info("Authenticated ingest request for uid: %s", uid)
+			print(f"🔐 [FastAPI] Authenticated user: {uid}")
 	except Exception as e:
 		raise HTTPException(status_code=401, detail=f"Invalid token: {e}")
 
@@ -105,9 +107,11 @@ async def ingest_data(body: dict, background_tasks: BackgroundTasks, authorizati
 	# Validate using pydantic
 	try:
 		data = DeviceData(**packet)
+		print("✅ [FastAPI] Packet validated successfully")
+		print(f"📊 [FastAPI] Data: Tremor={data.tremor.amplitude_g}g, Rigidity={data.rigidity.emg_wrist}, Fall={data.safety.fall_detected}")
 	except Exception as e:
-		logger.error("❌ VALIDATION ERROR: %s", str(e))
-		logger.error("📦 Received packet: %s", packet)
+		print(f"❌ [FastAPI] VALIDATION ERROR: {str(e)}")
+		print(f"📦 [FastAPI] Received packet: {packet}")
 		raise HTTPException(status_code=400, detail=f"Invalid payload: {e}")
 
 	# Save raw packet to Firestore
@@ -120,18 +124,42 @@ async def ingest_data(body: dict, background_tasks: BackgroundTasks, authorizati
 			doc_ref = db.collection("artifacts").document("stancesense").collection("users").document(uid).collection("sensor_data").document(doc_id)
 			doc_ref.set(data.model_dump())
 			saved = True
-			logger.info("Saved raw packet to Firestore for user %s with id %s", uid, doc_id)
+			print(f"💾 [FastAPI] Saved to Firestore: {doc_id}")
 		except Exception as e:
-			logger.error("Error saving to Firestore: %s", e)
+			print(f"❌ [FastAPI] Firestore error: {e}")
 	else:
-		logger.warning("Firestore not available or uid missing; skipping save")
+		if not db:
+			print("⚠️  [FastAPI] Firestore not initialized - data processed in-memory only")
+		saved = False
 
 	# Enqueue AI processing in background (async-safe)
 	async def _process_and_save_async():
 		try:
+			print("\n🤖 [AI] Starting AI processing...")
 			# Run AI processing (async). process_data_with_ai is async, so await it directly.
 			processed: ProcessedData = await process_data_with_ai(data)
-			logger.info("AI processing complete for %s", doc_id)
+			print("="*70)
+			print("🧠 [AI] ANALYSIS COMPLETE")
+			print("="*70)
+			
+			# Access scores safely
+			scores = processed.scores if hasattr(processed, 'scores') else processed.get('scores', {})
+			analysis = processed.analysis if hasattr(processed, 'analysis') else processed.get('analysis', {})
+			
+			print(f"🫨 Tremor Score: {scores.get('tremor', 0):.3f}")
+			print(f"🔒 Rigidity Score: {scores.get('rigidity', 0):.3f}")
+			print(f"🚶 Gait Score: {scores.get('gait', 0):.3f}")
+			print(f"🐌 Slowness Score: {scores.get('slowness', 0):.3f}")
+			
+			if hasattr(analysis, 'is_tremor_confirmed'):
+				print(f"✅ Tremor Confirmed: {analysis.is_tremor_confirmed}")
+				print(f"✅ Rigid Detected: {analysis.is_rigid}")
+				print(f"⚖️  Gait Stability: {analysis.gait_stability_score:.2f}")
+			else:
+				print(f"✅ Tremor Confirmed: {analysis.get('is_tremor_confirmed', False)}")
+				print(f"✅ Rigid Detected: {analysis.get('is_rigid', False)}")
+				print(f"⚖️  Gait Stability: {analysis.get('gait_stability_score', 0):.2f}")
+			print("="*70)
 
 			# Persist processed data to Firestore via helper
 			db = get_firestore_db()
@@ -141,19 +169,24 @@ async def ingest_data(body: dict, background_tasks: BackgroundTasks, authorizati
 					# Also write to processed_data collection for historical records
 					proc_ref = db.collection("artifacts").document("stancesense").collection("users").document(uid).collection("processed_data").document(doc_id)
 					await asyncio.to_thread(proc_ref.set, processed.model_dump())
-					logger.info("Saved processed data for %s", doc_id)
+					print(f"💾 [AI] Saved processed data: {doc_id}")
 				except Exception as e:
-					logger.error("Error saving processed data: %s", e)
+					print(f"❌ [AI] Error saving processed data: {e}")
 
 			# Determine critical events
 			critical_event = None
 			if processed.safety.fall_detected:
 				critical_event = "fall"
+				print("🚨 [AI] CRITICAL: FALL DETECTED!")
 			elif processed.analysis.is_rigid:
 				critical_event = "rigidity_spike"
+				print("⚠️  [AI] WARNING: High rigidity detected")
+			elif processed.analysis.is_tremor_confirmed:
+				print("⚠️  [AI] WARNING: Tremor confirmed")
 
 			if critical_event:
 				try:
+					print(f"🎯 [RAG] Generating contextual alert for: {critical_event}")
 					# Check user consent for external AI before calling RAG
 					consent_flag = False
 					try:
@@ -166,6 +199,12 @@ async def ingest_data(body: dict, background_tasks: BackgroundTasks, authorizati
 
 					# Generate alert via RAG (async) — pass consent flag
 					alert_text = await generate_contextual_alert(processed, critical_event, consent=consent_flag)
+					print("="*70)
+					print("🎯 [RAG] ALERT GENERATED")
+					print("="*70)
+					print(f"📝 Message: {alert_text}")
+					print("="*70)
+					
 					alert_doc = AlertModel(
 						timestamp=processed.timestamp,
 						event_type=critical_event,
@@ -177,9 +216,9 @@ async def ingest_data(body: dict, background_tasks: BackgroundTasks, authorizati
 					if db and uid:
 						try:
 							await save_alert(db, "stancesense", uid, alert_doc)
-							logger.info("Saved alert for %s event %s", doc_id, critical_event)
+							print(f"💾 [RAG] Alert saved to Firestore")
 						except Exception as e:
-							logger.error("Error saving alert: %s", e)
+							print(f"❌ [RAG] Error saving alert: {e}")
 
 					# Broadcast alert to frontend with type wrapper
 					try:
@@ -189,10 +228,11 @@ async def ingest_data(body: dict, background_tasks: BackgroundTasks, authorizati
 						}
 						import json
 						await frontend_manager.broadcast(json.dumps(message))
+						print("📡 [RAG] Alert broadcasted to frontend")
 					except Exception as e:
-						logger.error("Error broadcasting alert: %s", e)
+						print(f"❌ [RAG] Error broadcasting alert: {e}")
 				except Exception as e:
-					logger.error("Error generating contextual alert: %s", e)
+					print(f"❌ [RAG] Error generating contextual alert: {e}")
 			else:
 				# Non-critical: broadcast processed data with type wrapper
 				try:
@@ -202,14 +242,17 @@ async def ingest_data(body: dict, background_tasks: BackgroundTasks, authorizati
 					}
 					import json
 					await frontend_manager.broadcast(json.dumps(message))
+					print("📡 [AI] Data broadcasted to frontend\n")
 				except Exception as e:
-					logger.error("Error broadcasting processed data: %s", e)
+					print(f"❌ [AI] Error broadcasting processed data: {e}")
 		except Exception as e:
+			print(f"❌ [AI] Error in background AI processing: {e}\n")
 			logger.exception("Error in background AI processing: %s", e)
 
 	# Schedule the async task without blocking the request
 	asyncio.create_task(_process_and_save_async())
 
+	print(f"✅ [FastAPI] Packet accepted for processing: {doc_id}\n")
 	return {"status": "accepted", "id": doc_id, "saved": saved, "user": uid}
 
 

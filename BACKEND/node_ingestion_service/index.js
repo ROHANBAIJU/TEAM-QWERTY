@@ -46,8 +46,9 @@ httpServer.listen(NODE_SERVER_PORT, () => {
 (async () => {
   if (USE_REDIS_CACHE) {
     await redisCache.initialize();
-    // Start aggregation service
-    aggregationService.start();
+    // Start aggregation service (disabled for demo mode)
+    // aggregationService.start();
+    console.log('[Node.js] ℹ️  Aggregation service disabled for demo mode');
   }
 })();
 
@@ -150,36 +151,41 @@ wss.on('connection', ws => {
 
   ws.on('message', async (message) => {
     try {
-      // 1. Receive and parse the data packet from Arduino
-      // We use toString() because data arrives as a Buffer
+      // 1. Receive and parse the data packet from Arduino/Hardware
       const dataPacket = JSON.parse(message.toString());
 
-      // Simple validation (can be more complex)
+      // Simple validation
       if (!dataPacket.timestamp || !dataPacket.safety) {
-        console.warn('[Node.js] Received incomplete data packet. Discarding.');
+        console.warn('[Node.js] ⚠️  Incomplete packet. Discarding.');
         return;
       }
-      
-      // Corrected the missing comma in the tremor object from your example
-      if (dataPacket.tremor && dataPacket.tremor.tremor_detected === undefined) {
-          // This is a guess based on your data struct, adjust as needed
-          if (dataPacket.tremor.amplitude_g > 10) { // Example logic
-            dataPacket.tremor.tremor_detected = "yes";
-          } else {
-            dataPacket.tremor.tremor_detected = "no";
-          }
-      }
 
-      // 2. Log what we received
-      console.log('[Node.js] Received data from device:', dataPacket);
+      // 2. Log what we received - DEMO MODE
+      console.log('\n' + '='.repeat(70));
+      console.log('📦 [Node.js] HARDWARE PACKET RECEIVED');
+      console.log('='.repeat(70));
+      console.log('⏰ Timestamp:', dataPacket.timestamp);
+      console.log('🔒 Rigidity:', {
+        emg_wrist: dataPacket.rigidity?.emg_wrist,
+        emg_arm: dataPacket.rigidity?.emg_arm,
+        rigid: dataPacket.rigidity?.rigid
+      });
+      console.log('🫨 Tremor:', {
+        amplitude_g: dataPacket.tremor?.amplitude_g,
+        frequency_hz: dataPacket.tremor?.frequency_hz,
+        detected: dataPacket.tremor?.tremor_detected
+      });
+      console.log('🚨 Safety:', {
+        fall_detected: dataPacket.safety?.fall_detected,
+        accel_z_g: dataPacket.safety?.accel_z_g
+      });
 
       // 3. Process the data (Redis cache or direct forward)
+      console.log('📤 Forwarding to FastAPI for AI processing...');
       await processDataPacket(dataPacket);
 
     } catch (error) {
-      console.error('[Node.js] Error processing message:', error.message);
-      // Optional: send error back to device
-      // ws.send(JSON.stringify({ error: "Invalid JSON format" }));
+      console.error('[Node.js] ❌ Error processing message:', error.message);
     }
   });
 
