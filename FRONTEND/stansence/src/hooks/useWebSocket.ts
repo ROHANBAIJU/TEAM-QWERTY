@@ -76,10 +76,10 @@ interface UseWebSocketReturn {
 }
 
 export function useWebSocket(url?: string): UseWebSocketReturn {
-  // Use environment variable or fallback to localhost for development
+  // Use environment variable or fallback to localhost:8000 (FastAPI) for development
   const defaultUrl = process.env.NEXT_PUBLIC_WEBSOCKET_URL 
     ? `${process.env.NEXT_PUBLIC_WEBSOCKET_URL}/ws/frontend-data`
-    : 'ws://localhost:8080/ws/frontend-data';
+    : 'ws://localhost:8000/ws/frontend-data';  // Changed from 8080 to 8000
   
   const wsUrl = url || defaultUrl;
   
@@ -95,7 +95,7 @@ export function useWebSocket(url?: string): UseWebSocketReturn {
   const maxReconnectAttempts = 10;
   const baseReconnectDelay = 1000; // Start with 1 second
   const lastUpdateRef = useRef<number>(0);
-  const updateThrottleMs = 2000; // Only update state every 2 seconds max
+  const updateThrottleMs = 500; // Reduced from 2000ms to 500ms for more responsive updates
 
   useEffect(() => {
     const connect = () => {

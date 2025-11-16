@@ -171,7 +171,13 @@ async def ingest_data(body: dict, background_tasks: BackgroundTasks, authorizati
 					await asyncio.to_thread(proc_ref.set, processed.model_dump())
 					print(f"💾 [AI] Saved processed data: {doc_id}")
 				except Exception as e:
-					print(f"❌ [AI] Error saving processed data: {e}")
+					error_msg = str(e)
+					if "Invalid JWT Signature" in error_msg or "invalid_grant" in error_msg:
+						print(f"🔴 [AI] FIRESTORE WRITE FAILED - Invalid service account key")
+						print(f"💡 Download fresh key from Firebase Console")
+						print(f"🎮 Continuing in DEMO MODE without database writes")
+					else:
+						print(f"❌ [AI] Error saving processed data: {e}")
 
 			# Determine critical events
 			critical_event = None
@@ -184,6 +190,19 @@ async def ingest_data(body: dict, background_tasks: BackgroundTasks, authorizati
 			elif processed.analysis.is_tremor_confirmed:
 				print("⚠️  [AI] WARNING: Tremor confirmed")
 
+			# ALWAYS broadcast processed data first (so frontend gets scores)
+			try:
+				message = {
+					"type": "processed_data",
+					"data": processed.model_dump()
+				}
+				import json
+				await frontend_manager.broadcast(json.dumps(message))
+				print("📡 [AI] Processed data broadcasted to frontend")
+			except Exception as e:
+				print(f"❌ [AI] Error broadcasting processed data: {e}")
+
+			# ADDITIONALLY send alert if critical event detected
 			if critical_event:
 				try:
 					print(f"🎯 [RAG] Generating contextual alert for: {critical_event}")
@@ -205,9 +224,22 @@ async def ingest_data(body: dict, background_tasks: BackgroundTasks, authorizati
 					print(f"📝 Message: {alert_text}")
 					print("="*70)
 					
+					# Map event types to frontend-compatible formats
+					event_type_map = {
+						"fall": "fall",
+						"rigidity_spike": "rigidity",
+						"tremor_confirmed": "tremor"
+					}
+					
+					# Determine severity
+					severity = "critical" if critical_event == "fall" else "warning"
+					
 					alert_doc = AlertModel(
+						id=f"{processed.timestamp}_{critical_event}",
 						timestamp=processed.timestamp,
 						event_type=critical_event,
+						severity=severity,
+						type=event_type_map.get(critical_event, critical_event),
 						message=alert_text,
 						data_snapshot=processed.model_dump()
 					)
@@ -228,23 +260,11 @@ async def ingest_data(body: dict, background_tasks: BackgroundTasks, authorizati
 						}
 						import json
 						await frontend_manager.broadcast(json.dumps(message))
-						print("📡 [RAG] Alert broadcasted to frontend")
+						print("📡 [RAG] Alert broadcasted to frontend\n")
 					except Exception as e:
 						print(f"❌ [RAG] Error broadcasting alert: {e}")
 				except Exception as e:
 					print(f"❌ [RAG] Error generating contextual alert: {e}")
-			else:
-				# Non-critical: broadcast processed data with type wrapper
-				try:
-					message = {
-						"type": "processed_data",
-						"data": processed.model_dump()
-					}
-					import json
-					await frontend_manager.broadcast(json.dumps(message))
-					print("📡 [AI] Data broadcasted to frontend\n")
-				except Exception as e:
-					print(f"❌ [AI] Error broadcasting processed data: {e}")
 		except Exception as e:
 			print(f"❌ [AI] Error in background AI processing: {e}\n")
 			logger.exception("Error in background AI processing: %s", e)

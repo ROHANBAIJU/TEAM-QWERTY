@@ -58,9 +58,12 @@ class Alert(BaseModel):
     """
     Schema for a critical alert to be saved in Firestore and sent to frontend.
     """
+    id: Optional[str] = None  # Unique identifier for frontend tracking
     timestamp: str
     event_type: str  # "fall", "rigidity_spike", etc.
+    severity: str = "warning"  # "critical", "warning", "info"
     message: str     # The rich message from the RAG agent
+    type: Optional[str] = None  # Frontend expects 'fall', 'tremor', 'rigidity', 'medication'
     data_snapshot: dict # A snapshot of the data that caused the alert
 
 

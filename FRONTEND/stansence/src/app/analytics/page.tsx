@@ -187,34 +187,60 @@ export default function Analytics() {
     };
   }, [initializeChart]);
 
-  // Update from real-time WebSocket data (throttled to 3 seconds)
+  // Update from real-time WebSocket data (reduced throttle to 500ms for more responsive updates)
   useEffect(() => {
-    if (latestData && latestData.scores) {
-      const now = Date.now();
-      if (now - lastUpdateTime >= 3000) {
-        setSymptomData({
-          tremor: latestData.scores.tremor * 100,
-          rigidity: latestData.scores.rigidity * 100,
-          slowness: latestData.scores.slowness * 100,
-          gait: latestData.scores.gait * 100,
-        });
-        setLastUpdateTime(now);
-      }
+    if (!latestData) return;
+    
+    const now = Date.now();
+    // Reduced from 3000ms to 500ms for more responsive UI
+    if (now - lastUpdateTime >= 500) {
+      // Extract scores from either scores object or analysis object
+      const scores = latestData.scores || {};
+      const tremor = scores.tremor !== undefined ? scores.tremor * 100 : 
+                     (latestData.analysis?.is_tremor_confirmed ? 50 : 0);
+      const rigidity = scores.rigidity !== undefined ? scores.rigidity * 100 :
+                       (latestData.analysis?.is_rigid ? 50 : 0);
+      const slowness = scores.slowness !== undefined ? scores.slowness * 100 : 0;
+      const gait = scores.gait !== undefined ? scores.gait * 100 :
+                   (latestData.analysis?.gait_stability_score ? latestData.analysis.gait_stability_score * 100 : 0);
+      
+      console.log('📊 Updating UI with scores:', { tremor, rigidity, slowness, gait });
+      
+      setSymptomData({
+        tremor,
+        rigidity,
+        slowness,
+        gait,
+      });
+      setLastUpdateTime(now);
     }
   }, [latestData, lastUpdateTime]);
 
   // Update chart with live data
   useEffect(() => {
-    if (!latestData || !chartInstance || !latestData.scores) return;
+    if (!latestData || !chartInstance) return;
+
+    const scores = latestData.scores || {};
+    const hasSomeData = scores.tremor !== undefined || scores.rigidity !== undefined || scores.gait !== undefined;
+    
+    if (!hasSomeData) {
+      console.log('⚠️ No score data available yet');
+      return;
+    }
 
     const now = new Date();
     const timeLabel = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
     setChartData(prev => {
+      const tremorValue = scores.tremor !== undefined ? scores.tremor * 100 : 0;
+      const rigidityValue = scores.rigidity !== undefined ? scores.rigidity * 100 : 0;
+      const gaitValue = scores.gait !== undefined ? scores.gait * 100 : 
+                        (latestData.analysis?.gait_stability_score ? latestData.analysis.gait_stability_score * 100 : 0);
+      
       const newLabels = [...prev.labels, timeLabel].slice(-20);
-      const newTremor = [...prev.tremor, (latestData.scores?.tremor || 0) * 100].slice(-20);
-      const newRigidity = [...prev.rigidity, (latestData.scores?.rigidity || 0) * 100].slice(-20);
-      const newGait = [...prev.gait, (latestData.scores?.gait || 0) * 100].slice(-20);
+      const newTremor = [...prev.tremor, tremorValue].slice(-20);
+      const newRigidity = [...prev.rigidity, rigidityValue].slice(-20);
+      const newGait = [...prev.gait, gaitValue].slice(-20);
 
       chartInstance.data.labels = newLabels;
       chartInstance.data.datasets[0].data = newTremor;

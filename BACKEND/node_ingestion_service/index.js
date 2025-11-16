@@ -72,10 +72,13 @@ async function processDataPacket(dataPacket, userId = 'test_patient_001') {
       
       console.log(`[Node.js] ✓ Cached data in Redis for ${userId}`);
       
-      // Only forward critical events to FastAPI immediately
+      // DEMO MODE: Forward ALL packets to FastAPI for AI processing
+      console.log(`[Node.js] 📤 Forwarding to FastAPI for AI processing...`);
+      await forwardToFastAPI(dataPacket);
+      
+      // Mark critical events
       if (isCriticalEvent(dataPacket)) {
-        console.log(`[Node.js] ⚠️ CRITICAL EVENT - forwarding to FastAPI immediately`);
-        await forwardToFastAPI(dataPacket);
+        console.log(`[Node.js] ⚠️ CRITICAL EVENT DETECTED`);
       }
     } else {
       // Legacy mode: forward everything immediately
