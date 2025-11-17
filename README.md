@@ -84,11 +84,11 @@
 #### Real-Time Data Flow
 
 ![Live Demo](docs/images/live-demo3.png)
-*Data Packet recived from the hardware*
+*Data Packet recived from the hardware 👆*
 ![Live Demo](docs/images/live-demo2.png)
-*NODE JS WebSocket to FAST API real-time sensor data streaming with sub-second latency*
+*NODE JS WebSocket to FAST API real-time sensor data streaming with sub-second latency 👆*
 ![Live Demo](docs/images/live-demo1.png)
-*WebSocket-based fastapi streaming to frontend again with sub-second latency*
+*WebSocket-based fastapi streaming to frontend again with sub-second latency 👆*
 
 
 #### AI Analysis in Action
