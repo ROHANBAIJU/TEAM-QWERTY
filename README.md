@@ -73,7 +73,7 @@
 
 #### Wearable Sensor Unit
 ![Prototype-Unit](docs/images/werable-unit.png)
-*Arduino R4-based wearable device with MPU6050 accelerometer and EMG sensors*
+
 
 
 #### Complete System Architecture
