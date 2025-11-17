@@ -90,15 +90,6 @@
 ![Live Demo](docs/images/live-demo1.png)
 *WebSocket-based fastapi streaming to frontend again with sub-second latency 👆*
 
-
-#### AI Analysis in Action
-![AI Processing](docs/images/ai-analysis.gif)
-*Machine learning models processing sensor data and generating clinical insights*
-
-#### Game Therapy Session
-![Game Demo](docs/images/game-therapy.gif)
-*Patient engaging with EMG-controlled strength dial game for rehabilitation*
-
 </div>
 
 ---
