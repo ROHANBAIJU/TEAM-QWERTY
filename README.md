@@ -75,22 +75,16 @@
 ![Prototype-Unit](docs/images/werable-unit.png)
 *Arduino R4-based wearable device with MPU6050 accelerometer and EMG sensors*
 
-#### EMG Sensor Integration
-![EMG Sensors](docs/images/emg-sensors.png)
-*Muscle activity monitoring for rigidity detection on wrist and arm*
 
 #### Complete System Architecture
 ![System Architecture](docs/images/system-architecture.png)
 *End-to-end data flow from hardware sensors through Node.js ingestion to FastAPI AI processing*
 
-</div>
-
-### 🎬 Live Demonstrations (COMING SOON)
-
-<div align="center">
 
 #### Real-Time Data Flow
-![Live Demo](docs/images/live-demo.gif)
+![Live Demo](docs/images/live-demo.png)
+![Live Demo](docs/images/live-demo2.png)
+![Live Demo](docs/images/live-demo3.png)
 *WebSocket-based real-time sensor data streaming to frontend with sub-second latency*
 
 #### AI Analysis in Action
