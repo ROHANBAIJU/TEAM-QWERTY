@@ -92,6 +92,8 @@
 
 </div>
 
+<div align="center">
+
 #### Real-Time Data Flow
 
 ![Live Demo](docs/images/live-demo3.png)
