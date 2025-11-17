@@ -88,7 +88,7 @@
 #### Wearable Sensor Unit
 ![Prototype-Unit](docs/images/wear.png)
 
-
+</div>
 
 #### Real-Time Data Flow
 
