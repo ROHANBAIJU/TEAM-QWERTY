@@ -91,6 +91,11 @@
 ![Prototype-Unit](docs/images/wear.png)
 
 
+#### Circuit Diagram
+![Prototype-PCB-Unit](docs/images/circuit-diagram.png)
+
+
+
 #### PCB Design
 ![Prototype-PCB-Unit](docs/images/PCB.png)
 
