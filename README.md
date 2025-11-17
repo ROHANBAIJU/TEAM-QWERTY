@@ -82,7 +82,7 @@
 
 
 #### Real-Time Data Flow
-![Live Demo](docs/images/live-demo.png)
+![Live Demo](docs/images/live-demo1.png)
 ![Live Demo](docs/images/live-demo2.png)
 ![Live Demo](docs/images/live-demo3.png)
 *WebSocket-based real-time sensor data streaming to frontend with sub-second latency*
