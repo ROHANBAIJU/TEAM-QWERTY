@@ -71,7 +71,7 @@
 ### 🔧 AI Model Analytics
 
 <div align="center">
-![System Architecture](docs/images/models.png)
+![Ai Analysis and datasets](docs/images/models.png)
 #### Highly accurate Models for verification of Data packets.
 </div>
    
