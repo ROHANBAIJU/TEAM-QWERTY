@@ -24,12 +24,12 @@
     * Backend Integration
     * UI/UX Design
 
--   **[UDITH](https://github.com/Udith-creates)**
+-   **[UDITH S](https://github.com/Udith-creates)**
     * Hardware Development
     * Game Developer
     * Backend Integration
 
--   **[JOEL](https://github.com/joeljo777)**
+-   **[JOEL JO](https://github.com/joeljo777)**
     * Hardware Integration
     * PCB Design
     * Game testing and fine tuning
