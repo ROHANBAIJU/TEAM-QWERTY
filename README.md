@@ -11,6 +11,30 @@
 [![WebSocket](https://img.shields.io/badge/WebSocket-Real--time-green)](https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API)
 
 ---
+## 👥 Team QWERTY
+
+### Core Team
+-   **[ROHANBAIJU](https://github.com/ROHANBAIJU)**: Lead Developer
+    * AI/ML Model Development & Integration
+    * Backend Engineering
+    * Backend-Frontend Integration
+
+-   **Dhiya** ([*add profile link here*])
+    * Frontend Development
+    * Backend Integration
+    * UI/UX Design
+
+-   **Udith** ([*add profile link here*])
+    * Hardware Development
+    * Game Developer
+    * Backend Integration
+
+-   **Joel** ([*add profile link here*])
+    * Hardware Integration
+    * PCB Design
+    * Game testing and fine tuning
+ 
+---
 
 ## 📸 System Overview
 
@@ -28,11 +52,18 @@
 
 #### Game Therapy Interface
 ![Games Interface](docs/images/games-interface.png)
+![Strength Meter Game](docs/images/games.png)
 *Interactive rehabilitation games for motor skill improvement and therapy engagement*
 
 #### Rewards System
 ![Rewards System](docs/images/rewards-system.png)
 *Gamification system to encourage patient engagement and adherence to therapy routines*
+
+
+#### Doctor Consult System
+![Rewards System](docs/images/doctor.png)
+*Gamification system to encourage patient engagement and adherence to therapy routines*
+
 
 </div>
 
@@ -41,8 +72,8 @@
 <div align="center">
 
 #### Wearable Sensor Unit
-![Hardware Setup](docs/images/hardware-sensor.png)
-*ESP32-based wearable device with MPU6050 accelerometer and EMG sensors*
+![Prototype-Unit](docs/images/werable-unit.png)
+*Arduino R4-based wearable device with MPU6050 accelerometer and EMG sensors*
 
 #### EMG Sensor Integration
 ![EMG Sensors](docs/images/emg-sensors.png)
@@ -54,7 +85,7 @@
 
 </div>
 
-### 🎬 Live Demonstrations
+### 🎬 Live Demonstrations (COMING SOON)
 
 <div align="center">
 
@@ -491,6 +522,7 @@ Interactive API documentation (Swagger UI)
 - **Challenge**: Healthcare Technology Innovation
 - **Focus**: IoT-enabled remote patient monitoring
 - **Innovation**: Real-time AI analysis with game therapy integration
+### WON THE HACKATHON....
 
 ### Technical Highlights
 - ✅ Sub-second latency sensor-to-dashboard pipeline
@@ -533,16 +565,9 @@ git push origin feature/amazing-feature
 
 MIT License - see [LICENSE](LICENSE) file for details.
 
+
+
 ---
-
-## 👥 Team QWERTY
-
-### Core Team
-- **Lead Developer**: [ROHANBAIJU](https://github.com/ROHANBAIJU)
-- **Full-Stack Engineering**: AI/ML integration, frontend, backend
-- **Hardware Integration**: ESP32 firmware, sensor calibration
-- **UI/UX Design**: Modern, responsive dashboard
-
 ### Contact
 - **GitHub**: [ROHANBAIJU/TEAM-QWERTY](https://github.com/ROHANBAIJU/TEAM-QWERTY)
 - **Issues**: [Report Bugs](https://github.com/ROHANBAIJU/TEAM-QWERTY/issues)
@@ -609,29 +634,6 @@ If you find this project helpful:
 
 ---
 
-## 📜 Version History
-
-### v3.0.0 (November 2025) - AI & Game Therapy Integration
-- ✨ Added AI-powered symptom analysis with ML models
-- ✨ Implemented personalized care recommendations
-- ✨ Integrated game therapy with biofeedback
-- ✨ Added rewards system for patient engagement
-- ✨ Deployed WebSocket real-time streaming
-- ✨ Enhanced UI with modern glass morphism design
-- 🐛 Fixed rigidity/slowness calculation accuracy
-- 🐛 Resolved WebSocket reconnection loop
-- 📝 Complete documentation overhaul
-
-### v2.0.0 (October 2025) - Accessibility Overhaul
-- ✨ WCAG AAA compliance
-- ✨ Dual theme system (dark/light)
-- ✨ Keyboard shortcuts and voice input
-- ✨ Enhanced contrast ratios
-
-### v1.0.0 (Initial Release)
-- ✨ Basic dashboard with symptom tracking
-- ✨ Medication logging
-- ✨ Chart visualizations
 
 ---
 
