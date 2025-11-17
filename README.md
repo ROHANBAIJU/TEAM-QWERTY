@@ -70,15 +70,14 @@
 ### 🔧 Hardware Components
 
 <div align="center">
+   
+#### Complete System Architecture
+![System Architecture](docs/images/system-architecture.png)
+*End-to-end data flow from hardware sensors through Node.js ingestion to FastAPI AI processing*
 
 #### Wearable Sensor Unit
 ![Prototype-Unit](docs/images/werable-unit.png)
 
-
-
-#### Complete System Architecture
-![System Architecture](docs/images/system-architecture.png)
-*End-to-end data flow from hardware sensors through Node.js ingestion to FastAPI AI processing*
 
 
 #### Real-Time Data Flow
