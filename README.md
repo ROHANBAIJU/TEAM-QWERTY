@@ -75,9 +75,6 @@
 ![Prototype-Unit](docs/images/werable-unit.png)
 *Arduino R4-based wearable device with MPU6050 accelerometer and EMG sensors*
 
-#### EMG Sensor Integration
-![EMG Sensors](docs/images/emg-sensors.png)
-*Muscle activity monitoring for rigidity detection on wrist and arm*
 
 #### Complete System Architecture
 ![System Architecture](docs/images/system-architecture.png)
