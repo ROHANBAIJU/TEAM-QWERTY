@@ -1,4 +1,4 @@
-# 🏥 StanceSense - AI-Powered Parkinson's Disease Monitoring System
+# 🏥 StanceSense - AI-Powered Parkinson's Disease Monitoring and Intelligent Rehabilitation System.
 
 **Real-time Symptom Monitoring & Clinical Insights Platform**
 
@@ -19,7 +19,7 @@
     * Backend Engineering
     * Backend-Frontend Integration
 
--   **Dhiya** ([*add profile link here*])
+-   **Dhiya** (https://github.com/dhiya-k)
     * Frontend Development
     * Backend Integration
     * UI/UX Design
@@ -661,20 +661,3 @@ If you find this project helpful:
 
 ---
 
-## 🖼️ Image Credits
-
-> **Note**: Replace placeholder paths with actual screenshots
-
-```bash
-# Recommended screenshot locations:
-docs/images/analytics-dashboard.png     # Main dashboard view
-docs/images/sensor-cards.png            # Tremor/Rigidity/Gait cards
-docs/images/games-interface.png         # Game therapy screen
-docs/images/rewards-system.png          # Rewards/achievements page
-docs/images/hardware-sensor.png         # ESP32 + sensors photo
-docs/images/emg-sensors.png             # EMG sensor closeup
-docs/images/system-architecture.png     # Architecture diagram
-docs/images/live-demo.gif               # Screen recording
-docs/images/ai-analysis.gif             # AI processing animation
-docs/images/game-therapy.gif            # Game interaction recording
-``` 
