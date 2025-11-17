@@ -57,12 +57,12 @@
 
 #### Rewards System
 ![Rewards System](docs/images/rewards-system.png)
-*Gamification system to encourage patient engagement and adherence to therapy routines*
+*Reward system to encourage patient engagement and adherence to therapy routines*
 
 
 #### Doctor Consult System
 ![Rewards System](docs/images/doctor.png)
-*Gamification system to encourage patient engagement and adherence to therapy routines*
+*Ibuilt Doctor communication system to encourage direct communication*
 
 
 </div>
