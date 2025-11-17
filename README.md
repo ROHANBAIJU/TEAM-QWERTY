@@ -73,7 +73,7 @@
 
 #### Wearable Sensor Unit
 ![Prototype-Unit](docs/images/werable-unit.png)
-*Arduino R4-based wearable device with MPU6050 accelerometer and EMG sensors*
+
 
 
 #### Complete System Architecture
@@ -82,18 +82,13 @@
 
 
 #### Real-Time Data Flow
-![Live Demo](docs/images/live-demo.png)
-![Live Demo](docs/images/live-demo2.png)
+
 ![Live Demo](docs/images/live-demo3.png)
-*WebSocket-based real-time sensor data streaming to frontend with sub-second latency*
-
-#### AI Analysis in Action
-![AI Processing](docs/images/ai-analysis.gif)
-*Machine learning models processing sensor data and generating clinical insights*
-
-#### Game Therapy Session
-![Game Demo](docs/images/game-therapy.gif)
-*Patient engaging with EMG-controlled strength dial game for rehabilitation*
+*Data Packet recived from the hardware 👆*
+![Live Demo](docs/images/live-demo2.png)
+*NODE JS WebSocket to FAST API real-time sensor data streaming with sub-second latency 👆*
+![Live Demo](docs/images/live-demo1.png)
+*WebSocket-based fastapi streaming to frontend again with sub-second latency 👆*
 
 </div>
 
