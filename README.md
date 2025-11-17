@@ -67,6 +67,16 @@
 
 </div>
 
+
+### 🔧 AI Model Analytics
+
+<div align="center">
+![System Architecture](docs/images/models.png)
+#### Highly accurate Models for verification of Data packets.
+</div>
+   
+
+
 ### 🔧 Hardware Components
 
 <div align="center">
@@ -83,11 +93,16 @@
 #### Real-Time Data Flow
 
 ![Live Demo](docs/images/live-demo3.png)
+
 *Data Packet recived from the hardware 👆*
+
 ![Live Demo](docs/images/live-demo2.png)
+
 *NODE JS WebSocket to FAST API real-time sensor data streaming with sub-second latency 👆*
+
 ![Live Demo](docs/images/live-demo1.png)
-*WebSocket-based fastapi streaming to frontend again with sub-second latency 👆*
+
+*WebSocket-based fastapi streaming to frontend ,again with sub-second latency 👆*
 
 </div>
 
@@ -117,7 +132,7 @@ A **complete IoT-AI platform** featuring:
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                        HARDWARE LAYER                           │
-│  ESP32 + MPU6050 (Accelerometer) + EMG Sensors (Wrist/Arm)    │
+│  Arduino R4 + MPU6050 (Accelerometer) + EMG Sensors (Wrist/Arm)    │
 │  📡 WiFi Transmission → JSON Packets every 500ms               │
 └────────────────────┬────────────────────────────────────────────┘
                      │
