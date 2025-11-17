@@ -79,7 +79,7 @@
    
 
 
-### 🔧 Hardware Components
+### 🔧 Prototype System Design
 
 <div align="center">
    
@@ -89,6 +89,10 @@
 
 #### Wearable Sensor Unit
 ![Prototype-Unit](docs/images/wear.png)
+
+
+#### PCB Design
+![Prototype-PCB-Unit](docs/images/PCB.png)
 
 </div>
 
