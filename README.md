@@ -545,8 +545,8 @@ Interactive API documentation (Swagger UI)
 <div align="center">
 
 #### Analytics Dashboard
-![Winners Picture](docs/images/analytics-dashboard.png)
-*Real-time symptom monitoring with live charts, AI clinical summaries, and personalized care recommendations*
+![Winners Picture](docs/images/WINNERS.jpg)
+*YEAA*
 </div>
 
 
