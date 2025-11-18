@@ -544,7 +544,6 @@ Interactive API documentation (Swagger UI)
 
 <div align="center">
 
-#### Analytics Dashboard
 ![Winners Picture](docs/images/WINNERS.jpg)
 *YEAA*
 </div>
